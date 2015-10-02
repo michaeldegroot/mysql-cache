@@ -49,7 +49,7 @@ db.TTL = 5; // Amount of Time To Live for a cache key.
     // Require the module.
     var db = require('cache-mysql');
 
-    // Setup some information.
+    // Setup your database information
     db.init({
 	host: '',
 	user: '',

@@ -1,0 +1,23 @@
+{
+  "name": "cache-sql",
+  "version": "0.0.0",
+  "description": "Automatically caches SELECT sql's in the machine's memory using node-cache.",
+  "main": "app.js",
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@bitbucket.org:michaeldegroot/mysql-cache.git"
+  },
+  "keywords": [
+    "mysql",
+    "cache",
+    "mysql-cache",
+    "driver"
+  ],
+  "author": "michaeldegroot <specamps@gmail.com>",
+  "license": "ISC"
+}

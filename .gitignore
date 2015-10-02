@@ -1,0 +1,9 @@
+manualtest.js
+mysqlcache
+*.bat
+*.sh
+node_modules
+npm-debug.log
+.coveralls.yml
+coverage
+tmp

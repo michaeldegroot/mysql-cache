@@ -10,7 +10,7 @@
 ```
 #!nodejs
 // Require the module.
-var db = require('cache-mysql');
+var db = require('mysql-cache');
 
 // Setup some information.
 db.init({
@@ -28,7 +28,7 @@ db.query("SELECT ? + ? AS solution",[1,5],function(resultMysql){ // the SQL cont
 	db.query("SELECT ? + ? AS solution",[1,5],function(resultCached){ // This exact SQL has been executed before and will be retrieved from cache.
 		console.log("Result from mysql is: "+resultMysql[0].solution);
 		console.log("Result cached is: "+resultCached[0].solution);
-		db.stats(); // Show some interesting statistics about cache-mysql.
+		db.stats(); // Show some interesting statistics about mysql-cache.
 	});
 });
 
@@ -42,12 +42,12 @@ db.TTL = 5; // Amount of Time To Live for a cache key.
 #  How do I use it?
 
 ## 1. Start by installing the package:
-    npm install cache-mysql
+    npm install mysql-cache
 
 ## 2. Put this in your nodejs server file:
 
     // Require the module.
-    var db = require('cache-mysql');
+    var db = require('mysql-cache');
 
     // Setup your database information
     db.init({
@@ -70,7 +70,7 @@ db.TTL = 5; // Amount of Time To Live for a cache key.
         db.query("SELECT ? + ? AS solution",[1,5],function(resultCached){ // This exact SQL has been executed before and will be retrieved from cache.
             console.log("Result from mysql is: "+resultMysql[0].solution);
             console.log("Result cached is: "+resultCached[0].solution);
-            db.stats(); // Show some interesting statistics about cache-mysql.
+            db.stats(); // Show some interesting statistics about mysql-cache.
         });
     });
 

@@ -1,6 +1,6 @@
 {
   "name": "mysql-cache",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Automatically caches SELECT sql's in the machine's memory using node-cache.",
   "main": "app.js",
   "dependencies": {

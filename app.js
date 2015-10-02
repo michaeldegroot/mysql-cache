@@ -1,28 +1,33 @@
 var mysql = require('mysql');
 var NodeCache = require( "node-cache" );
-var myCache = new NodeCache();
+var myCache = new NodeCache({ stdTTL: 0, checkperiod: 120 });
 var colors = require('colors');
 var crypto = require('crypto');
 var md5sum = crypto.createHash('md5');
 
-exports.pool = mysql.createPool({
-    host     : config.db.host,
-    user     : config.db.user,
-    password : config.db.password,
-    database : config.db.database,
-    connectionLimit: 100,
-    supportBigNumbers: true
-});
+exports.init = function(config){
+	exports.pool = mysql.createPool({
+		host     : config.host,
+		user     : config.user,
+		password : config.password,
+		database : config.database,
+		connectionLimit: config.connectionLimit,
+		supportBigNumbers: true
+	});
+	exports.verboseMode = config.verbose;
+	exports.cacheMode = config.caching;
+	testConnection();
+}
 
+exports.TTL = 0;
+exports.prefix = 'mysql-cache';
+exports.ready = false;
 exports.lastTrace = "";
 exports.cacheShow = 0;
 exports.poolConnections = 0;
 exports.querys = 0;
 exports.totalquerys = 0;
 exports.QPM = 0;
-
-exports.verboseMode = 0;
-exports.cacheMode = 0;
 
 exports.queryPerSec = function(){
 	setInterval(function(){
@@ -32,18 +37,48 @@ exports.queryPerSec = function(){
 }
 exports.queryPerSec();
 
+exports.flushAll = function(){
+	myCache.flushAll();
+	if(exports.verboseMode) console.log(colors.green(exports.prefix+": ")+" Cache flushed");
+}
+
+exports.stats = function(){
+	console.log("-----------------------");
+	console.log(colors.yellow(exports.prefix+": ")+" Statistics");
+	console.log("Open Pool Connections: "+exports.poolConnections);
+	console.log("Requests Per Second: "+exports.QPM);
+	console.log("Hits: "+myCache.getStats().hits);
+	console.log("Misses: "+myCache.getStats().misses);
+	console.log("Keys: "+myCache.getStats().keys);
+	console.log("Key Size: "+myCache.getStats().ksize);
+	console.log("Value Size: "+myCache.getStats().vsize);
+	if(exports.QPM>=100){
+		console.log("**** "+colors.red("QUERRY PER SEC TOO HIGH"));
+	}
+	if(exports.poolConnections>=100){
+		console.log("**** "+colors.red("MYSQL POOL CONNECTION LIMIT REACHED"));
+	}
+	console.log("-----------------------");
+};
+
 exports.query = function(sql,params,callback){
+	if(!exports.ready){
+		setTimeout(function(){
+			exports.query(sql,params,callback);
+		},100);
+		return;
+	}
+
 	exports.lastTrace = getStackTrace();
-	verboseMode = 0;
-	cacheMode = 0;
+	cacheMode = exports.cacheMode;
 	
 	exports.querys++;
 	
-	if(verboseMode){
+	if(exports.verboseMode){
 		exports.cacheShow++;
 		if(exports.cacheShow>=40){
 			exports.cacheShow = 0;
-			console.log("------------------- SQL REPORT -------------------");
+			console.log("----------- SQL REPORT ------------");
 			console.log("Open Pool Connections: "+exports.poolConnections);
 			console.log("Requests Per Second: "+exports.QPM);
 			console.log("Hits: "+myCache.getStats().hits);
@@ -57,7 +92,7 @@ exports.query = function(sql,params,callback){
 			if(exports.poolConnections>=100){
 				console.log("**** "+colors.red("MYSQL POOL CONNECTION LIMIT REACHED"));
 			}
-			console.log("--------------------------------------------------");
+			console.log("----------------------------------");
 		}
 	}
 	if(typeof(params)=="function"){
@@ -79,10 +114,10 @@ exports.query = function(sql,params,callback){
 		exports.getKey(hash,function(cache){
 			if(!cacheMode) cache = false;
 			if(cache){
-				if(verboseMode) console.log(colors.yellow(hash)+"-"+colors.green(query));
+				if(exports.verboseMode) console.log(colors.yellow(hash)+"-"+colors.green(query));
 				callback(cache);
 			}else{
-				if(verboseMode) console.log(colors.yellow(hash)+"-"+colors.red(query));
+				if(exports.verboseMode) console.log(colors.yellow(hash)+"-"+colors.red(query));
 				getPool(function(connection){
 					connection.query(sql,params, function(err, rows){
 						endPool(connection,function(poolResult){
@@ -106,7 +141,7 @@ exports.query = function(sql,params,callback){
 							if(result){
 								callback(rows);
 							}else{
-								if(verboseMode) console.log("SQL: CACHE KEY CREATE FAILED!");
+								if(exports.verboseMode) console.log("SQL: CACHE KEY CREATE FAILED!");
 								callback(false,"CACHEERROR");
 							}
 						});
@@ -128,7 +163,7 @@ exports.query = function(sql,params,callback){
 					throw err;
 					return;
 				}
-				if(verboseMode) console.log(colors.red(query));
+				if(exports.verboseMode) console.log(colors.red(query));
 				callback(rows);
 			});
 		});
@@ -146,6 +181,7 @@ exports.getKey = function(id,callback){
 		if(!err){
 			if(value == undefined){
 				callback(false);
+				
 			}else{
 				callback(value);
 			}
@@ -154,7 +190,7 @@ exports.getKey = function(id,callback){
 }
 
 exports.createKey = function(id,val,callback){
-	myCache.set(id, val, function(err, success){
+	myCache.set(id, val, exports.TTL, function(err, success){
 		if( !err && success ){
 			callback(true);
 		}else{
@@ -163,8 +199,6 @@ exports.createKey = function(id,val,callback){
 	});
 }
 
-
-// Internal Functions
 var getStackTrace = function() {
   var obj = {};
   Error.captureStackTrace(obj, getStackTrace);
@@ -191,21 +225,20 @@ function endPool(connection,callback){
 	callback(true);
 }
 
-testConnection();
-
 function testConnection(){
-	console.log(colors.yellow("MYSQL-CACHE: ")+"Testing DB connection");
+	if(exports.verboseMode) console.log(colors.yellow(exports.prefix+": ")+"Connecting to DB");
     exports.pool.getConnection(function(err, connection) {
 		if (err){
-			console.log(colors.red("MYSQL-CACHE: ")+err.code);
-			console.log(colors.yellow("MYSQL-CACHE: ")+"Trying to reconnect in 3 seconds.");
+			console.log(colors.red(exports.prefix+": ")+err.code);
+			console.log(colors.yellow(exports.prefix+": ")+"Trying to reconnect in 3 seconds.");
 			setTimeout(function(){
 				testConnection();
 			},3000);
 			return;
 		}
 		endPool(connection,function(){
-			console.log(colors.green("MYSQL-CACHE: ")+"Connected to DB");
+			if(exports.verboseMode) console.log(colors.green(exports.prefix+": ")+"Connected to DB");
+			exports.ready = true;
 		});
 	});
 }

@@ -47,7 +47,7 @@ db.TTL = 5; // Amount of Time To Live for a cache key.
 ## 2. Put this in your nodejs server file:
 
     // Require the module.
-    var db = require('./app.js');
+    var db = require('cache-mysql');
 
     // Setup some information.
     db.init({

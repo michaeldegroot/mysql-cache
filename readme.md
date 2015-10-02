@@ -1,64 +1,78 @@
 # What it does
 
-###### Replaces your console object with a more stylish and practical way of displaying notices,warn,info,debug,log and errors. It automagically shows you the line number and filename where the command was executed, along with a timestamp. There is also the ability to catch uncaughtExceptions, disable the output colors, and log to file. You can also setup filters if you want the console or log to not show a certain debug message type. ######
+###### Automatically caches SELECT SQLs in the machine's memory using node-cache and node-mysql.  ######
 
 
 # How does it look?
 
-![console-debug.gif](https://bitbucket.org/repo/a7AMxL/images/462483730-console-debug.gif)
+![tank.gif](https://bitbucket.org/repo/jjGr8o/images/2064265396-tank.gif)
 
-    console.log("I am a log!");
-    console.warn("I am a warn!");
-    console.error("I am a error!");
-    console.debug("I am a debug!");
-    console.info("I am a info!");
-![Example1](http://s21.postimg.org/8sgu1k0dj/image.png)
+```
+#!nodejs
+// Require the module.
+var db = require('mysql-cache');
 
-    Idonotexists();
-![Example2](http://s21.postimg.org/7rglcfjdz/image.png)
+// Setup some information.
+db.init({
+	host: '',
+	user: '',
+	password: '',
+	database: '',
+	connectionLimit: 100, // Mysql connection pool limit (increase value if you are having problems)
+	verbose: true, // Do you want console.log's about what the program is doing?
+	caching: true // Do you want to use SELECT SQL caching?
+});
+
+// Start executing SQL like you are used to using node-mysql
+db.query("SELECT ? + ? AS solution",[1,5],function(resultMysql){ // the SQL contains a SELECT which means it will be cached for future use.
+	db.query("SELECT ? + ? AS solution",[1,5],function(resultCached){ // This exact SQL has been executed before and will be retrieved from cache.
+		console.log("Result from mysql is: "+resultMysql[0].solution);
+		console.log("Result cached is: "+resultCached[0].solution);
+		db.stats(); // Show some interesting statistics about mysql-cache.
+	});
+});
+
+db.flushAll(); // Flush the cache.
+
+db.TTL = 5; // Amount of Time To Live for a cache key.
+```
+
 
 
 #  How do I use it?
 
 ## 1. Start by installing the package:
-    npm install console-debug
+    npm install mysql-cache
 
 ## 2. Put this in your nodejs server file:
 
-    var Debug = require('console-debug');
-    
-	var console = new Debug({
-		uncaughtExceptionCatch: false, // Do we want to catch uncaughtExceptions?
-		consoleFilter: [], // Filter these console output types, Examples: 'LOG', 'WARN', 'ERROR', 'DEBUG', 'INFO'
-		logToFile: true, // if true, will put console output in a log file folder called 'logs'
-		logFilter: ['LOG','DEBUG','INFO'], // Examples: Filter these types to not log to file, Examples: 'LOG', 'WARN', 'ERROR', 'DEBUG', 'INFO'
-		colors: true // do we want pretty pony colors in our console output?
-	}); 
+    // Require the module.
+    var db = require('mysql-cache');
+
+    // Setup your database information
+    db.init({
+	host: '',
+	user: '',
+	password: '',
+	database: '',
+	connectionLimit: 100, // Mysql connection pool limit (increase value if you are having problems)
+	verbose: true, // Do you want console.log's about what the program is doing?
+	caching: true // Do you want to use SELECT SQL caching?
+    });
 
 
 
 
 	
 ## 3. Now you can do stuff like:
-
-    console.log("I am a log!");
-    console.warn("I am a warn!");
-    console.error("I am a error!");
-    console.debug("I am a debug!");
-    console.info("I am a info!");
-	
-	// can also display objects
-	obj = {
-		test1: [1,2,3,4],
-		test3: ["ohai","there"],
-		test4: true
-	};
-    console.log(obj);
-	
-	
-## 4. (optional) Passing the console object to other modules:
-    
-    require('./myfile')(console); // myfile local scope will have now console object overwritten.
+    // Start executing SQL like you are used to using node-mysql
+    db.query("SELECT ? + ? AS solution",[1,5],function(resultMysql){ // the SQL contains a SELECT which means it will be cached for future use.
+        db.query("SELECT ? + ? AS solution",[1,5],function(resultCached){ // This exact SQL has been executed before and will be retrieved from cache.
+            console.log("Result from mysql is: "+resultMysql[0].solution);
+            console.log("Result cached is: "+resultCached[0].solution);
+            db.stats(); // Show some interesting statistics about mysql-cache.
+        });
+    });
 
 # Contact
     You can contact me at specamps@gmail.com

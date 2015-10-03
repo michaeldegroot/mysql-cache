@@ -18,9 +18,10 @@
         user: '',
         password: '',
         database: '',
+        TTL: 0, // Time To Live for a cache key in seconds (0 = infinite)
         connectionLimit: 100, // Mysql connection pool limit (increase value if you are having problems)
-        verbose: true, // Do you want console.log's about what the program is doing?
-        caching: true // Do you want to use SELECT SQL caching?
+        verbose: true, // Do you want info and success messages about what the program is doing?
+        caching: true // Do you want to enable caching?
     });
 
     // Start executing SQL like you are used to using node-mysql

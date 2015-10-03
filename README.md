@@ -3,7 +3,8 @@
 
  - 0.1.0 Release
  - 0.1.1 - 0.1.3 Readme updates
- - 0.1.4 db.Delkey function added and readme updated with all functions
+ - 0.1.4 db.Delkey function added
+ - 0.1.5 Readme updated with all functions
 
 ## What it does
 Automatically caches SELECT SQLs in the machine's memory using node-cache and node-mysql.

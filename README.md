@@ -7,6 +7,7 @@
  - 0.1.5 Readme updated with all functions
 
 ## What it does
+
 Automatically caches SELECT SQLs in the machine's memory using node-cache and node-mysql.
 
 

@@ -6,6 +6,27 @@ var crypto = require('crypto');
 var md5sum = crypto.createHash('md5');
 
 exports.init = function(config){
+	if(config.host.length==0){
+		log("warn","No host value supplied in configuration");
+		return;
+	}
+	if(config.user.length==0){
+		log("warn","No user value supplied in configuration");
+		return;
+	}
+	if(config.password.length==0){
+		log("warn","No password value supplied in configuration");
+		return;
+	}
+	if(config.database.length==0){
+		log("warn","No database value supplied in configuration");
+		return;
+	}
+	if(config.connectionLimit.length==0){
+		log("warn","No connectionLimit value supplied in configuration");
+		return;
+	}
+
 	exports.pool = mysql.createPool({
 		host     : config.host,
 		user     : config.user,
@@ -14,6 +35,7 @@ exports.init = function(config){
 		connectionLimit: config.connectionLimit,
 		supportBigNumbers: true
 	});
+	exports.TTL = config.TTL;
 	exports.verboseMode = config.verbose;
 	exports.cacheMode = config.caching;
 	testConnection();
@@ -39,7 +61,7 @@ exports.queryPerSec();
 
 exports.flushAll = function(){
 	myCache.flushAll();
-	if(exports.verboseMode) console.log(colors.green(exports.prefix+": ")+" Cache flushed");
+	log("success","Cache Flushed");
 }
 
 exports.stats = function(){
@@ -122,15 +144,15 @@ exports.query = function(sql,params,callback){
 					connection.query(sql,params, function(err, rows){
 						endPool(connection,function(poolResult){
 							if(!poolResult){
-								console.log(colors.red("WARNING: ")+"A Connection was trying to be released while it already was!");
-									console.log(colors.red(exports.lastTrace));
+								log("warn","A Connection was trying to be released while it already was!");
+								log("warn",exports.lastTrace);
 							}
 						});
 						if (err){
 							endPool(connection,function(poolResult){
 								if(!poolResult){
-									console.log(colors.red("WARNING: ")+"A Connection was trying to be released while it already was!");
-									console.log(colors.red(exports.lastTrace));
+									log("warn","A Connection was trying to be released while it already was!");
+									log("warn",exports.lastTrace);
 								}
 							});
 							callback(false,"DBERROR");
@@ -139,9 +161,11 @@ exports.query = function(sql,params,callback){
 						}
 						exports.createKey(hash,rows,function(result){
 							if(result){
+								if(!callback) return;
 								callback(rows);
 							}else{
-								if(exports.verboseMode) console.log("SQL: CACHE KEY CREATE FAILED!");
+								log(warn,"CACHE KEY CREATE FAILED!");
+								if(!callback) return;
 								callback(false,"CACHEERROR");
 							}
 						});
@@ -154,8 +178,8 @@ exports.query = function(sql,params,callback){
 			connection.query(sql,params, function(err, rows){
 				endPool(connection,function(poolResult){
 					if(!poolResult){
-						console.log(colors.red("WARNING: ")+"A Connection was trying to be released while it already was!");
-						console.log(colors.red(exports.lastTrace));
+						log("warn","A Connection was trying to be released while it already was!");
+						log("warn",exports.lastTrace);
 					}
 				});
 				if (err){
@@ -163,7 +187,7 @@ exports.query = function(sql,params,callback){
 					throw err;
 					return;
 				}
-				if(exports.verboseMode) console.log(colors.red(query));
+				log("warn",query);
 				callback(rows);
 			});
 		});
@@ -225,19 +249,25 @@ function endPool(connection,callback){
 	callback(true);
 }
 
+function log(type,text){
+	if(type=="success" && exports.verboseMode) console.log(colors.green(exports.prefix+": ")+text);
+	if(type=="info" && exports.verboseMode) console.log(colors.yellow(exports.prefix+": ")+text);
+	if(type=="warn") console.log(colors.red(exports.prefix+": ")+text);
+}
+
 function testConnection(){
-	if(exports.verboseMode) console.log(colors.yellow(exports.prefix+": ")+"Connecting to DB");
+	log("info","Connecting to DB");
     exports.pool.getConnection(function(err, connection) {
 		if (err){
-			console.log(colors.red(exports.prefix+": ")+err.code);
-			console.log(colors.yellow(exports.prefix+": ")+"Trying to reconnect in 3 seconds.");
+			log("warn",err.code);
+			log("warn","Trying to reconnect in 3 seconds.");
 			setTimeout(function(){
 				testConnection();
 			},3000);
 			return;
 		}
 		endPool(connection,function(){
-			if(exports.verboseMode) console.log(colors.green(exports.prefix+": ")+"Connected to DB");
+			log("success","Connected to DB");
 			exports.ready = true;
 		});
 	});

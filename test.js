@@ -7,10 +7,13 @@ db.init({
 	user: '',
 	password: '',
 	database: '',
+	TTL: 0, // Time To Live for a cache key in seconds (0 = infinite)
 	connectionLimit: 100, // Mysql connection pool limit (increase value if you are having problems)
-	verbose: true, // Do you want console.log's about what the program is doing?
-	caching: true // Do you want to use SELECT SQL caching?
+	verbose: true, // Do you want info and success messages about what the program is doing?
+	caching: true // Do you want to enable caching?
 });
+
+db.TTL = 60; // Change amount of Time To Live in seconds for a cache key in realtime.
 
 // Start executing SQL like you are used to using node-mysql
 db.query("SELECT ? + ? AS solution",[1,5],function(resultMysql){ // the SQL contains a SELECT which means it will be cached for future use.
@@ -23,4 +26,3 @@ db.query("SELECT ? + ? AS solution",[1,5],function(resultMysql){ // the SQL cont
 
 db.flushAll(); // Flush the cache.
 
-db.TTL = 5; // Amount of Time To Live for a cache key.

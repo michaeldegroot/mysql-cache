@@ -35,7 +35,7 @@
 
     db.flushAll(); // Flush the cache.
 
-    db.TTL = 5; // Amount of Time To Live for a cache key.
+    db.TTL = 60; // Change amount of Time To Live in seconds for a cache key in realtime.
 
 
 
@@ -73,6 +73,10 @@
             db.stats(); // Show some interesting statistics about mysql-cache.
         });
     });
+
+    db.flushAll(); // Flush the cache.
+
+    db.TTL = 60; // Change amount of Time To Live in seconds for a cache key in realtime.
 
 # Contact
     You can contact me at specamps@gmail.com

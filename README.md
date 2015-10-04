@@ -6,6 +6,7 @@
  - 0.1.4 db.Delkey function added
  - 0.1.5 Readme updated with all functions
  - 0.1.8 You can now supply a object to all query's containing settings that are only applied to that query. Check API's for more information
+ - 0.2.3 You can now change database connection settings on the fly with db.changeDB
 
 ## What it does
 
@@ -43,6 +44,7 @@ db.query("SELECT ? + ? AS solution",[1,5],function(resultMysql){ // the SQL cont
 			console.log("Result cached is: "+resultCached[0].solution);
 			console.log("Result after cache key is deleted: "+resultRemoved[0].solution);
                         db.stats(); // show some interesting statistics regarding mysql-cache
+			db.changeDB({user:"testusername",pass:"keepo",database:"kappa",charset:"utf8"}) // Change database connection settings on the fly.
 		});
 	},{cache:false}); // Do not cache this query.
 },{TTL:600}); // Set TTL to 600 only for this query.
@@ -88,6 +90,7 @@ db.query("SELECT ? + ? AS solution",[1,5],function(resultMysql){ // the SQL cont
 			console.log("Result cached is: "+resultCached[0].solution);
 			console.log("Result after cache key is deleted: "+resultRemoved[0].solution);
                         db.stats(); // show some interesting statistics regarding mysql-cache
+			db.changeDB({user:"testusername",pass:"keepo",database:"kappa",charset:"utf8"}) // Change database connection settings on the fly.
 		});
 	},{cache:false}); // Do not cache this query.
 },{TTL:600}); // Set TTL to 600 only for this query.

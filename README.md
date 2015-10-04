@@ -174,10 +174,12 @@ db.changeDB({user:"testusername",pass:"keepo",database:"kappa",charset:"utf8"})
 This changes database connection settings on the fly.
 
 Available variables to change are:
+
 * user: The name of the new user
 * password: The password of the new user
 * charset: The new charset
-* database: The new database
+* database: The new database 
+
  
 ## Contact
 You can contact me at specamps@gmail.com

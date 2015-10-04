@@ -164,8 +164,19 @@ __Example__
 db.TTL = 5;
 ```
 
+### - db.changeDB (data)
+MySQL offers a changeUser command that allows you to alter the current user and other aspects of the connection without shutting down the underlying socket
 
+```javascript
+db.changeDB({user:"testusername",pass:"keepo",database:"kappa",charset:"utf8"})
+```
 
-
+This changes database connection settings on the fly.
+Available variables to change are:
+ - user: The name of the new user
+ - password: The password of the new user
+ - charset: The new charset
+ - database: The new database
+ 
 ## Contact
 You can contact me at specamps@gmail.com

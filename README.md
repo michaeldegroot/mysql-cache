@@ -57,10 +57,10 @@ db.flushAll(); // Flush the cache.
     npm install mysql-cache
 
 ### 2. Put this in your nodejs server file:
-
+```javascript
 // Require the module.
 var db = require('mysql-cache');
-```javascript
+
 // Setup your database information
 db.init({
 	host: '',
@@ -107,6 +107,19 @@ __Example__
 db.query("SELECT id,username,avatar FROM accounts WHERE id = ?", [530], function(result) {
     console.log(result);
 });
+```
+
+__Example with one time setting per query__
+
+```javascript
+db.query("SELECT id,username,avatar FROM accounts WHERE id = ?", [530], function(result) {
+    console.log(result);
+},{TTL:600}); // Will set TTL to 600 only for this query
+
+
+db.query("SELECT id,username,avatar FROM accounts WHERE id = ?", [530], function(result) {
+    console.log(result);
+},{cache:false}); // Will not cache this query
 ```
 
 The db.query function is using node-mysql for querying. Check node-mysql documentation for more information about escaping values and other handy features: https://github.com/felixge/node-mysql/blob/master/Readme.md

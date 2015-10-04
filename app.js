@@ -238,12 +238,18 @@ exports.createKey = function(id,val,callback,ttl){
 	});
 }
 
-exports.changeDB = function(data){
+exports.changeDB = function(data,callback){
 	getPool(function(connection){
 		connection.changeUser(data, function(err) {
-			if (err) throw err;
+			
 			endPool(connection,function(){
+				if (err){
+					log("warn","Could not change database connection settings.");
+					callback(err);
+					return;
+				}
 				log("success","Successfully changed database connection settings");
+				callback(false);
 			});
 		});
 	});

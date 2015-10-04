@@ -11,7 +11,8 @@
 
 ## What it does
 
-Automatically caches SELECT SQLs in the machine's memory using node-cache and node-mysql.
+
+Automatically caches SELECT sql's in the machine's memory using node-cache. Also using node-mysql connection pools and it's SQL format style
 
 
 ## How does it look?

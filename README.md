@@ -44,7 +44,9 @@ db.query("SELECT ? + ? AS solution",[1,5],function(resultMysql){ // the SQL cont
 			console.log("Result cached is: "+resultCached[0].solution);
 			console.log("Result after cache key is deleted: "+resultRemoved[0].solution);
                         db.stats(); // show some interesting statistics regarding mysql-cache
-			db.changeDB({user:"testusername",pass:"keepo",database:"kappa",charset:"utf8"}) // Change database connection settings on the fly.
+                        db.changeDB({user:"testusername",pass:"keepo",database:"kappa",charset:"utf8"}, function(err){  // Change database connection settings on the fly.
+				if(err) throw err;
+			});
 		});
 	},{cache:false}); // Do not cache this query.
 },{TTL:600}); // Set TTL to 600 only for this query.
@@ -90,7 +92,9 @@ db.query("SELECT ? + ? AS solution",[1,5],function(resultMysql){ // the SQL cont
 			console.log("Result cached is: "+resultCached[0].solution);
 			console.log("Result after cache key is deleted: "+resultRemoved[0].solution);
                         db.stats(); // show some interesting statistics regarding mysql-cache
-			db.changeDB({user:"testusername",pass:"keepo",database:"kappa",charset:"utf8"}) // Change database connection settings on the fly.
+                        db.changeDB({user:"testusername",pass:"keepo",database:"kappa",charset:"utf8"}, function(err){  // Change database connection settings on the fly.
+				if(err) throw err;
+			});
 		});
 	},{cache:false}); // Do not cache this query.
 },{TTL:600}); // Set TTL to 600 only for this query.
@@ -171,7 +175,10 @@ db.TTL = 5;
 MySQL offers a changeUser command that allows you to alter the current user and other aspects of the connection without shutting down the underlying socket
 
 ```javascript
-db.changeDB({user:"testusername",pass:"keepo",database:"kappa",charset:"utf8"})
+db.changeDB({user:"testusername",pass:"keepo",database:"kappa",charset:"utf8"}, function(err){
+    if(err) throw err;
+    // Database settings are now changed, do something.
+})
 ```
 
 This changes database connection settings on the fly.

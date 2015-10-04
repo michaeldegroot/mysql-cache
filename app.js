@@ -238,6 +238,17 @@ exports.createKey = function(id,val,callback,ttl){
 	});
 }
 
+exports.changeDB = function(data){
+	getPool(function(connection){
+		connection.changeUser(data, function(err) {
+			if (err) throw err;
+			endPool(connection,function(){
+				log("success","Successfully changed database connection settings");
+			});
+		});
+	});
+}
+
 var getStackTrace = function() {
   var obj = {};
   Error.captureStackTrace(obj, getStackTrace);

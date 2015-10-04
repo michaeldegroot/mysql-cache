@@ -154,7 +154,7 @@ db.flushAll();
 ```
 
 ###  - TTL 
-Changes the amount of Time To Live in seconds for a cache key in realtime.
+Changes the amount of Time To Live in seconds for all future made cache keys.
 
 __Example__
 

@@ -5,6 +5,7 @@
  - 0.1.1 - 0.1.3 Readme updates
  - 0.1.4 db.Delkey function added
  - 0.1.5 Readme updated with all functions
+ - 0.1.8 You can now supply a object to all query's containing settings that are only applied to that query. Check API's for more information
 
 ## What it does
 
@@ -41,10 +42,10 @@ db.query("SELECT ? + ? AS solution",[1,5],function(resultMysql){ // the SQL cont
 			console.log("Result from mysql is: "+resultMysql[0].solution);
 			console.log("Result cached is: "+resultCached[0].solution);
 			console.log("Result after cache key is deleted: "+resultRemoved[0].solution);
-			db.stats(); // Show some interesting statistics about cache-mysql.
+                        db.stats(); // show some interesting statistics regarding mysql-cache
 		});
-	});
-});
+	},{cache:false}); // Do not cache this query.
+},{TTL:600}); // Set TTL to 600 only for this query.
 
 db.flushAll(); // Flush the cache.
 ```
@@ -86,10 +87,10 @@ db.query("SELECT ? + ? AS solution",[1,5],function(resultMysql){ // the SQL cont
 			console.log("Result from mysql is: "+resultMysql[0].solution);
 			console.log("Result cached is: "+resultCached[0].solution);
 			console.log("Result after cache key is deleted: "+resultRemoved[0].solution);
-			db.stats(); // Show some interesting statistics about cache-mysql.
+                        db.stats(); // show some interesting statistics regarding mysql-cache
 		});
-	});
-});
+	},{cache:false}); // Do not cache this query.
+},{TTL:600}); // Set TTL to 600 only for this query.
 
 db.TTL = 60; // Change amount of Time To Live in seconds for a cache key in realtime.
 

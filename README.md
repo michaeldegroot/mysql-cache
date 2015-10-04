@@ -98,7 +98,7 @@ db.flushAll(); // Flush the cache.
 ```
 
 ## APIs
-###  - query
+###  - query (sql,params,callback,data)
 Will execute the given SQL and cache the result if it is a SELECT statement
 
 __Example__
@@ -124,7 +124,7 @@ db.query("SELECT id,username,avatar FROM accounts WHERE id = ?", [530], function
 
 The db.query function is using node-mysql for querying. Check node-mysql documentation for more information about escaping values and other handy features: https://github.com/felixge/node-mysql/blob/master/Readme.md
 
-### - delKey
+### - delKey (id,params)
 Deletes a cache key in the cache. You will need to supply a SQL format
 
 __Example__
@@ -135,7 +135,7 @@ db.delKey("SELECT id,username,avatar FROM accounts WHERE id = ?", [530]);
 
 This exact SQL and result is now removed from the cache. Making sure the next time this query is executed; it will be retrieved from the database.
 
-###  - stats
+###  - stats ()
 Will console.log() some statistics regarding mysql-cache
 
 __Example__
@@ -144,7 +144,7 @@ __Example__
 db.stats();
 ```
 
-###  - flushAll
+###  - flushAll ()
 removes all keys and values from the cache
 
 __Example__
@@ -153,7 +153,7 @@ __Example__
 db.flushAll();
 ```
 
-###  - TTL
+###  - TTL 
 Changes the amount of Time To Live in seconds for a cache key in realtime.
 
 __Example__

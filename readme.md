@@ -5,6 +5,7 @@
  - 0.1.1 - 0.1.3 Readme updates
  - 0.1.4 db.Delkey function added
  - 0.1.5 Readme updated with all functions
+ - 0.1.8 You can now supply a object to all query's containing settings that are only applied to that query. Check API's for more information
 
 ## What it does
 
@@ -15,38 +16,39 @@ Automatically caches SELECT SQLs in the machine's memory using node-cache and no
 
 ![tank.gif](https://bitbucket.org/repo/jjGr8o/images/2064265396-tank.gif)
 
-    // Require the module.
-    var db = require('./app.js');
-    
-    // Setup some information.
-    db.init({
-    	host: '',
-    	user: '',
-    	password: '',
-    	database: '',
-    	TTL: 0, // Time To Live for a cache key in seconds (0 = infinite)
-    	connectionLimit: 100, // Mysql connection pool limit (increase value if you are having problems)
-    	verbose: true, // Do you want info and success messages about what the program is doing?
-    	caching: true // Do you want to enable caching?
-    });
-    
-    db.TTL = 60; // Change amount of Time To Live in seconds for a cache key in realtime.
-    
-    // Start executing SQL like you are used to using node-mysql
-    db.query("SELECT ? + ? AS solution",[1,5],function(resultMysql){ // the SQL contains a SELECT which means it will be cached for future use.
-    	db.query("SELECT ? + ? AS solution",[1,5],function(resultCached){ // This exact SQL has been executed before and will be retrieved from cache.
-    		db.delKey("SELECT ? + ? AS solution",[1,5]); // Delete this SQL cache key.
-    		db.query("SELECT ? + ? AS solution",[1,5],function(resultRemoved){ // This SQL will be executed on the database because the sql cache key was deleted.
-    			console.log("Result from mysql is: "+resultMysql[0].solution);
-    			console.log("Result cached is: "+resultCached[0].solution);
-    			console.log("Result after cache key is deleted: "+resultRemoved[0].solution);
-    			db.stats(); // Show some interesting statistics about cache-mysql.
-    		});
-    	});
-    });
-    
-    db.flushAll(); // Flush the cache.
+```javascript
+// Require the module.
+var db = require('./app.js');
 
+// Setup some information.
+db.init({
+	host: '',
+	user: '',
+	password: '',
+	database: '',
+	TTL: 0, // Time To Live for a cache key in seconds (0 = infinite)
+	connectionLimit: 100, // Mysql connection pool limit (increase value if you are having problems)
+	verbose: true, // Do you want info and success messages about what the program is doing?
+	caching: true // Do you want to enable caching?
+});
+
+db.TTL = 60; // Change amount of Time To Live in seconds for a cache key in realtime.
+
+// Start executing SQL like you are used to using node-mysql
+db.query("SELECT ? + ? AS solution",[1,5],function(resultMysql){ // the SQL contains a SELECT which means it will be cached for future use.
+	db.query("SELECT ? + ? AS solution",[1,5],function(resultCached){ // This exact SQL has been executed before and will be retrieved from cache.
+		db.delKey("SELECT ? + ? AS solution",[1,5]); // Delete this SQL cache key.
+		db.query("SELECT ? + ? AS solution",[1,5],function(resultRemoved){ // This SQL will be executed on the database because the sql cache key was deleted.
+			console.log("Result from mysql is: "+resultMysql[0].solution);
+			console.log("Result cached is: "+resultCached[0].solution);
+			console.log("Result after cache key is deleted: "+resultRemoved[0].solution);
+                        db.stats(); // show some interesting statistics regarding mysql-cache
+		});
+	},{cache:false}); // Do not cache this query.
+},{TTL:600}); // Set TTL to 600 only for this query.
+
+db.flushAll(); // Flush the cache.
+```
 
 
 ##  How do I use it?
@@ -56,42 +58,44 @@ Automatically caches SELECT SQLs in the machine's memory using node-cache and no
 
 ### 2. Put this in your nodejs server file:
 
-    // Require the module.
-    var db = require('mysql-cache');
-
-    // Setup your database information
-    db.init({
+// Require the module.
+var db = require('mysql-cache');
+```javascript
+// Setup your database information
+db.init({
 	host: '',
 	user: '',
 	password: '',
 	database: '',
-    TTL: 0, // Time To Live for a cache key in seconds (0 = infinite)
+	TTL: 0, // Time To Live for a cache key in seconds (0 = infinite)
 	connectionLimit: 100, // Mysql connection pool limit (increase value if you are having problems)
 	verbose: true, // Do you want console.log's about what the program is doing?
 	caching: true // Do you want to use SELECT SQL caching?
-    });
-
+});
+```
 
 
 
 	
 ### 3. Now you can do stuff like:
-    // Start executing SQL like you are used to using node-mysql
-    db.query("SELECT ? + ? AS solution",[1,5],function(resultMysql){ // the SQL contains a SELECT which means it will be cached for future use.
-    	db.query("SELECT ? + ? AS solution",[1,5],function(resultCached){ // This exact SQL has been executed before and will be retrieved from cache.
-    		db.delKey("SELECT ? + ? AS solution",[1,5]); // Delete this SQL cache key.
-    		db.query("SELECT ? + ? AS solution",[1,5],function(resultRemoved){ // This SQL will be executed on the database because the sql cache key was deleted.
-    			console.log("Result from mysql is: "+resultMysql[0].solution);
-    			console.log("Result cached is: "+resultCached[0].solution);
-    			console.log("Result after cache key is deleted: "+resultRemoved[0].solution);
-    			db.stats(); // Show some interesting statistics about cache-mysql.
-    		});
-    	});
-    });
-    
-    db.TTL = 60; // Change amount of Time To Live in seconds for a cache key in realtime.
-    
-    db.flushAll(); // Flush the cache.
+```javascript
+// Start executing SQL like you are used to using node-mysql
+db.query("SELECT ? + ? AS solution",[1,5],function(resultMysql){ // the SQL contains a SELECT which means it will be cached for future use.
+	db.query("SELECT ? + ? AS solution",[1,5],function(resultCached){ // This exact SQL has been executed before and will be retrieved from cache.
+		db.delKey("SELECT ? + ? AS solution",[1,5]); // Delete this SQL cache key.
+		db.query("SELECT ? + ? AS solution",[1,5],function(resultRemoved){ // This SQL will be executed on the database because the sql cache key was deleted.
+			console.log("Result from mysql is: "+resultMysql[0].solution);
+			console.log("Result cached is: "+resultCached[0].solution);
+			console.log("Result after cache key is deleted: "+resultRemoved[0].solution);
+                        db.stats(); // show some interesting statistics regarding mysql-cache
+		});
+	},{cache:false}); // Do not cache this query.
+},{TTL:600}); // Set TTL to 600 only for this query.
+
+db.TTL = 60; // Change amount of Time To Live in seconds for a cache key in realtime.
+
+db.flushAll(); // Flush the cache.
+```
 
 ## APIs
 ###  - query

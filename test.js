@@ -2,11 +2,13 @@
 var db = require('./app.js');
 
 // Setup some information.
+var argv = require('optimist').argv;
+
 db.init({
-	host: '',
-	user: '',
-	password: '',
-	database: '',
+	host: argv.host,
+	user: argv.user,
+	password: argv.pass,
+	database: argv.database,
 	TTL: 0, // Time To Live for a cache key in seconds (0 = infinite)
 	connectionLimit: 100, // Mysql connection pool limit (increase value if you are having problems)
 	verbose: true, // Do you want info and success messages about what the program is doing?
@@ -23,10 +25,9 @@ db.query("SELECT ? + ? AS solution",[1,5],function(resultMysql){ // the SQL cont
 			console.log("Result from mysql is: "+resultMysql[0].solution);
 			console.log("Result cached is: "+resultCached[0].solution);
 			console.log("Result after cache key is deleted: "+resultRemoved[0].solution);
-			db.stats(); // Show some interesting statistics about cache-mysql.
-		});
-	});
-});
+		},{cache:false});
+	},{cache:false});
+},{cache:false});
 
 
 

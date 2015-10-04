@@ -83,7 +83,7 @@ exports.stats = function(){
 	console.log("-----------------------");
 };
 
-exports.query = function(sql,params,callback){
+exports.query = function(sql,params,callback,data){
 	if(!exports.ready){
 		setTimeout(function(){
 			exports.query(sql,params,callback);
@@ -135,6 +135,11 @@ exports.query = function(sql,params,callback){
 		var hash = crypto.createHash('md5').update(query).digest('hex');
 		exports.getKey(hash,function(cache){
 			if(!cacheMode) cache = false;
+			if(data){
+				if(data.cache == false){
+					cache = false;
+				}
+			}
 			if(cache){
 				if(exports.verboseMode) console.log(colors.yellow(hash)+"-"+colors.green(query));
 				callback(cache);
@@ -159,6 +164,13 @@ exports.query = function(sql,params,callback){
 							throw err;
 							return;
 						}
+						if(data){
+							if(data.TTL){
+								TTLSet = data.TTL;
+							}
+						}else{
+							TTLSet = exports.TTL;
+						}
 						exports.createKey(hash,rows,function(result){
 							if(result){
 								if(!callback) return;
@@ -168,7 +180,7 @@ exports.query = function(sql,params,callback){
 								if(!callback) return;
 								callback(false,"CACHEERROR");
 							}
-						});
+						},TTLSet);
 					});
 				});
 			}
@@ -213,8 +225,11 @@ exports.getKey = function(id,callback){
 	});
 }
 
-exports.createKey = function(id,val,callback){
+exports.createKey = function(id,val,callback,ttl){
+	var oldTTL = exports.TTL;
+	if(ttl) exports.TTL = ttl;
 	myCache.set(id, val, exports.TTL, function(err, success){
+		exports.TTL = oldTTL;
 		if( !err && success ){
 			callback(true);
 		}else{

@@ -122,7 +122,7 @@ db.query("SELECT id,username,avatar FROM accounts WHERE id = ?", [530], function
 },{cache:false}); // Will not cache this query
 ```
 
-The db.query function is using node-mysql for querying. Check node-mysql documentation for more information about escaping values and other handy features: https://github.com/felixge/node-mysql/blob/master/Readme.md
+The db.query function is using node-mysql for querying. Check node-mysql documentation for more information about escaping values and other handy features: [node-mysql](https://github.com/felixge/node-mysql/blob/master/Readme.md)
 
 ### - delKey (id,params)
 Deletes a cache key in the cache. You will need to supply a SQL format

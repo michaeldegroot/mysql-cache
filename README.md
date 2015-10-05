@@ -14,10 +14,10 @@
  - 0.1.1 - 0.1.3 Readme updates
  - 0.1.4 db.Delkey function added
  - 0.1.5 Readme updated with all functions
- - 0.1.8 Ability to supply a object to all query's containing settings that are only applied to that query. Check [API](#mysql_cache_api) for more information
+ - 0.1.8 Ability to supply a object to all query's containing settings that are only applied to that query. Check [API](#markdown-header-api) for more information
  - 0.2.3 Change database connection settings on the fly with db.changeDB
  - 0.2.4 db.changeDB now has a callback parameter added
- - 0.2.5 added speedtest.js in the root directory, check [Speedtest](#mysql_cache_speedtest) for more information
+ - 0.2.5 added speedtest.js in the root directory, check [Speedtest](#markdown-header-speedtest) for more information
 
 
 ## What it does

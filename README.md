@@ -108,7 +108,7 @@ db.TTL = 60; // Change amount of Time To Live in seconds for a cache key in real
 db.flushAll(); // Flush the cache.
 ```
 
-<a name="Speedtest"/>
+
 ## Speedtest
 
 I have added a speedtest.js in the root directory of this module. You can execute it by yourself via this command:
@@ -120,7 +120,6 @@ On my crappy wifi connection (and external database host) I had the following re
 
 ![cachetest.png](https://bitbucket.org/repo/jjGr8o/images/418494615-cachetest.png)
 
-<a name="API"/>
 ## API
 
 ###  - query (sql,params,callback,data)

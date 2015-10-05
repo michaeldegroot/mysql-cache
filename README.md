@@ -1,18 +1,35 @@
-#  - mysql-cache
+**Table of Contents**
+
+- [Changelog](#mysql_cache_changelog)
+- [What it does](#mysql_cache_what_it_does)
+- [How does it look?](#mysql_cache_how_does_it_look)
+- [How do I use it?](#mysql_cache_how_do_i_use_it)
+  - [1. Start by installing the package:](#mysql_cache_1_start_by_installing_the_package)
+  - [2. Put this in your nodejs server file:](#mysql_cache_2_put_this_in_your_nodejs_server_file)
+  - [3. Now you can do stuff like:](#mysql_cache_3_now_you_can_do_stuff_like)
+- [Speedtest](#mysql_cache_speedtest)
+- [API](#mysql_cache_api)
+  - [- query (sql,params,callback,data)](#mysql_cache_query_sql_params_callback_data)
+  - [- delKey (id,params)](#mysql_cache_delkey_id_params)
+  - [- stats ()](#mysql_cache_stats)
+  - [- flushAll ()](#mysql_cache_flushall)
+  - [- TTL](#mysql_cache_ttl)
+  - [- changeDB (data)](#mysql_cache_changedb_data)
+- [Contact](#mysql_cache_contact)
+
 ## Changelog
 
  - 0.1.0 Release
  - 0.1.1 - 0.1.3 Readme updates
  - 0.1.4 db.Delkey function added
  - 0.1.5 Readme updated with all functions
- - 0.1.8 Ability to supply a object to all query's containing settings that are only applied to that query. Check [API](#API) for more information
+ - 0.1.8 Ability to supply a object to all query's containing settings that are only applied to that query. Check [API](#mysql_cache_api) for more information
  - 0.2.3 Change database connection settings on the fly with db.changeDB
  - 0.2.4 db.changeDB now has a callback parameter added
- - 0.2.5 added speedtest.js in the root directory, check [Speedtest](#Speedtest) for more information
+ - 0.2.5 added speedtest.js in the root directory, check [Speedtest](#mysql_cache_speedtest) for more information
 
 
 ## What it does
-
 
 Automatically caches SELECT sql's in the machine's memory using node-cache. Also using node-mysql connection pools and it's SQL format style
 

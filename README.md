@@ -1,25 +1,12 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
 
 - [Changelog](#markdown-header-changelog)
 - [What it does](#markdown-header-what-it-does)
 - [How does it look?](#markdown-header-how-does-it-look)
 - [How do I use it?](#markdown-header-how-do-i-use-it)
-    - [1. Start by installing the package:](#markdown-header-1-start-by-installing-the-package)
-    - [2. Put this in your nodejs server file:](#markdown-header-2-put-this-in-your-nodejs-server-file)
-    - [3. Now you can do stuff like:](#markdown-header-3-now-you-can-do-stuff-like)
 - [Speedtest](#markdown-header-speedtest)
 - [API](#markdown-header-api)
-    - [- query (sql,params,callback,data)](#markdown-header-query-sqlparamscallbackdata)
-    - [- delKey (id,params)](#markdown-header-delkey-idparams)
-    - [- stats ()](#markdown-header-stats-)
-    - [- flushAll ()](#markdown-header-flushall-)
-    - [- TTL](#markdown-header-ttl)
-    - [- changeDB (data)](#markdown-header-changedb-data)
 - [Contact](#markdown-header-contact)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Changelog
 

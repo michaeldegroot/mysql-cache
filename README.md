@@ -113,6 +113,9 @@ I have added a speedtest.js in the root directory of this module. You can execut
 node speedtest.js --host databasehostiphere --user databaseuserhere --pass databasepasswordhere --database databasenamehere
 ```
 
+On my crappy wifi connection (and external database host) I had the following results:
+![cachetest.png](https://bitbucket.org/repo/jjGr8o/images/418494615-cachetest.png)
+
 ## API
 ###  - query (sql,params,callback,data)
 Will execute the given SQL and cache the result if it is a SELECT statement.

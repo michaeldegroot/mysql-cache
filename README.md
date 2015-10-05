@@ -173,7 +173,7 @@ __Example__
 db.TTL = 5;
 ```
 
-### - db.changeDB (data)
+### - changeDB (data)
 MySQL offers a changeUser command that allows you to alter the current user and other aspects of the connection without shutting down the underlying socket
 
 ```javascript

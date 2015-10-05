@@ -1,4 +1,22 @@
-#  - mysql-cache
+**Table of Contents**
+
+- [Changelog](#changelog)
+- [What it does](#what-it-does)
+- [How does it look?](#how-does-it-look)
+- [How do I use it?](#how-do-i-use-it)
+  - [1. Start by installing the package:](#1-start-by-installing-the-package)
+  - [2. Put this in your nodejs server file:](#2-put-this-in-your-nodejs-server-file)
+  - [3. Now you can do stuff like:](#3-now-you-can-do-stuff-like)
+- [Speedtest](#speedtest)
+- [API](#api)
+  - [- query (sql,params,callback,data)](#--query-sqlparamscallbackdata)
+  - [- delKey (id,params)](#--delkey-idparams)
+  - [- stats ()](#--stats-)
+  - [- flushAll ()](#--flushall-)
+  - [- TTL](#--ttl)
+  - [- changeDB (data)](#--changedb-data)
+- [Contact](#contact)
+
 ## Changelog
 
  - 0.1.0 Release
@@ -12,7 +30,6 @@
 
 
 ## What it does
-
 
 Automatically caches SELECT sql's in the machine's memory using node-cache. Also using node-mysql connection pools and it's SQL format style
 

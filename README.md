@@ -9,6 +9,7 @@
  - 0.2.3 Change database connection settings on the fly with db.changeDB
  - 0.2.4 db.changeDB now has a callback parameter added
 
+
 ## What it does
 
 
@@ -106,7 +107,13 @@ db.TTL = 60; // Change amount of Time To Live in seconds for a cache key in real
 db.flushAll(); // Flush the cache.
 ```
 
-## APIs
+## Speedtest
+I have added a speedtest.js in the root directory of this module. You can execute it by yourself via this command:
+```javascript
+node speedtest.js --host databasehostiphere --user databaseuserhere --pass databasepasswordhere --database databasenamehere
+```
+
+## API
 ###  - query (sql,params,callback,data)
 Will execute the given SQL and cache the result if it is a SELECT statement.
 

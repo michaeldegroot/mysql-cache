@@ -27,7 +27,7 @@ function noCacheTest(amount){
 	for(i=0;i<amount;i++){
 		asynctext += "function(callback){test(callback,false)},"
 	}
-	asynctext += "], function(results){var then = moment();var diff = then.diff(now);console.log('With caching, '+amount+' queries took: '+diff+'ms');cacheTest(amount)});";
+	asynctext += "], function(results){var then = moment();var diff = then.diff(now);console.log('Without caching, '+amount+' queries took: '+diff+'ms');cacheTest(amount)});";
 	eval(asynctext);
 }
 

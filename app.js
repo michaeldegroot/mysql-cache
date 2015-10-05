@@ -96,27 +96,6 @@ exports.query = function(sql,params,callback,data){
 	
 	exports.querys++;
 	
-	if(exports.verboseMode){
-		exports.cacheShow++;
-		if(exports.cacheShow>=40){
-			exports.cacheShow = 0;
-			console.log("----------- SQL REPORT ------------");
-			console.log("Open Pool Connections: "+exports.poolConnections);
-			console.log("Requests Per Second: "+exports.QPM);
-			console.log("Hits: "+myCache.getStats().hits);
-			console.log("Misses: "+myCache.getStats().misses);
-			console.log("Keys: "+myCache.getStats().keys);
-			console.log("Key Size: "+myCache.getStats().ksize);
-			console.log("Value Size: "+myCache.getStats().vsize);
-			if(exports.QPM>=100){
-				console.log("**** "+colors.red("QUERRY PER SEC TOO HIGH"));
-			}
-			if(exports.poolConnections>=100){
-				console.log("**** "+colors.red("MYSQL POOL CONNECTION LIMIT REACHED"));
-			}
-			console.log("----------------------------------");
-		}
-	}
 	if(typeof(params)=="function"){
 		callback = params;
 		params = [];

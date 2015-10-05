@@ -1,21 +1,25 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
 
-- [Changelog](#mysql_cache_changelog)
-- [What it does](#mysql_cache_what_it_does)
-- [How does it look?](#mysql_cache_how_does_it_look)
-- [How do I use it?](#mysql_cache_how_do_i_use_it)
-  - [1. Start by installing the package:](#mysql_cache_1_start_by_installing_the_package)
-  - [2. Put this in your nodejs server file:](#mysql_cache_2_put_this_in_your_nodejs_server_file)
-  - [3. Now you can do stuff like:](#mysql_cache_3_now_you_can_do_stuff_like)
-- [Speedtest](#mysql_cache_speedtest)
-- [API](#mysql_cache_api)
-  - [- query (sql,params,callback,data)](#mysql_cache_query_sql_params_callback_data)
-  - [- delKey (id,params)](#mysql_cache_delkey_id_params)
-  - [- stats ()](#mysql_cache_stats)
-  - [- flushAll ()](#mysql_cache_flushall)
-  - [- TTL](#mysql_cache_ttl)
-  - [- changeDB (data)](#mysql_cache_changedb_data)
-- [Contact](#mysql_cache_contact)
+- [Changelog](#markdown-header-changelog)
+- [What it does](#markdown-header-what-it-does)
+- [How does it look?](#markdown-header-how-does-it-look)
+- [How do I use it?](#markdown-header-how-do-i-use-it)
+    - [1. Start by installing the package:](#markdown-header-1-start-by-installing-the-package)
+    - [2. Put this in your nodejs server file:](#markdown-header-2-put-this-in-your-nodejs-server-file)
+    - [3. Now you can do stuff like:](#markdown-header-3-now-you-can-do-stuff-like)
+- [Speedtest](#markdown-header-speedtest)
+- [API](#markdown-header-api)
+    - [- query (sql,params,callback,data)](#markdown-header-query-sqlparamscallbackdata)
+    - [- delKey (id,params)](#markdown-header-delkey-idparams)
+    - [- stats ()](#markdown-header-stats-)
+    - [- flushAll ()](#markdown-header-flushall-)
+    - [- TTL](#markdown-header-ttl)
+    - [- changeDB (data)](#markdown-header-changedb-data)
+- [Contact](#markdown-header-contact)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Changelog
 

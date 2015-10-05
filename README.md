@@ -114,6 +114,7 @@ node speedtest.js --host databasehostiphere --user databaseuserhere --pass datab
 ```
 
 On my crappy wifi connection (and external database host) I had the following results:
+
 ![cachetest.png](https://bitbucket.org/repo/jjGr8o/images/418494615-cachetest.png)
 
 ## API

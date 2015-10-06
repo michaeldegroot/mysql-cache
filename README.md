@@ -1,12 +1,12 @@
 **Table of Contents**
 
-- [Changelog](#markdown-header-changelog)
-- [What it does](#markdown-header-what-it-does)
-- [How does it look?](#markdown-header-how-does-it-look)
-- [How do I use it?](#markdown-header-how-do-i-use-it)
-- [Speedtest](#markdown-header-speedtest)
-- [API](#markdown-header-api)
-- [Contact](#markdown-header-contact)
+- [Changelog](#changelog)
+- [What it does](#what-it-does)
+- [How does it look?](#how-does-it-look)
+- [How do I use it?](#how-do-i-use-it)
+- [Speedtest](#speedtest)
+- [API](#api)
+- [Contact](#contact)
 
 ## Changelog
 
@@ -14,10 +14,10 @@
  - 0.1.1 - 0.1.3 Readme updates
  - 0.1.4 db.Delkey function added
  - 0.1.5 Readme updated with all functions
- - 0.1.8 Ability to supply a object to all query's containing settings that are only applied to that query. Check [API](#markdown-header-api) for more information
+ - 0.1.8 Ability to supply a object to all query's containing settings that are only applied to that query. Check [API](#api) for more information
  - 0.2.3 Change database connection settings on the fly with db.changeDB
  - 0.2.4 db.changeDB now has a callback parameter added
- - 0.2.5 added speedtest.js in the root directory, check [Speedtest](#markdown-header-speedtest) for more information
+ - 0.2.5 added speedtest.js in the root directory, check [Speedtest](#speedtest) for more information
 
 
 ## What it does

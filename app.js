@@ -38,7 +38,6 @@ exports.init = function(config){
 	exports.TTL = config.TTL;
 	exports.verboseMode = config.verbose;
 	exports.cacheMode = config.caching;
-	testConnection();
 }
 
 exports.TTL = 0;
@@ -97,6 +96,7 @@ exports.query = function(sql,params,callback,data){
 	exports.querys++;
 	
 	if(typeof(params)=="function"){
+		data = callback;
 		callback = params;
 		params = [];
 		query = sql;
@@ -144,6 +144,7 @@ exports.query = function(sql,params,callback,data){
 							return;
 						}
 						if(data){
+							TTLSet = 0;
 							if(data.TTL){
 								TTLSet = data.TTL;
 							}
@@ -266,7 +267,7 @@ function log(type,text){
 	if(type=="warn") console.log(colors.red(exports.prefix+": ")+text);
 }
 
-function testConnection(){
+exports.testConnection = function(callback){
 	log("info","Connecting to DB");
     exports.pool.getConnection(function(err, connection) {
 		if (err){
@@ -280,6 +281,7 @@ function testConnection(){
 		endPool(connection,function(){
 			log("success","Connected to DB");
 			exports.ready = true;
+			callback();
 		});
 	});
 }

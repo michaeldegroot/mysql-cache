@@ -1,3 +1,5 @@
+[![NPM](https://nodei.co/npm/mysql-cache.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/mysql-cache/)
+
 **Table of Contents**
 
 - [Changelog](#changelog)

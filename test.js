@@ -4,6 +4,9 @@ var db = require('./app.js');
 // Setup some information.
 var argv = require('optimist').argv;
 
+process.exit(); // TODO: Write a test :(!
+return;
+
 db.init({
 	host: argv.host,
 	user: argv.user,

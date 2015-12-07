@@ -1,6 +1,6 @@
 {
   "name": "mysql-cache",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "description": "Automatically caches SELECT sql's in the machine's memory using node-cache. Also using node-mysql connection pools and it's SQL format style",
   "main": "app.js",
   "dependencies": {
@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@bitbucket.org:michaeldegroot/mysql-cache.git"
+    "url": "git@github.com:michaeldegroot/mysql-cache.git"
   },
   "keywords": [
     "mysql",

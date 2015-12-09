@@ -7,24 +7,14 @@
 ![](https://img.shields.io/npm/dt/mysql-cache.svg)
 ![](https://img.shields.io/npm/l/mysql-cache.svg)
 
-**Table of Contents**
-
-- [Changelog](#changelog)
-- [What it does](#what-it-does)
-- [How does it look?](#how-does-it-look)
-- [How do I use it?](#how-do-i-use-it)
-- [Speedtest](#speedtest)
-- [API](#api)
-- [Contact](#contact)
-
+___
+## What it does
+Automatically caches SELECT sql's in the machine's memory using node-cache. This module is wrapping the [mysql](https://www.npmjs.com/package/mysql) module
+___
 ## Changelog
 
 https://github.com/michaeldegroot/mysql-cache/commits/master
-
-
-## What does it do
-Automatically caches SELECT sql's in the machine's memory using node-cache. This module is wrapping the [mysql](https://www.npmjs.com/package/mysql) module
-
+___
 ##  How do I use it?
 
 ##### 1. Start by installing the package:
@@ -60,7 +50,7 @@ db.query("SELECT ? + ? AS solution",[1,5],function(resultCached){ // from cache 
 })
 ```
 
-
+___
 ## Speedtest
 
 I have added a speedtest.js in the root directory of this module. You can execute it by yourself via this command:
@@ -71,7 +61,7 @@ node speedtest.js --host databasehostiphere --user databaseuserhere --pass datab
 On my crappy wifi connection (and external database host) I had the following results:
 
 ![cachetest.png](https://bitbucket.org/repo/jjGr8o/images/418494615-cachetest.png)
-
+___
 ## API
 
 ###  .query (sql,params,callback,data)
@@ -99,7 +89,7 @@ db.query("SELECT id,username,avatar FROM accounts WHERE id = ?", [530], function
 ```
 
 The db.query function is using node-mysql for querying. Check mysql documentation for more information about escaping values and other handy features: [mysql](https://github.com/felixge/node-mysql/blob/master/Readme.md)
-
+___
 ### .delKey (id,params)
 _Deletes a cache key in the cache. You will need to supply a SQL format_
 
@@ -110,7 +100,7 @@ db.delKey("SELECT id,username,avatar FROM accounts WHERE id = ?", [530]);
 ```
 
 This exact SQL and result is now removed from the cache. Making sure the next time this query is executed; it will be retrieved from the database.
-
+___
 ###  .stats ()
 _Will console.log() some statistics regarding mysql-cache_
 
@@ -119,7 +109,7 @@ __Example__
 ```javascript
 db.stats();
 ```
-
+___
 ###  .flushAll ()
 _removes all keys and values from the cache_
 
@@ -128,7 +118,7 @@ __Example__
 ```javascript
 db.flushAll();
 ```
-
+___
 ###  .TTL 
 _Changes the amount of Time To Live in seconds for all future made cache keys._
 
@@ -137,7 +127,7 @@ __Example__
 ```javascript
 db.TTL = 5;
 ```
-
+___
 ### .changeDB (data)
 _MySQL offers a changeUser command that allows you to alter the current user and other aspects of the connection without shutting down the underlying socket_
 
@@ -157,6 +147,6 @@ Available variables to change are:
 * charset: The new charset
 * database: The new database 
 
- 
+ ___
 ## Contact
 You can contact me at specamps@gmail.com

@@ -10,7 +10,7 @@ var console = new Debug({
 	uncaughtExceptionCatch: false,
 	consoleFilter: [],
 	logToFile: false,
-	logFilter: ['LOG','DEBUG','INFO'],
+	logFilter: [],
 	colors: true
 }); 
 

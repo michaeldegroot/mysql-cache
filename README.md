@@ -8,14 +8,14 @@
 ![](https://img.shields.io/npm/l/mysql-cache.svg)
 
 ___
-## What it does
+# What it does
 Automatically caches SELECT sql's in the machine's memory using node-cache. This module is wrapping the [mysql](https://www.npmjs.com/package/mysql) module
 ___
-## Changelog
+# Changelog
 
 [https://github.com/michaeldegroot/mysql-cache/commits/master](https://github.com/michaeldegroot/mysql-cache/commits/master)
 ___
-##  How do I use it?
+#  Getting Started
 
 ##### 1. Start by installing the package:
     npm install mysql-cache

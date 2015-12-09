@@ -1,9 +1,9 @@
-![NPM](https://nodei.co/npm/mysql-cache.png?downloads=true&downloadRank=true&stars=true)
+[ ![npm](https://nodei.co/npm/mysql-cache.png?downloads=true&downloadRank=true&stars=true)
 
 [ ![](https://david-dm.org/michaeldegroot/mysql-cache.svg "deps") ](https://david-dm.org/michaeldegroot/mysql-cache "david-dm")
 [ ![](https://travis-ci.org/michaeldegroot/mysql-cache.svg?branch=master "testing") ](https://travis-ci.org/michaeldegroot/mysql-cache "travis-ci")
-[![Coverage Status](https://coveralls.io/repos/michaeldegroot/mysql-cache/badge.svg?branch=master&service=github)](https://coveralls.io/github/michaeldegroot/mysql-cache?branch=master)
-![NPM](https://img.shields.io/badge/Node-%3E%3D0.10-green.svg)
+[ ![](https://coveralls.io/repos/michaeldegroot/mysql-cache/badge.svg?branch=master&service=github)](https://coveralls.io/github/michaeldegroot/mysql-cache?branch=master)
+![](https://img.shields.io/badge/Node-%3E%3D0.10-green.svg)
 ![](https://img.shields.io/npm/dt/mysql-cache.svg)
 ![](https://img.shields.io/npm/l/mysql-cache.svg)
 
@@ -100,7 +100,7 @@ db.query("SELECT id,username,avatar FROM accounts WHERE id = ?", [530], function
 
 The db.query function is using node-mysql for querying. Check mysql documentation for more information about escaping values and other handy features: [mysql](https://github.com/felixge/node-mysql/blob/master/Readme.md)
 
-### - delKey (id,params)
+### .delKey (id,params)
 _Deletes a cache key in the cache. You will need to supply a SQL format_
 
 __Example__
@@ -111,7 +111,7 @@ db.delKey("SELECT id,username,avatar FROM accounts WHERE id = ?", [530]);
 
 This exact SQL and result is now removed from the cache. Making sure the next time this query is executed; it will be retrieved from the database.
 
-###  - stats ()
+###  .stats ()
 _Will console.log() some statistics regarding mysql-cache_
 
 __Example__
@@ -120,7 +120,7 @@ __Example__
 db.stats();
 ```
 
-###  - flushAll ()
+###  .flushAll ()
 _removes all keys and values from the cache_
 
 __Example__
@@ -129,7 +129,7 @@ __Example__
 db.flushAll();
 ```
 
-###  - TTL 
+###  .TTL 
 _Changes the amount of Time To Live in seconds for all future made cache keys._
 
 __Example__
@@ -138,7 +138,7 @@ __Example__
 db.TTL = 5;
 ```
 
-### - changeDB (data)
+### .changeDB (data)
 _MySQL offers a changeUser command that allows you to alter the current user and other aspects of the connection without shutting down the underlying socket_
 
 ```javascript

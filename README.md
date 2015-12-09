@@ -1,4 +1,4 @@
-[ ![npm](https://nodei.co/npm/mysql-cache.png?downloads=true&downloadRank=true&stars=true)
+[ ![npm](https://nodei.co/npm/mysql-cache.png?downloads=true&downloadRank=true&stars=true) ](https://www.npmjs.com/package/mysql-cache "npmjs")
 
 [ ![](https://david-dm.org/michaeldegroot/mysql-cache.svg "deps") ](https://david-dm.org/michaeldegroot/mysql-cache "david-dm")
 [ ![](https://travis-ci.org/michaeldegroot/mysql-cache.svg?branch=master "testing") ](https://travis-ci.org/michaeldegroot/mysql-cache "travis-ci")

@@ -27,12 +27,12 @@
  - 0.2.3 Change database connection settings on the fly with db.changeDB
  - 0.2.4 db.changeDB now has a callback parameter added
  - 0.2.5 added speedtest.js in the root directory, check [Speedtest](#speedtest) for more information
+ - 0.3.8 Critical bug fixed: somehow I overlooked the fact that the query function had a check if testConnection was successfully executed or not. If it didn't it would not execute the query at all :/
 
 
 ## What it does
 
-Automatically caches SELECT sql's in the machine's memory using node-cache. Also using node-mysql connection pools and it's SQL format style
-
+Automatically caches SELECT sql's in the machine's memory using node-cache. This module is wrapping the mysql module, it uses the same functions for executing query's
 
 ## How does it look?
 
@@ -165,7 +165,7 @@ db.query("SELECT id,username,avatar FROM accounts WHERE id = ?", [530], function
 },{cache:false}); // Will not cache this query
 ```
 
-The db.query function is using node-mysql for querying. Check node-mysql documentation for more information about escaping values and other handy features: [node-mysql](https://github.com/felixge/node-mysql/blob/master/Readme.md)
+The db.query function is using node-mysql for querying. Check mysql documentation for more information about escaping values and other handy features: [mysql](https://github.com/felixge/node-mysql/blob/master/Readme.md)
 
 ### - delKey (id,params)
 Deletes a cache key in the cache. You will need to supply a SQL format

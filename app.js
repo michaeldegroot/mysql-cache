@@ -6,25 +6,20 @@ var crypto = require('crypto');
 var md5sum = crypto.createHash('md5');
 
 exports.init = function(config){
-	if(config.host.length==0){
-		log("warn","No host value supplied in configuration");
-		return;
+	if(!config.host){
+		exports.log("error","No host value supplied in configuration");return;
 	}
-	if(config.user.length==0){
-		log("warn","No user value supplied in configuration");
-		return;
+	if(!config.user){
+		exports.log("error","No user value supplied in configuration");return;
 	}
-	if(config.password.length==0){
-		log("warn","No password value supplied in configuration");
-		//return; suppress!
+	if(!config.database){
+		exports.log("error","No database value supplied in configuration");return;
 	}
-	if(config.database.length==0){
-		log("warn","No database value supplied in configuration");
-		return;
+	if(!config.connectionLimit){
+		exports.log("error","No connectionLimit value supplied in configuration");return;
 	}
-	if(config.connectionLimit.length==0){
-		log("warn","No connectionLimit value supplied in configuration");
-		return;
+	if(!config.password){
+		exports.log("warn","No password value supplied in configuration");
 	}
 
 	exports.pool = mysql.createPool({
@@ -60,7 +55,7 @@ exports.queryPerSec();
 
 exports.flushAll = function(){
 	myCache.flushAll();
-	log("success","Cache Flushed");
+	exports.log("success","Cache Flushed");
 }
 
 exports.stats = function(){
@@ -122,15 +117,15 @@ exports.query = function(sql,params,callback,data){
 					connection.query(sql,params, function(err, rows){
 						endPool(connection,function(poolResult){
 							if(!poolResult){
-								log("warn","A Connection was trying to be released while it already was!");
-								log("warn",exports.lastTrace);
+								exports.log("warn","A Connection was trying to be released while it already was!");
+								exports.log("error",exports.lastTrace);
 							}
 						});
 						if (err){
 							endPool(connection,function(poolResult){
 								if(!poolResult){
-									log("warn","A Connection was trying to be released while it already was!");
-									log("warn",exports.lastTrace);
+									exports.log("warn","A Connection was trying to be released while it already was!");
+									exports.log("error",exports.lastTrace);
 								}
 							});
 							callback(false,"DBERROR");
@@ -150,7 +145,7 @@ exports.query = function(sql,params,callback,data){
 								if(!callback) return;
 								callback(rows);
 							}else{
-								log(warn,"CACHE KEY CREATE FAILED!");
+								log("error","CACHE KEY CREATE FAILED!");
 								if(!callback) return;
 								callback(false,"CACHEERROR");
 							}
@@ -164,16 +159,14 @@ exports.query = function(sql,params,callback,data){
 			connection.query(sql,params, function(err, rows){
 				endPool(connection,function(poolResult){
 					if(!poolResult){
-						log("warn","A Connection was trying to be released while it already was!");
-						log("warn",exports.lastTrace);
+						exports.log("warn","A Connection was trying to be released while it already was!");
+						exports.log("error",exports.lastTrace);
 					}
 				});
 				if (err){
-					callback(false,"DBERROR");
-					throw err;
-					return;
+					callback(false,"DBERROR");return;
 				}
-				log("warn",query);
+				exports.log("warn",query);
 				callback(rows);
 			});
 		});
@@ -218,11 +211,11 @@ exports.changeDB = function(data,callback){
 			
 			endPool(connection,function(){
 				if (err){
-					log("warn","Could not change database connection settings.");
+					exports.log("warn","Could not change database connection settings.");
 					callback(err);
 					return;
 				}
-				log("success","Successfully changed database connection settings");
+				exports.log("success","Successfully changed database connection settings");
 				callback(false);
 			});
 		});
@@ -237,9 +230,7 @@ var getStackTrace = function() {
 
 function getPool(callback){
     exports.pool.getConnection(function(err, connection) {
-		if (err){
-			throw err;
-		}
+		if (err) throw new Error(err);
 		exports.poolConnections++;
 		callback(connection);
 	});
@@ -248,6 +239,7 @@ function getPool(callback){
 function endPool(connection,callback){
 	if(exports.poolConnections==0){
 		callback(false);
+		
 		return;
 	}
 	exports.poolConnections--;
@@ -255,25 +247,26 @@ function endPool(connection,callback){
 	callback(true);
 }
 
-function log(type,text){
+exports.log = function(type,text){
 	if(type=="success" && exports.verboseMode) console.log(colors.green(exports.prefix+": ")+text);
 	if(type=="info" && exports.verboseMode) console.log(colors.yellow(exports.prefix+": ")+text);
 	if(type=="warn") console.log(colors.red(exports.prefix+": ")+text);
+	if(type=="error") throw new Error(text);
 }
 
 exports.testConnection = function(callback){
-	log("info","Connecting to DB");
+	exports.log("info","Connecting to DB");
     exports.pool.getConnection(function(err, connection) {
 		if (err){
-			log("warn",err.code);
-			log("warn","Trying to reconnect in 3 seconds.");
+			exports.log("warn",err.code);
+			exports.log("warn","Trying to reconnect in 3 seconds.");
 			setTimeout(function(){
 				testConnection();
 			},3000);
 			return;
 		}
 		endPool(connection,function(){
-			log("success","Connected to DB");
+			exports.log("success","Connected to DB");
 			exports.ready = true;
 			callback();
 		});

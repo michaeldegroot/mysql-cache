@@ -4,6 +4,15 @@ var myCache = new NodeCache({ stdTTL: 0, checkperiod: 120 });
 var colors = require('colors');
 var crypto = require('crypto');
 var md5sum = crypto.createHash('md5');
+var Debug = require('console-debug');
+
+var console = new Debug({
+	uncaughtExceptionCatch: false,
+	consoleFilter: [],
+	logToFile: false,
+	logFilter: ['LOG','DEBUG','INFO'],
+	colors: true
+}); 
 
 exports.init = function(config){
 	if(!config.host){
@@ -248,9 +257,9 @@ exports.endPool = function(connection,callback){
 }
 
 exports.log = function(type,text){
-	if(type=="success" && exports.verboseMode) console.log(colors.green(exports.prefix+": ")+text);
-	if(type=="info" && exports.verboseMode) console.log(colors.yellow(exports.prefix+": ")+text);
-	if(type=="warn") console.log(colors.red(exports.prefix+": ")+text);
+	if(type=="success" && exports.verboseMode) console.info(text);
+	if(type=="info" && exports.verboseMode) console.info(text);
+	if(type=="warn") console.warn(text);
 	if(type=="error") throw new Error(text);
 }
 

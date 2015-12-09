@@ -27,10 +27,10 @@ Automatically caches SELECT sql's in the machine's memory using node-cache. This
 
 ##  How do I use it?
 
-### 1. Start by installing the package:
+##### 1. Start by installing the package:
     npm install mysql-cache
 
-### 2. Load the code
+##### 2. Load the code
 ```javascript
 var db = require('mysql-cache');
 
@@ -45,7 +45,7 @@ db.init({
 	caching: true // Do you want to use SELECT SQL caching?
 });
 ```
-### 3. Now do awesome stuff:
+##### 3. Do awesome stuff!
 ```javascript
 // Start executing SQL like you are used to using the mysql module
 db.query("SELECT ? + ? AS solution",[1,5],function(resultMysql){ // will be cached

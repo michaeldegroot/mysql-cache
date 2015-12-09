@@ -1,6 +1,6 @@
 {
   "name": "mysql-cache",
-  "version": "0.3.9",
+  "version": "0.4.0",
   "description": "Automatically caches SELECT sql's in the machine's memory using node-cache. Also using node-mysql connection pools and it's SQL format style",
   "main": "app.js",
   "scripts": {
@@ -25,7 +25,7 @@
   "license": "MIT",
   "dependencies": {
     "colors": "^1.1.2",
-    "console-debug": "^0.2.9",
+    "console-debug": "^0.3.0",
     "mysql": "^2.9.0",
     "node-cache": "^3.0.0",
     "optimist": "^0.6.1"

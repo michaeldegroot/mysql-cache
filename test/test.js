@@ -1,10 +1,14 @@
 // Require the module.
-var db = require('./app.js');
+var db = require('../app.js');
 
 // Setup some information.
 var argv = require('optimist').argv;
 
-process.exit(); // TODO: Write a test :(!
+describe("Internal", function(){
+	it('Write a test you noob <3', function(){
+		
+	});
+});
 return;
 
 db.init({

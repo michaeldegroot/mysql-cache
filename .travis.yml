@@ -9,5 +9,5 @@ node_js:
   - "0.11"
   - "0.10"
 before_script:
-  - sh -c "if [ '$DB' = 'mysql' ]; then mysql -e 'create database IF NOT EXISTS mysql-cache;'; fi"
+  - mysql -e 'create database mysqlcache;'
 after_script: NODE_ENV=test istanbul cover ./node_modules/mocha/bin/_mocha -- -R spec ./test/* && node node_modules/coveralls/bin/coveralls.js < coverage/lcov.info

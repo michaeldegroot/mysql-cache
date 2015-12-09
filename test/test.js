@@ -9,7 +9,7 @@ describe("Internal", function(){
 				host: '127.0.0.1',
 				user: 'root',
 				password: '',
-				database: 'mysql-cache',
+				database: 'mysqlcache',
 				TTL: 0, // Time To Live for a cache key in seconds (0 = infinite)
 				connectionLimit: 100, // Mysql connection pool limit (increase value if you are having problems)
 				verbose: true, // Do you want info and success messages about what the program is doing?

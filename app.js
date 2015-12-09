@@ -113,16 +113,16 @@ exports.query = function(sql,params,callback,data){
 				callback(cache);
 			}else{
 				if(exports.verboseMode) console.log(colors.yellow(hash)+"-"+colors.red(query));
-				getPool(function(connection){
+				exports.getPool(function(connection){
 					connection.query(sql,params, function(err, rows){
-						endPool(connection,function(poolResult){
+						exports.endPool(connection,function(poolResult){
 							if(!poolResult){
 								exports.log("warn","A Connection was trying to be released while it already was!");
 								exports.log("error",exports.lastTrace);
 							}
 						});
 						if (err){
-							endPool(connection,function(poolResult){
+							exports.endPool(connection,function(poolResult){
 								if(!poolResult){
 									exports.log("warn","A Connection was trying to be released while it already was!");
 									exports.log("error",exports.lastTrace);
@@ -155,9 +155,9 @@ exports.query = function(sql,params,callback,data){
 			}
 		});
 	}else{
-		getPool(function(connection){
+		exports.getPool(function(connection){
 			connection.query(sql,params, function(err, rows){
-				endPool(connection,function(poolResult){
+				exports.endPool(connection,function(poolResult){
 					if(!poolResult){
 						exports.log("warn","A Connection was trying to be released while it already was!");
 						exports.log("error",exports.lastTrace);
@@ -206,10 +206,10 @@ exports.createKey = function(id,val,callback,ttl){
 }
 
 exports.changeDB = function(data,callback){
-	getPool(function(connection){
+	exports.getPool(function(connection){
 		connection.changeUser(data, function(err) {
 			
-			endPool(connection,function(){
+			exports.endPool(connection,function(){
 				if (err){
 					exports.log("warn","Could not change database connection settings.");
 					callback(err);
@@ -228,7 +228,7 @@ var getStackTrace = function() {
   return obj.stack;
 };
 
-function getPool(callback){
+exports.getPool = function(callback){
     exports.pool.getConnection(function(err, connection) {
 		if (err) throw new Error(err);
 		exports.poolConnections++;
@@ -236,7 +236,7 @@ function getPool(callback){
 	});
 }
 
-function endPool(connection,callback){
+exports.endPool = function(connection,callback){
 	if(exports.poolConnections==0){
 		callback(false);
 		
@@ -261,11 +261,11 @@ exports.testConnection = function(callback){
 			exports.log("warn",err.code);
 			exports.log("warn","Trying to reconnect in 3 seconds.");
 			setTimeout(function(){
-				testConnection();
+				exports.testConnection();
 			},3000);
 			return;
 		}
-		endPool(connection,function(){
+		exports.endPool(connection,function(){
 			exports.log("success","Connected to DB");
 			exports.ready = true;
 			callback();

@@ -29,9 +29,15 @@ it('Show stats', function(){
 });
 
 it('Call a query', function(done){
-	this.timeout(15000);
 	db.query("SELECT ? + ? AS solution",[1,5],function(resultMysql){
 		assert.equal(resultMysql[0].solution,6);
+		done();
+	});
+});
+
+it('Call a query without params', function(done){
+	db.query("SELECT 1 + 1 AS solution",function(resultMysql){
+		assert.equal(resultMysql[0].solution,2);
 		done();
 	});
 });
@@ -89,5 +95,32 @@ it('Change DB to a wrong host', function(done){
 			done();
 		}, Error);
 	})
+});
+
+it('Create a pool error', function(done){
+	db.getPool(function(connection){
+		db.endPool(connection,function(){
+			db.endPool(connection,function(poolResult){
+				assert.throws(function(){
+					if(!poolResult){
+							throw new Error();
+					}
+				}, Error);
+				done();
+			});
+		});
+	});
+});
+
+
+
+it('Fake a QUERRY PER SEC TOO HIGH message', function(){
+	db.QPM=200;
+	db.stats();
+});
+
+it('Fake a MYSQL POOL CONNECTION LIMIT REACHED message', function(){
+	db.poolConnections=100;
+	db.stats();
 });
 

@@ -16,7 +16,7 @@ exports.init = function(config){
 	}
 	if(config.password.length==0){
 		log("warn","No password value supplied in configuration");
-		return;
+		//return; suppress!
 	}
 	if(config.database.length==0){
 		log("warn","No database value supplied in configuration");

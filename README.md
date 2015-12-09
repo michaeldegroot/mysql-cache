@@ -13,7 +13,7 @@ Automatically caches SELECT sql's in the machine's memory using node-cache. This
 ___
 ## Changelog
 
-https://github.com/michaeldegroot/mysql-cache/commits/master
+[https://github.com/michaeldegroot/mysql-cache/commits/master](https://github.com/michaeldegroot/mysql-cache/commits/master)
 ___
 ##  How do I use it?
 
@@ -25,27 +25,27 @@ ___
 var db = require('mysql-cache');
 
 db.init({
-	host: '',
-	user: '',
-	password: '',
-	database: '',
-	TTL: 0, // Time To Live for a cache key in seconds (0 = infinite)
-	connectionLimit: 100, // Mysql connection pool limit (increase value if you are having problems)
-	verbose: true, // Do you want console.log's about what the program is doing?
-	caching: true // Do you want to use SELECT SQL caching?
+    host: '',
+    user: '',
+    password: '',
+    database: '',
+    TTL: 0, // Time To Live for a cache key in seconds (0 = infinite)
+    connectionLimit: 100, // Mysql connection pool limit (increase value if you are having problems)
+    verbose: true, // Do you want console.log's about what the program is doing?
+    caching: true // Do you want to use SELECT SQL caching?
 });
 ```
 ##### 3. Do awesome stuff!
 ```javascript
 // Start executing SQL like you are used to using the mysql module
-db.query("SELECT ? + ? AS solution",[1,5],function(resultMysql){ // will be cached
+db.query("SELECT ? + ? AS solution", [1, 5], function(resultMysql) { // will be cached
     // Do something with the results
 }).
 
 // If later in your code this exact sql is run again,
 // It will retrieve it from cache instead of database.
 
-db.query("SELECT ? + ? AS solution",[1,5],function(resultCached){ // from cache because same sql
+db.query("SELECT ? + ? AS solution", [1, 5], function(resultCached) { // from cache because same sql
     // Do something with the results
 })
 ```
@@ -79,19 +79,24 @@ db.query("SELECT id,username,avatar FROM accounts WHERE id = ?", [530], function
 __Example with one time setting per query__
 
 ```javascript
-db.query("SELECT id,username,avatar FROM accounts WHERE id = ?", [530], function(result) {
+db.query("SELECT id, username, avatar FROM accounts WHERE id = ?", [530], function(result) {
     console.log(result);
-},{TTL:600}); // Will set TTL to 600 only for this query
+}, {
+    TTL: 600 // Will set TTL to 600 only for this query
+});
 
-
-db.query("SELECT id,username,avatar FROM accounts WHERE id = ?", [530], function(result) {
+db.query("SELECT id, username, avatar FROM accounts WHERE id = ?", [530], function(result) {
     console.log(result);
-},{cache:false}); // Will not cache this query
+}, {
+    cache: false // Will not cache this query
+});
 ```
 
 The db.query function is using node-mysql for querying. Check mysql documentation for more information about escaping values and other handy features: [mysql](https://github.com/felixge/node-mysql/blob/master/Readme.md)
 ___
 ### .delKey (id,params)
+    id:     The sql in string format of the cache key you are trying to delete
+    params: This is required if the cache key had any questionmarks (params) in the sql
 _Deletes a cache key in the cache. You will need to supply a SQL format_
 
 __Example__
@@ -129,24 +134,23 @@ __Example__
 db.TTL = 5;
 ```
 ___
-### .changeDB (data)
+### .changeDB (Object)
+    {
+        user: ''        // The name of the new user
+        password: ''    // The password of the new user
+        database: ''    // The new database 
+        charset: ''     // The new charset
+    }
 _MySQL offers a changeUser command that allows you to alter the current user and other aspects of the connection without shutting down the underlying socket_
 
 ```javascript
-db.changeDB({user:"testusername",pass:"keepo",database:"kappa",charset:"utf8"}, function(err){
+db.changeDB({user:"testusername", password:"keepo", database:"kappa", charset:"utf8"}, function(err){
     if(err) throw err;
     // Database settings are now changed, do something.
 })
 ```
 
-This changes database connection settings on the fly.
-
-Available variables to change are:
-
-* user: The name of the new user
-* password: The password of the new user
-* charset: The new charset
-* database: The new database 
+_This changes database connection settings on the fly._
 
  ___
 ## Contact

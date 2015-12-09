@@ -19,74 +19,21 @@
 
 ## Changelog
 
- - 0.1.0 Release
- - 0.1.1 - 0.1.3 Readme updates
- - 0.1.4 db.Delkey function added
- - 0.1.5 Readme updated with all functions
- - 0.1.8 Ability to supply a object to all query's containing settings that are only applied to that query. Check [API](#api) for more information
- - 0.2.3 Change database connection settings on the fly with db.changeDB
- - 0.2.4 db.changeDB now has a callback parameter added
- - 0.2.5 added speedtest.js in the root directory, check [Speedtest](#speedtest) for more information
- - 0.3.8 Critical bug fixed: somehow I overlooked the fact that the query function had a check if testConnection was successfully executed or not. If it didn't it would not execute the query at all :/
+https://github.com/michaeldegroot/mysql-cache/commits/master
 
 
-## What it does
-
-Automatically caches SELECT sql's in the machine's memory using node-cache. This module is wrapping the mysql module, it uses the same functions for executing query's
-
-## How does it look?
-
-![tank.gif](https://bitbucket.org/repo/jjGr8o/images/2064265396-tank.gif)
-
-```javascript
-// Require the module.
-var db = require('./app.js');
-
-// Setup some information.
-db.init({
-	host: '',
-	user: '',
-	password: '',
-	database: '',
-	TTL: 0, // Time To Live for a cache key in seconds (0 = infinite)
-	connectionLimit: 100, // Mysql connection pool limit (increase value if you are having problems)
-	verbose: true, // Do you want info and success messages about what the program is doing?
-	caching: true // Do you want to enable caching?
-});
-
-db.TTL = 60; // Change amount of Time To Live in seconds for a cache key in realtime.
-
-// Start executing SQL like you are used to using node-mysql
-db.query("SELECT ? + ? AS solution",[1,5],function(resultMysql){ // the SQL contains a SELECT which means it will be cached for future use.
-	db.query("SELECT ? + ? AS solution",[1,5],function(resultCached){ // This exact SQL has been executed before and will be retrieved from cache.
-		db.delKey("SELECT ? + ? AS solution",[1,5]); // Delete this SQL cache key.
-		db.query("SELECT ? + ? AS solution",[1,5],function(resultRemoved){ // This SQL will be executed on the database because the sql cache key was deleted.
-			console.log("Result from mysql is: "+resultMysql[0].solution);
-			console.log("Result cached is: "+resultCached[0].solution);
-			console.log("Result after cache key is deleted: "+resultRemoved[0].solution);
-                        db.stats(); // show some interesting statistics regarding mysql-cache
-                        db.changeDB({user:"testusername",pass:"keepo",database:"kappa",charset:"utf8"}, function(err){  // Change database connection settings on the fly.
-				if(err) throw err;
-			});
-		});
-	},{cache:false}); // Do not cache this query.
-},{TTL:600}); // Set TTL to 600 only for this query.
-
-db.flushAll(); // Flush the cache.
-```
-
+## What does it do
+Automatically caches SELECT sql's in the machine's memory using node-cache. This module is wrapping the [mysql](https://www.npmjs.com/package/mysql) module
 
 ##  How do I use it?
 
 ### 1. Start by installing the package:
     npm install mysql-cache
 
-### 2. Put this in your nodejs server file:
+### 2. Load the code
 ```javascript
-// Require the module.
 var db = require('mysql-cache');
 
-// Setup your database information
 db.init({
 	host: '',
 	user: '',
@@ -98,31 +45,19 @@ db.init({
 	caching: true // Do you want to use SELECT SQL caching?
 });
 ```
-
-
-
-	
-### 3. Now you can do stuff like:
+### 3. Now do awesome stuff:
 ```javascript
-// Start executing SQL like you are used to using node-mysql
-db.query("SELECT ? + ? AS solution",[1,5],function(resultMysql){ // the SQL contains a SELECT which means it will be cached for future use.
-	db.query("SELECT ? + ? AS solution",[1,5],function(resultCached){ // This exact SQL has been executed before and will be retrieved from cache.
-		db.delKey("SELECT ? + ? AS solution",[1,5]); // Delete this SQL cache key.
-		db.query("SELECT ? + ? AS solution",[1,5],function(resultRemoved){ // This SQL will be executed on the database because the sql cache key was deleted.
-			console.log("Result from mysql is: "+resultMysql[0].solution);
-			console.log("Result cached is: "+resultCached[0].solution);
-			console.log("Result after cache key is deleted: "+resultRemoved[0].solution);
-                        db.stats(); // show some interesting statistics regarding mysql-cache
-                        db.changeDB({user:"testusername",pass:"keepo",database:"kappa",charset:"utf8"}, function(err){  // Change database connection settings on the fly.
-				if(err) throw err;
-			});
-		});
-	},{cache:false}); // Do not cache this query.
-},{TTL:600}); // Set TTL to 600 only for this query.
+// Start executing SQL like you are used to using the mysql module
+db.query("SELECT ? + ? AS solution",[1,5],function(resultMysql){ // will be cached
+    // Do something with the results
+}).
 
-db.TTL = 60; // Change amount of Time To Live in seconds for a cache key in realtime.
+// If later in your code this exact sql is run again,
+// It will retrieve it from cache instead of database.
 
-db.flushAll(); // Flush the cache.
+db.query("SELECT ? + ? AS solution",[1,5],function(resultCached){ // from cache because same sql
+    // Do something with the results
+})
 ```
 
 
@@ -139,10 +74,8 @@ On my crappy wifi connection (and external database host) I had the following re
 
 ## API
 
-###  - query (sql,params,callback,data)
-Will execute the given SQL and cache the result if it is a SELECT statement.
-
-If the SQL was executed and cached before it will skip the database request and retrieve it from the cache straight away.
+###  .query (sql,params,callback,data)
+_Will execute the given SQL and cache the result if it is a SELECT statement. If the SQL was executed and cached before it will skip the database request and retrieve it from the cache straight away._
 
 __Example__
 
@@ -168,7 +101,7 @@ db.query("SELECT id,username,avatar FROM accounts WHERE id = ?", [530], function
 The db.query function is using node-mysql for querying. Check mysql documentation for more information about escaping values and other handy features: [mysql](https://github.com/felixge/node-mysql/blob/master/Readme.md)
 
 ### - delKey (id,params)
-Deletes a cache key in the cache. You will need to supply a SQL format
+_Deletes a cache key in the cache. You will need to supply a SQL format_
 
 __Example__
 
@@ -179,7 +112,7 @@ db.delKey("SELECT id,username,avatar FROM accounts WHERE id = ?", [530]);
 This exact SQL and result is now removed from the cache. Making sure the next time this query is executed; it will be retrieved from the database.
 
 ###  - stats ()
-Will console.log() some statistics regarding mysql-cache
+_Will console.log() some statistics regarding mysql-cache_
 
 __Example__
 
@@ -188,7 +121,7 @@ db.stats();
 ```
 
 ###  - flushAll ()
-removes all keys and values from the cache
+_removes all keys and values from the cache_
 
 __Example__
 
@@ -197,7 +130,7 @@ db.flushAll();
 ```
 
 ###  - TTL 
-Changes the amount of Time To Live in seconds for all future made cache keys.
+_Changes the amount of Time To Live in seconds for all future made cache keys._
 
 __Example__
 
@@ -206,7 +139,7 @@ db.TTL = 5;
 ```
 
 ### - changeDB (data)
-MySQL offers a changeUser command that allows you to alter the current user and other aspects of the connection without shutting down the underlying socket
+_MySQL offers a changeUser command that allows you to alter the current user and other aspects of the connection without shutting down the underlying socket_
 
 ```javascript
 db.changeDB({user:"testusername",pass:"keepo",database:"kappa",charset:"utf8"}, function(err){

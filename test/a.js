@@ -42,6 +42,13 @@ it('Call a query without params', function(done){
 	});
 });
 
+it('Call a query as sql object', function(done){
+	db.query({sql:"SELECT 6 + 6 AS solution"},function(resultMysql){
+		assert.equal(resultMysql[0].solution,12);
+		done();
+	});
+});
+
 it('Test cache', function(done){
 	db.query("SELECT ? + ? AS solution",[1,5],function(resultMysql){
 		assert.equal(resultMysql[0].solution,6);
@@ -114,13 +121,9 @@ it('Create a pool error', function(done){
 
 
 
-it('Fake a QUERRY PER SEC TOO HIGH message', function(){
-	db.QPM=200;
-	db.stats();
-});
-
-it('Fake a MYSQL POOL CONNECTION LIMIT REACHED message', function(){
-	db.poolConnections=100;
+it('Fake some error messages', function(){
+	db.QPM=2000;
+	db.poolConnections=2000;
 	db.stats();
 });
 

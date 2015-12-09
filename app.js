@@ -69,9 +69,9 @@ exports.stats = function(){
 	console.log("Key Size: "+myCache.getStats().ksize);
 	console.log("Value Size: "+myCache.getStats().vsize);
 	if(exports.QPM>=100){
-		console.log("**** "+colors.red("QUERRY PER SEC TOO HIGH"));
+		console.log("**** "+colors.red("QUERRY PER SEC IS HIGH"));
 	}
-	if(exports.poolConnections>=100){
+	if(exports.poolConnections>=exports.poolConnections){
 		console.log("**** "+colors.red("MYSQL POOL CONNECTION LIMIT REACHED"));
 	}
 	console.log("-----------------------");
@@ -145,7 +145,7 @@ exports.query = function(sql,params,callback,data){
 								if(!callback) return;
 								callback(rows);
 							}else{
-								log("error","CACHE KEY CREATE FAILED!");
+								exports.log("error","CACHE KEY CREATE FAILED!");
 								if(!callback) return;
 								callback(false,"CACHEERROR");
 							}

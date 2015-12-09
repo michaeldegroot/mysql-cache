@@ -21,14 +21,20 @@ describe("Internal", function(){
 		db.stats();
 	});
 	it('Call a query', function(done){
+		this.timeout(15000);
 		db.query("SELECT ? + ? AS solution",[1,5],function(resultMysql){ // the SQL contains a SELECT which means it will be cached for future use.
 			assert.equal(resultMysql[0].solution,6);
 			done();
 		});
 	});
+	it('Flush all cache', function(){
+		assert.doesNotThrow(function(){
+			db.flushAll();
+		}, Error);
+	});
 	
 	it('Change DB', function(){
-		db.changeDB({user:"testusername",pass:"keepo",database:"kappa",charset:"utf8"}, function(err){  // Change database connection settings on the fly.
+		db.changeDB({user:"root",pass:"",database:"mysql-cache",charset:"utf8"}, function(err){  // Change database connection settings on the fly.
 			assert.doesNotThrow(function(){
 				if(err) throw err;
 			}, Error);

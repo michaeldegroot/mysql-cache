@@ -83,12 +83,6 @@ exports.stats = function(){
 };
 
 exports.query = function(sql,params,callback,data){
-	if(!exports.ready){
-		setTimeout(function(){
-			exports.query(sql,params,callback);
-		},100);
-		return;
-	}
 
 	exports.lastTrace = getStackTrace();
 	cacheMode = exports.cacheMode;

@@ -65,6 +65,12 @@ ___
 ## API
 
 ###  .query (sql,params,callback,data)
+    sql:        The sql you want to execute
+    *params:    This is used if you want to escape values
+    callback:   Usefull if you want to have the result back of the query. If result = false the query failed
+    data:       You can pass one time settings for this query, check the examples below!
+\* [More about escaping values by using params](https://github.com/felixge/node-mysql/blob/master/Readme.md#escaping-query-values)
+
 _Will execute the given SQL and cache the result if it's a SELECT statement.   
 If the SQL was executed before, it will skip the database request and retrieve it from the cache straight away._
 
@@ -92,7 +98,8 @@ db.query("SELECT id, username, avatar FROM accounts WHERE id = ?", [530], functi
 });
 ```
 
-The db.query function is using node-mysql for querying. Check mysql documentation for more information about escaping values and other handy features: [mysql](https://github.com/felixge/node-mysql/blob/master/Readme.md)
+The db.query function is using node-mysql for querying (wrapper).  
+Check the [mysql](https://www.npmjs.com/package/mysql) [documentation](https://github.com/felixge/node-mysql/blob/master/Readme.md) for more information about [escaping values](https://github.com/felixge/node-mysql/blob/master/Readme.md#escaping-query-values) and other handy features
 ___
 ### .delKey (id,params)
     id:     The sql in string format of the cache key you are trying to delete

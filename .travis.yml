@@ -6,3 +6,5 @@ node_js:
   - "0.12"
   - "0.11"
   - "0.10"
+  
+after_script: NODE_ENV=test istanbul cover ./node_modules/mocha/bin/_mocha -- -R spec ./test/* && node node_modules/coveralls/bin/coveralls.js < coverage/lcov.info

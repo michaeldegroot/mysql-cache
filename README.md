@@ -65,7 +65,8 @@ ___
 ## API
 
 ###  .query (sql,params,callback,data)
-_Will execute the given SQL and cache the result if it is a SELECT statement. If the SQL was executed and cached before it will skip the database request and retrieve it from the cache straight away._
+_Will execute the given SQL and cache the result if it's a SELECT statement.   
+If the SQL was executed before, it will skip the database request and retrieve it from the cache straight away._
 
 __Example__
 

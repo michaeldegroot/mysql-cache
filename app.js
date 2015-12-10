@@ -16,16 +16,16 @@ var console = new Debug({
 
 exports.init = function(config){
 	if(!config.host){
-		exports.log("error","No host value supplied in configuration");return;
+		exports.log("error","No host value supplied in configuration");
 	}
 	if(!config.user){
-		exports.log("error","No user value supplied in configuration");return;
+		exports.log("error","No user value supplied in configuration");
 	}
 	if(!config.database){
-		exports.log("error","No database value supplied in configuration");return;
+		exports.log("error","No database value supplied in configuration");
 	}
 	if(!config.connectionLimit){
-		exports.log("error","No connectionLimit value supplied in configuration");return;
+		exports.log("error","No connectionLimit value supplied in configuration");
 	}
 	if(!config.password){
 		exports.log("warn","No password value supplied in configuration");
@@ -119,27 +119,15 @@ exports.query = function(sql,params,callback,data){
 			}
 			if(cache){
 				if(exports.verboseMode) console.log(colors.yellow(hash)+"-"+colors.green(query));
-				callback(cache);
+				if(callback) callback(cache);
 			}else{
 				if(exports.verboseMode) console.log(colors.yellow(hash)+"-"+colors.red(query));
 				exports.getPool(function(connection){
 					connection.query(sql,params, function(err, rows){
-						exports.endPool(connection,function(poolResult){
-							if(!poolResult){
-								exports.log("warn","A Connection was trying to be released while it already was!");
-								exports.log("error",exports.lastTrace);
-							}
-						});
+						exports.endPool(connection,function(poolResult){});
 						if (err){
-							exports.endPool(connection,function(poolResult){
-								if(!poolResult){
-									exports.log("warn","A Connection was trying to be released while it already was!");
-									exports.log("error",exports.lastTrace);
-								}
-							});
-							callback(false,"DBERROR");
-							throw err;
-							return;
+							exports.endPool(connection,function(poolResult){});
+							callback(false,"DBERROR");return false;
 						}
 						if(data){
 							TTLSet = 0;
@@ -151,12 +139,10 @@ exports.query = function(sql,params,callback,data){
 						}
 						exports.createKey(hash,rows,function(result){
 							if(result){
-								if(!callback) return;
+								if(!callback) return true;
 								callback(rows);
 							}else{
-								exports.log("error","CACHE KEY CREATE FAILED!");
-								if(!callback) return;
-								callback(false,"CACHEERROR");
+								callback(false,"CACHEERROR");return false;
 							}
 						},TTLSet);
 					});
@@ -166,15 +152,8 @@ exports.query = function(sql,params,callback,data){
 	}else{
 		exports.getPool(function(connection){
 			connection.query(sql,params, function(err, rows){
-				exports.endPool(connection,function(poolResult){
-					if(!poolResult){
-						exports.log("warn","A Connection was trying to be released while it already was!");
-						exports.log("error",exports.lastTrace);
-					}
-				});
-				if (err){
-					callback(false,"DBERROR");return;
-				}
+				exports.endPool(connection,function(poolResult){});
+				if (err) callback(false,"DBERROR");return false;
 				exports.log("warn",query);
 				callback(rows);
 			});
@@ -248,7 +227,6 @@ exports.getPool = function(callback){
 exports.endPool = function(connection,callback){
 	if(exports.poolConnections==0){
 		callback(false);
-		
 		return;
 	}
 	exports.poolConnections--;

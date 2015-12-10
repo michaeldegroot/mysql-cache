@@ -49,6 +49,11 @@ it('Call a query as sql object', function(done){
 	});
 });
 
+it('Call a query without a callback', function(done){
+		db.query({sql:"SELECT 6 + 6 AS solution"});
+		done();
+});
+
 it('Test cache', function(done){
 	db.query("SELECT ? + ? AS solution",[1,5],function(resultMysql){
 		assert.equal(resultMysql[0].solution,6);
@@ -95,6 +100,19 @@ it('Change TTL', function(){
 	}, Error);
 });
 
+it('Trigger: A Connection was trying to be released while it already was!', function(done){
+	db.getPool(function(connection){
+		db.endPool(connection,function(){
+			db.endPool(connection,function(poolResult){
+				db.query("SELECT ? + ? AS solution",[1,5],function(resultMysql){
+					assert.equal(resultMysql[0].solution,6);
+				});
+			}, Error);
+			done();
+		});
+	});
+});
+
 it('Change DB to a wrong host', function(done){
 	db.changeDB({user:"root",pass:"",database:"mysqlcache",charset:"utf8"}, function(err){
 		assert.throws(function(){
@@ -108,11 +126,7 @@ it('Create a pool error', function(done){
 	db.getPool(function(connection){
 		db.endPool(connection,function(){
 			db.endPool(connection,function(poolResult){
-				assert.throws(function(){
-					if(!poolResult){
-							throw new Error();
-					}
-				}, Error);
+				assert.equal(poolResult,false);
 				done();
 			});
 		});

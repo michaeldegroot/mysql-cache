@@ -8,7 +8,7 @@
 
 ___
 # What it does
-Automatically caches SELECT sql's in the machine's memory using node-cache. This module is wrapping the [mysql](https://www.npmjs.com/package/mysql) module
+Automatically caches SELECT sql's in the machine's memory using node-cache. This module is wrapping some functions of the [mysql](https://www.npmjs.com/package/mysql) module
 ___
 # Changelog
 
@@ -65,10 +65,13 @@ ___
 ## API
 
 ###  .query (sql,params,callback,data)
-    sql:        The sql you want to execute
-    *params:    This is used if you want to escape values
-    callback:   Usefull if you want to have the result back of the query. If result = false the query failed
-    data:       You can pass one time settings for this query, check the examples below!
+```js
+sql:        String      // The sql you want to execute
+*params:    Object      // This is used if you want to escape values
+callback:   Function    // For getting the result back of the query.
+data:       Object      // You can pass one time settings for this query, check the examples below!
+````
+
 \* [More about escaping values by using params](https://github.com/felixge/node-mysql/blob/master/Readme.md#escaping-query-values)
 
 _Will execute the given SQL and cache the result if it's a SELECT statement.   
@@ -98,12 +101,26 @@ db.query("SELECT id, username, avatar FROM accounts WHERE id = ?", [530], functi
 });
 ```
 
-The db.query function is using node-mysql for querying (wrapper).  
-Check the [mysql](https://www.npmjs.com/package/mysql) [documentation](https://github.com/felixge/node-mysql/blob/master/Readme.md) for more information about [escaping values](https://github.com/felixge/node-mysql/blob/master/Readme.md#escaping-query-values) and other handy features
+__Example with error handling__
+
+```javascript
+db.query("SELECT id, username, avatar FROM accounts WHERE id = ?", [530], function(result,err) {
+    if(err) throw new Error(err); // catch the sql error
+    console.log(result);
+});
+```
+
+The db.query function is using node-mysql for querying.  
+It's wrapping the sql function, check the [mysql](https://www.npmjs.com/package/mysql) [documentation](https://github.com/felixge/node-mysql/blob/master/Readme.md)   for more information about [escaping values](https://github.com/felixge/node-mysql/blob/master/Readme.md#escaping-query-values)  
+
+*mysql-cache only supports the use of questionmarks in sql at the moment for escaping values*
+
 ___
 ### .delKey (id,params)
-    id:     The sql in string format of the cache key you are trying to delete
-    params: This is required if the cache key had any questionmarks (params) in the sql
+```js
+    id:         String    // The sql in string format of the cache key you are trying to delete
+    params:     Object    // This is required if the cache key had any questionmarks (params) in the sql
+````
 _Deletes a cache key in the cache. You will need to supply a SQL format_
 
 __Example__
@@ -142,12 +159,14 @@ db.TTL = 5;
 ```
 ___
 ### .changeDB (Object)
-    {
-        user: ''        // The name of the new user
-        password: ''    // The password of the new user
-        database: ''    // The new database 
-        charset: ''     // The new charset
-    }
+```js
+{
+    user:       String      // The name of the new user
+    password:   String      // The password of the new user
+    database:   String      // The new database 
+    charset:    String      // The new charset
+}
+```
 _MySQL offers a changeUser command that allows you to alter the current user and other aspects of the connection without shutting down the underlying socket_
 
 ```javascript

@@ -37,14 +37,16 @@ db.init({
 ##### 3. Do awesome stuff!
 ```javascript
 // Start executing SQL like you are used to using the mysql module
-db.query("SELECT ? + ? AS solution", [1, 5], function(resultMysql) { // will be cached
+
+db.query("SELECT ? + ? AS solution", [1, 5], function(resultMysql) {
+    // This sql is not in the cache and will be cached for future references
     // Do something with the results
 }).
 
-// If later in your code this exact sql is run again,
+// Later in your code if this exact sql is run again,
 // It will retrieve it from cache instead of database.
 
-db.query("SELECT ? + ? AS solution", [1, 5], function(resultCached) { // from cache because same sql
+db.query("SELECT ? + ? AS solution", [1, 5], function(resultCached) {
     // This query was retrieved from the cache
 	// Do something with the results
 })

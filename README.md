@@ -28,10 +28,10 @@ db.init({
     user: '',
     password: '',
     database: '',
-    TTL: 0, // Time To Live for a cache key in seconds (0 = infinite)
-    connectionLimit: 100, // Mysql connection pool limit (increase value if you are having problems)
-    verbose: true, // Do you want console.log's about what the program is doing?
-    caching: true // Do you want to use SELECT SQL caching?
+    TTL: 0, 				// Time To Live for a cache key in seconds (0 = infinite)
+    connectionLimit: 100, 	// Mysql connection pool limit (increase value if you are having problems)
+    verbose: true, 			// Do you want console.log's about what the program is doing?
+    caching: true 			// Do you want to use SELECT SQL caching?
 });
 ```
 ##### 3. Do awesome stuff!
@@ -45,7 +45,8 @@ db.query("SELECT ? + ? AS solution", [1, 5], function(resultMysql) { // will be 
 // It will retrieve it from cache instead of database.
 
 db.query("SELECT ? + ? AS solution", [1, 5], function(resultCached) { // from cache because same sql
-    // Do something with the results
+    // This query was retrieved from the cache
+	// Do something with the results
 })
 ```
 

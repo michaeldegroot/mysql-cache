@@ -127,7 +127,7 @@ exports.query = function(sql,params,callback,data){
 						exports.endPool(connection,function(poolResult){});
 						if (err){
 							exports.endPool(connection,function(poolResult){});
-							callback(false,"DBERROR");return false;
+							callback(false,err);return false;
 						}
 						if(data){
 							TTLSet = 0;
@@ -153,7 +153,7 @@ exports.query = function(sql,params,callback,data){
 		exports.getPool(function(connection){
 			connection.query(sql,params, function(err, rows){
 				exports.endPool(connection,function(poolResult){});
-				if (err) callback(false,"DBERROR");return false;
+				if (err) callback(false,err);return false;
 				exports.log("warn",query);
 				callback(rows);
 			});

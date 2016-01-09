@@ -168,6 +168,7 @@ exports.delKey = function(id,params){
 }
 
 exports.getKey = function(id,callback){
+  id = id.replace(/ /g,'').toLowerCase();
 	myCache.get(id, function(err, value){
 		if(!err){
 			if(value == undefined){
@@ -181,6 +182,7 @@ exports.getKey = function(id,callback){
 }
 
 exports.createKey = function(id,val,callback,ttl){
+  id = id.replace(/ /g,'').toLowerCase();
 	var oldTTL = exports.TTL;
 	if(ttl) exports.TTL = ttl;
 	myCache.set(id, val, exports.TTL, function(err, success){

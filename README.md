@@ -38,7 +38,7 @@ db.init({
 ```javascript
 // Start executing SQL like you are used to using the mysql module
 
-db.query("SELECT ? + ? AS solution", [1, 5], function(resultMysql) {
+db.query("SELECT ? + ? AS solution", [1, 5], function(err, resultDatabase) {
     // This sql is not in the cache and will be cached for future references
     // Do something with the results
 }).
@@ -46,7 +46,7 @@ db.query("SELECT ? + ? AS solution", [1, 5], function(resultMysql) {
 // Later in your code if this exact sql is run again,
 // It will retrieve it from cache instead of database.
 
-db.query("SELECT ? + ? AS solution", [1, 5], function(resultCached) {
+db.query("SELECT ? + ? AS solution", [1, 5], function(err, resultCached) {
     // This query was retrieved from the cache
 	// Do something with the results
 })
@@ -82,7 +82,7 @@ If the SQL was executed before, it will skip the database request and retrieve i
 __Example__
 
 ```javascript
-db.query("SELECT id,username,avatar FROM accounts WHERE id = ?", [530], function(result) {
+db.query("SELECT id,username,avatar FROM accounts WHERE id = ?", [530], function(err, result) {
     console.log(result);
 });
 ```
@@ -90,13 +90,13 @@ db.query("SELECT id,username,avatar FROM accounts WHERE id = ?", [530], function
 __Example with one time setting per query__
 
 ```javascript
-db.query("SELECT id, username, avatar FROM accounts WHERE id = ?", [530], function(result) {
+db.query("SELECT id, username, avatar FROM accounts WHERE id = ?", [530], function(err, result) {
     console.log(result);
 }, {
     TTL: 600 // Will set TTL to 600 only for this query
 });
 
-db.query("SELECT id, username, avatar FROM accounts WHERE id = ?", [530], function(result) {
+db.query("SELECT id, username, avatar FROM accounts WHERE id = ?", [530], function(err, result) {
     console.log(result);
 }, {
     cache: false // Will not cache this query
@@ -106,7 +106,7 @@ db.query("SELECT id, username, avatar FROM accounts WHERE id = ?", [530], functi
 __Example with error handling__
 
 ```javascript
-db.query("SELECT id, username, avatar FROM accounts WHERE id = ?", [530], function(result,err) {
+db.query("SELECT id, username, avatar FROM accounts WHERE id = ?", [530], function(err, result) {
     if(err) throw new Error(err); // catch the sql error
     console.log(result);
 });

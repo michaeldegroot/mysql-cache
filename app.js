@@ -127,7 +127,7 @@ exports.query = function(sql,params,callback,data){
 						exports.endPool(connection,function(poolResult){});
 						if (err){
 							exports.endPool(connection,function(poolResult){});
-							callback(false,err);return false;
+							callback(err,null);return false;
 						}
 						if(data){
 							TTLSet = 0;
@@ -140,9 +140,9 @@ exports.query = function(sql,params,callback,data){
 						exports.createKey(hash,rows,function(result){
 							if(result){
 								if(!callback) return true;
-								callback(rows);
+								callback(null,rows);
 							}else{
-								callback(false,"CACHEERROR");return false;
+								callback("Cache key create failed");return false;
 							}
 						},TTLSet);
 					});
@@ -153,9 +153,9 @@ exports.query = function(sql,params,callback,data){
 		exports.getPool(function(connection){
 			connection.query(sql,params, function(err, rows){
 				exports.endPool(connection,function(poolResult){});
-				if (err) callback(false,err);return false;
+				if (err) callback(err);return false;
 				exports.log("warn",query);
-				callback(rows);
+				callback(null,rows);
 			});
 		});
 	}
@@ -204,7 +204,7 @@ exports.changeDB = function(data,callback){
 					return;
 				}
 				exports.log("success","Successfully changed database connection settings");
-				callback(false);
+				callback(null,true);
 			});
 		});
 	});

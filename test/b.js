@@ -15,7 +15,7 @@ it('Call init, disable cache, call query', function(done){
 		verbose: true, // Do you want info and success messages about what the program is doing?
 		caching: false // Do you want to enable caching?
 	});
-	db.query({sql:"SELECT 6 + 6 AS solution"},function(resultMysql){
+	db.query({sql:"SELECT 6 + 6 AS solution"},function(err,resultMysql){
 		assert.equal(resultMysql[0].solution,12);
 		done();
 	});

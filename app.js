@@ -226,12 +226,12 @@ exports.getPool = function(callback){
 
 exports.endPool = function(connection,callback){
 	if(exports.poolConnections==0){
-		if(callback) callback(false);
+		callback(false);
 		return;
 	}
 	exports.poolConnections--;
 	connection.release();
-	if(callback) callback(true);
+	callback(true);
 }
 
 exports.log = function(type,text){
@@ -248,7 +248,9 @@ exports.testConnection = function(callback){
 			exports.log("warn",err.code);
 			exports.log("warn","Trying to reconnect in 3 seconds.");
 			setTimeout(function(){
-				exports.testConnection();
+				exports.testConnection(function(){
+          
+        });
 			},3000);
 			return;
 		}

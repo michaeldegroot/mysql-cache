@@ -4,6 +4,15 @@ var myCache = new NodeCache({ stdTTL: 0, checkperiod: 120 });
 var colors = require('colors');
 var crypto = require('crypto');
 var md5sum = crypto.createHash('md5');
+var Debug = require('console-debug');
+
+var console = new Debug({
+	uncaughtExceptionCatch: false,
+	consoleFilter: [],
+	logToFile: false,
+	logFilter: [],
+	colors: true
+}); 
 
 exports.init = function(config){
 	if(!config.host){
@@ -159,7 +168,6 @@ exports.delKey = function(id,params){
 }
 
 exports.getKey = function(id,callback){
-  console.log("get",id);
 	myCache.get(id, function(err, value){
 		if(!err){
 			if(value == undefined){
@@ -218,12 +226,12 @@ exports.getPool = function(callback){
 
 exports.endPool = function(connection,callback){
 	if(exports.poolConnections==0){
-		callback(false);
+		if(callback) callback(false);
 		return;
 	}
 	exports.poolConnections--;
 	connection.release();
-	callback(true);
+	if(callback) callback(true);
 }
 
 exports.log = function(type,text){

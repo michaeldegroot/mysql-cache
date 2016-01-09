@@ -31,7 +31,6 @@ describe('Test', function(){
 
 	it('Call a query', function(done){
 		db.query("SELECT ? + ? AS solution",[1,5],function(err,resultMysql){
-      if(err) throw new Error(err);
 			assert.equal(resultMysql[0].solution,6);
 			done();
 		});
@@ -39,7 +38,6 @@ describe('Test', function(){
 
 	it('Call a query without params', function(done){
 		db.query("SELECT 1 + 1 AS solution",function(err,resultMysql){
-      if(err) throw new Error(err);
 			assert.equal(resultMysql[0].solution,2);
 			done();
 		});
@@ -47,7 +45,6 @@ describe('Test', function(){
 
 	it('Call a query as sql object', function(done){
 		db.query({sql:"SELECT 6 + 6 AS solution"},function(err,resultMysql){
-      if(err) throw new Error(err);
 			assert.equal(resultMysql[0].solution,12);
 			done();
 		});
@@ -60,7 +57,6 @@ describe('Test', function(){
 
 	it('Test cache', function(done){
 		db.query("SELECT ? + ? AS solution",[1,5],function(err,resultMysql){
-      if(err) throw new Error(err);
 			assert.equal(resultMysql[0].solution,6);
 			done();
 		});
@@ -72,7 +68,6 @@ describe('Test', function(){
 
 	it('One time setting per query', function(done){
 		db.query("SELECT ? + ? AS solution",[10,5],function(err,resultMysql){
-      if(err) throw new Error(err);
 			assert.equal(resultMysql[0].solution,15);
 			done();
 		},{cache:false,TTL:600});
@@ -81,7 +76,6 @@ describe('Test', function(){
 	it('Non select statement', function(done){
 		var post = {};
 		db.query("insert into test SET ?",post,function(err,resultMysql){
-      if(err) throw new Error(err);
 			done();
 		});
 	});
@@ -112,7 +106,6 @@ describe('Test', function(){
 			db.endPool(connection,function(){
 				db.endPool(connection,function(poolResult){
 					db.query("SELECT ? + ? AS solution",[1,5],function(err,resultMysql){
-            if(err) throw new Error(err);
 						assert.equal(resultMysql[0].solution,6);
 					});
 				}, Error);

@@ -153,7 +153,10 @@ exports.query = function(sql,params,callback,data){
 		exports.getPool(function(connection){
 			connection.query(sql,params, function(err, rows){
 				exports.endPool(connection,function(poolResult){});
-				if (err) callback(err);return false;
+				if (err){
+					callback(err);
+					return false;
+				}
 				exports.log("warn",query);
 				callback(null,rows);
 			});

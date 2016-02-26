@@ -33,7 +33,7 @@
   "devDependencies": {
     "assert": "^1.3.0",
     "assert-plus": "^1.0.0",
-    "coveralls": "^2.11.4",
+    "coveralls": "^2.11.8",
     "express": "^4.13.3",
     "istanbul": "^0.4.1",
     "mocha": "^2.3.4",

@@ -2,6 +2,7 @@ language: node_js
 services:
   - mysql
 node_js:
+  - "6.4"
   - "6.0"
   - "5.0"
   - "4.1"
@@ -9,6 +10,9 @@ node_js:
   - "0.12"
   - "0.11"
   - "0.10"
+os:
+  - linux
+  - osx
 before_script:
   - mysql -e 'create database mysqlcache;use mysqlcache;SET FOREIGN_KEY_CHECKS=0;DROP TABLE IF EXISTS `test`;CREATE TABLE `test` (`id` int(11) NOT NULL AUTO_INCREMENT,PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;'
 after_script: NODE_ENV=test istanbul cover ./node_modules/mocha/bin/_mocha -- -R spec ./test/* && node node_modules/coveralls/bin/coveralls.js < coverage/lcov.info

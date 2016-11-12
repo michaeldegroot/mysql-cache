@@ -2,7 +2,7 @@
 [![](https://david-dm.org/michaeldegroot/mysql-cache.svg)](https://david-dm.org/michaeldegroot/mysql-cache "david-dm")
 [![](https://travis-ci.org/michaeldegroot/mysql-cache.svg?branch=master)](https://travis-ci.org/michaeldegroot/mysql-cache)
 [![](https://coveralls.io/repos/michaeldegroot/mysql-cache/badge.svg?branch=master&service=github)](https://coveralls.io/github/michaeldegroot/mysql-cache?branch=master)
-![](https://img.shields.io/badge/Node-%3E%3D0.10-green.svg)
+![](https://img.shields.io/badge/Node-%3E%3D4.0-green.svg)
 ![](https://img.shields.io/npm/dt/mysql-cache.svg)
 ![](https://img.shields.io/npm/l/mysql-cache.svg)
 

@@ -25,7 +25,7 @@
   "license": "MIT",
   "dependencies": {
     "colors": "^1.1.2",
-    "console-debug": "^0.3.0",
+    "console-debug": "^0.4.2",
     "mysql": "^2.9.0",
     "node-cache": "^3.0.0",
     "optimist": "^0.6.1"

@@ -42,6 +42,7 @@ exports.init = function(config){
 	exports.TTL = config.TTL;
 	exports.verboseMode = config.verbose;
 	exports.cacheMode = config.caching;
+	exports.connectionLimit = config.connectionLimit;
 }
 
 exports.TTL = 0;
@@ -78,9 +79,9 @@ exports.stats = function(){
 	console.log("Key Size: "+myCache.getStats().ksize);
 	console.log("Value Size: "+myCache.getStats().vsize);
 	if(exports.QPM>=100){
-		console.log("**** "+colors.red("QUERRY PER SEC IS HIGH"));
+		console.log("**** "+colors.red("QUERY PER SEC IS HIGH"));
 	}
-	if(exports.poolConnections>=exports.poolConnections){
+	if(exports.poolConnections>=exports.connectionLimit){
 		console.log("**** "+colors.red("MYSQL POOL CONNECTION LIMIT REACHED"));
 	}
 	console.log("-----------------------");
@@ -242,7 +243,7 @@ exports.endPool = function(connection,callback){
 exports.log = function(type,text){
 	if(type=="success" && exports.verboseMode) console.info(text);
 	if(type=="info" && exports.verboseMode) console.info(text);
-	if(type=="warn") console.warn(text);
+	if(type=="warn" && exports.verboseMode) console.warn(text);
 	if(type=="error") throw new Error(text);
 }
 

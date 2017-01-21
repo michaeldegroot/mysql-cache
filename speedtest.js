@@ -40,7 +40,7 @@ function cacheTest(amount){
 	}
 	asynctext += "], function(results){var then = moment();var diff = then.diff(now);console.log('With caching, '+amount+' queries took: '+diff+'ms');});";
 	eval(asynctext);
-	
+
 }
 
 function test(callback,cache){

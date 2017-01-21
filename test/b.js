@@ -1,10 +1,9 @@
-var db = require('../app.js');
-var assert = require('assert');
-var assert = require('assert-plus');
+const db     = require('../app.js')
+const assert = require('assert-plus')
 
 
 
-it('Call init, disable cache, call query', function(done){
+it('Call init, disable cache, call query', done => {
 	db.init({
 		host: '127.0.0.1',
 		user: 'root',
@@ -14,15 +13,15 @@ it('Call init, disable cache, call query', function(done){
 		connectionLimit: 100, // Mysql connection pool limit (increase value if you are having problems)
 		verbose: true, // Do you want info and success messages about what the program is doing?
 		caching: false // Do you want to enable caching?
-	});
-	db.query({sql:"SELECT 6 + 6 AS solution"},function(err,resultMysql){
-		assert.equal(resultMysql[0].solution,12);
-		done();
-	});
-});
+	})
+	db.query({sql:'SELECT 6 + 6 AS solution'}, (err, resultMysql) => {
+		assert.equal(resultMysql[0].solution, 12)
+		done()
+	})
+})
 
-it('Call init without supplying host value', function(){
-	assert.throws(function(){
+it('Call init without supplying host value', () => {
+	assert.throws(() => {
 		db.init({
 			user: 'root',
 			password: '',
@@ -31,11 +30,11 @@ it('Call init without supplying host value', function(){
 			connectionLimit: 100, // Mysql connection pool limit (increase value if you are having problems)
 			verbose: true, // Do you want info and success messages about what the program is doing?
 			caching: true // Do you want to enable caching?
-		});
-	}, Error);
-});
-it('Call init without supplying user value', function(){
-	assert.throws(function(){
+		})
+	}, Error)
+})
+it('Call init without supplying user value', () => {
+	assert.throws(() => {
 		db.init({
 			host: '127.0.0.1',
 			password: '',
@@ -44,12 +43,12 @@ it('Call init without supplying user value', function(){
 			connectionLimit: 100, // Mysql connection pool limit (increase value if you are having problems)
 			verbose: true, // Do you want info and success messages about what the program is doing?
 			caching: true // Do you want to enable caching?
-		});
-	}, Error);
-});
+		})
+	}, Error)
+})
 
-it('Call init without supplying connectionLimit value', function(){
-	assert.throws(function(){
+it('Call init without supplying connectionLimit value', () => {
+	assert.throws(() => {
 		db.init({
 			host: '127.0.0.1',
 			user: 'root',
@@ -58,12 +57,12 @@ it('Call init without supplying connectionLimit value', function(){
 			TTL: 0, // Time To Live for a cache key in seconds (0 = infinite)
 			verbose: true, // Do you want info and success messages about what the program is doing?
 			caching: true // Do you want to enable caching?
-		});
-	}, Error);
-});
+		})
+	}, Error)
+})
 
-it('Call init without supplying database value', function(){
-	assert.throws(function(){
+it('Call init without supplying database value', () => {
+	assert.throws(() => {
 		db.init({
 			host: '127.0.0.1',
 			password: '',
@@ -72,6 +71,6 @@ it('Call init without supplying database value', function(){
 			connectionLimit: 100, // Mysql connection pool limit (increase value if you are having problems)
 			verbose: true, // Do you want info and success messages about what the program is doing?
 			caching: true // Do you want to enable caching?
-		});
-	}, Error);
-});
+		})
+	}, Error)
+})

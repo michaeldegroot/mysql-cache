@@ -1,10 +1,9 @@
-var db = require('../app.js');
-var assert = require('assert');
-var assert = require('assert-plus');
+var db = require('../app.js')
+var assert = require('assert-plus')
 
-it('Fake db connect', function(done){
-	this.timeout(15000);
-	
+it('Fake db connect', done => {
+	this.timeout(15000)
+
 	db.init({
 		host: 'kappa',
 		user: 'root',
@@ -12,13 +11,13 @@ it('Fake db connect', function(done){
 		database: 'mysqlcache',
 		TTL: 0,
 		connectionLimit: 100,
-		verbose: true, 
+		verbose: true,
 		caching: true
-	});
-	db.testConnection(function(res){
-		console.log(res);
-	});
-	setTimeout(function(){
-		done();
-	},6000);
-});
+	})
+	db.testConnection(res => {
+		console.log(res)
+	})
+	setTimeout(() => {
+		done()
+	}, 6000)
+})

@@ -4,15 +4,6 @@ const myCache   = new NodeCache({ stdTTL: 0, checkperiod: 120 })
 const colors    = require('colors')
 const crypto    = require('crypto')
 const md5sum    = crypto.createHash('md5')
-const Debug     = require('console-debug')
-
-const console = new Debug({
-	uncaughtExceptionCatch: false,
-	consoleFilter:          [],
-	logToFile:              false,
-	logFilter:              [],
-	colors:                 true
-})
 
 exports.init = config => {
 	if (!config.host) {
@@ -258,11 +249,11 @@ exports.log = (type,text) => {
 }
 
 exports.testConnection = callback => {
-	exports.log('info','Connecting to DB')
+	exports.log('Connecting to DB')
     exports.pool.getConnection((err, connection) => {
 		if (err) {
-			exports.log('warn', err.code)
-			exports.log('warn', 'Trying to reconnect in 3 seconds.')
+			exports.log(err.code)
+			exports.log('Trying to reconnect in 3 seconds.')
 			setTimeout(() => {
 				exports.testConnection(() => {
 

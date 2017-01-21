@@ -8,7 +8,7 @@
 
 ___
 # What it does
-Automatically caches SELECT sql's in the machine's memory using [memored](https://github.com/PaquitoSoft/memored) so this can work in clustered mode!
+Automatically caches SELECT sql's in the machine's memory, clustered mode is not supported.
 
 This module is wrapping some functions of the [mysql](https://www.npmjs.com/package/mysql) module for ease of use
 ___

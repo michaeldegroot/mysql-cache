@@ -1,27 +1,12 @@
 const mysql   = require('mysql')
 const colors  = require('colors')
 const crypto  = require('crypto')
-const md5sum  = crypto.createHash('md5')
 const cluster = require('cluster')
-const memored = require('memored')
+const md5sum  = crypto.createHash('md5')
+const LRU     = require('lru-cache')
+const cache   = LRU()
 
 exports.init = config => {
-    if (!config.host) {
-        exports.error('No host value supplied in configuration')
-    }
-    if (!config.user) {
-        exports.error('No user value supplied in configuration')
-    }
-    if (!config.database) {
-        exports.error('No database value supplied in configuration')
-    }
-    if (!config.connectionLimit) {
-        exports.error('No connectionLimit value supplied in configuration')
-    }
-    if (!config.password) {
-        exports.error('No password value supplied in configuration')
-    }
-
     exports.pool = mysql.createPool({
         host:              config.host,
         user:              config.user,
@@ -55,7 +40,7 @@ exports.queryPerSec = () => {
 exports.queryPerSec()
 
 exports.flushAll = () => {
-    memored.clean()
+    cache.reset()
     exports.trace('Cache Flushed')
 }
 
@@ -157,28 +142,19 @@ exports.query = (sql, params, callback, data) => {
 exports.delKey = (id, params) => {
     id = mysql.format(id, params)
     const hash = crypto.createHash('md5').update(id).digest('hex')
-    memored.remove(hash)
+    cache.del(hash)
 }
 
 exports.getKey = (id, callback) => {
     id = id.replace(/ /g, '').toLowerCase()
-    if (cluster.isMaster) {
-        cluster.fork()
-    } else {
-        memored.read(id, (err, value, expirationTime) => {
-            exports.error(err)
-            callback(value)
-        })
-    }
+    callback(cache.get(id))
 }
 
 exports.createKey = (id, val, ttl) => {
   id = id.replace(/ /g,'').toLowerCase()
     const oldTTL = exports.TTL
     if (ttl) exports.TTL = ttl
-    memored.store(id, val, exports.TTL, () => {
-        // stored, yay
-    })
+    cache.set(id, val, exports.TTL)
 }
 
 exports.changeDB = (data, cb) => {
@@ -228,7 +204,8 @@ exports.trace = text => {
 
 exports.error = err => {
     if (err) {
-        throw new Error(err)
+        console.log('FATAL ERROR: ' + err)
+        process.exit()
     }
 }
 
@@ -251,9 +228,10 @@ exports.testConnection = (cb = false) => {
                 })
             }, 3000)
             return
+        } else {
+            exports.trace('Connected to DB')
+            exports.ready = true
+            doCallback(cb, true)
         }
-        exports.trace('Connected to DB')
-        exports.ready = true
-        doCallback(cb, true)
     })
 }

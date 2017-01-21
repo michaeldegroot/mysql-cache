@@ -6,6 +6,14 @@ const md5sum  = crypto.createHash('md5')
 const LRU     = require('lru-cache')
 const cache   = LRU()
 
+const supportedCacheProviders = [
+    'LRU',
+    'nmap',
+    'redis',
+    'node-cache',
+    'native'
+]
+
 exports.init = config => {
     exports.pool = mysql.createPool({
         host:              config.host,

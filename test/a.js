@@ -1,4 +1,4 @@
-const db     = require('../app.js')
+const db     = require('../app')
 const assert = require('assert-plus')
 const settings = require('./settings').settings()
 

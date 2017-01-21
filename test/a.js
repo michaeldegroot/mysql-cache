@@ -1,9 +1,10 @@
 var db = require('../app.js');
+var assert = require('assert');
 var assert = require('assert-plus');
 
 describe('Test', function(){
+	this.timeout(15000);
 	it('Call Init', function(){
-		this.timeout(15000);
 		assert.doesNotThrow(function(){
 			db.init({
 				host: '127.0.0.1',

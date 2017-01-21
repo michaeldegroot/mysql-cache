@@ -1,30 +1,26 @@
-const cluster    = require('cluster')
-const memored    = require('memored')
-
-if (cluster.isMaster) {
-    cluster.fork()
-}
-
-const mysql     = require('mysql')
-const colors    = require('colors')
-const crypto    = require('crypto')
-const md5sum    = crypto.createHash('md5')
+const mysql   = require('mysql')
+const colors  = require('colors')
+const crypto  = require('crypto')
+const cluster = require('cluster')
+const md5sum  = crypto.createHash('md5')
+const LRU     = require('lru-cache')
+const cache   = LRU()
 
 exports.init = config => {
     if (!config.host) {
-        exports.log('error', 'No host value supplied in configuration')
+        exports.error('No host value supplied in configuration')
     }
     if (!config.user) {
-        exports.log('error', 'No user value supplied in configuration')
+        exports.error('No user value supplied in configuration')
     }
     if (!config.database) {
-        exports.log('error', 'No database value supplied in configuration')
+        exports.error('No database value supplied in configuration')
     }
     if (!config.connectionLimit) {
-        exports.log('error', 'No connectionLimit value supplied in configuration')
+        exports.error('No connectionLimit value supplied in configuration')
     }
     if (!config.password) {
-        exports.log('warn', 'No password value supplied in configuration')
+        exports.error('No password value supplied in configuration')
     }
 
     exports.pool = mysql.createPool({
@@ -39,12 +35,6 @@ exports.init = config => {
     exports.verboseMode     = config.verbose
     exports.cacheMode       = config.caching
     exports.connectionLimit = config.connectionLimit
-
-    memored.setup({
-        purgeInterval: exports.TTL
-    })
-
-    exports.testConnection()
 }
 
 exports.TTL             = 0
@@ -66,22 +56,22 @@ exports.queryPerSec = () => {
 exports.queryPerSec()
 
 exports.flushAll = () => {
-    memored.clean()
-    exports.log('success', 'Cache Flushed')
+    cache.reset()
+    exports.trace('Cache Flushed')
 }
 
 exports.stats = () => {
-    console.log('-----------------------')
-    console.log(colors.yellow(exports.prefix + ': ') + ' Statistics')
-    console.log('Open Pool Connections: ' + exports.poolConnections)
-    console.log('Requests Per Second: ' + exports.QPM)
+    exports.trace('-----------------------')
+    exports.trace(colors.yellow(exports.prefix + ': ') + ' Statistics')
+    exports.trace('Open Pool Connections: ' + exports.poolConnections)
+    exports.trace('Requests Per Second: ' + exports.QPM)
     if (exports.QPM >= 100) {
-        console.log('**** ' + colors.red('QUERY PER SEC IS HIGH'))
+        exports.trace('**** ' + colors.red('QUERY PER SEC IS HIGH'))
     }
     if (exports.poolConnections >= exports.connectionLimit) {
-        console.log('**** ' + colors.red('MYSQL POOL CONNECTION LIMIT REACHED'))
+        exports.trace('**** ' + colors.red('MYSQL POOL CONNECTION LIMIT REACHED'))
     }
-    console.log('-----------------------')
+    exports.trace('-----------------------')
 }
 
 exports.query = (sql, params, callback, data) => {
@@ -119,14 +109,14 @@ exports.query = (sql, params, callback, data) => {
             }
             if (cache) {
                 if (exports.verboseMode) {
-                    console.log(colors.yellow(hash) + '-' + colors.green(query))
+                    exports.trace(colors.yellow(hash) + '-' + colors.green(query))
                 }
                 if (callback) {
                     callback(null,cache)
                 }
             }else{
                 if (exports.verboseMode) {
-                	console.log(colors.yellow(hash) + '-' + colors.red(query))
+                    exports.trace(colors.yellow(hash) + '-' + colors.red(query))
                 }
                 exports.getPool(connection => {
                     connection.query(sql, params, (err, rows) => {
@@ -144,17 +134,8 @@ exports.query = (sql, params, callback, data) => {
                         }else{
                             TTLSet = exports.TTL
                         }
-                        exports.createKey(hash, rows, result => {
-                            if (result) {
-                                if (!callback) {
-                                    return true
-                                }
-                                callback(null, rows)
-                            }else{
-                                callback('Cache key create failed')
-                                return false
-                            }
-                        }, TTLSet)
+                        exports.createKey(hash, rows, TTLSet)
+                        callback(null, rows)
                     })
                 })
             }
@@ -167,7 +148,7 @@ exports.query = (sql, params, callback, data) => {
                     callback(err)
                     return false
                 }
-                exports.log('warn',query)
+                exports.trace('warn',query)
                 callback(null,rows)
             })
         })
@@ -177,58 +158,50 @@ exports.query = (sql, params, callback, data) => {
 exports.delKey = (id, params) => {
     id = mysql.format(id, params)
     const hash = crypto.createHash('md5').update(id).digest('hex')
-    memored.remove(hash)
+    cache.del(hash)
 }
 
 exports.getKey = (id, callback) => {
     id = id.replace(/ /g, '').toLowerCase()
-    memored.read(id, (err, value) => {
-        if (err) {
-            exports.log('warn', err)
-        }
-        callback(value)
-    })
+    callback(cache.get(id))
 }
 
-exports.createKey = (id, val, callback, ttl) => {
+exports.createKey = (id, val, ttl) => {
   id = id.replace(/ /g,'').toLowerCase()
     const oldTTL = exports.TTL
     if (ttl) exports.TTL = ttl
-    memored.store(id, val, exports.TTL, () => {
-        exports.TTL = oldTTL
-        callback(true)
-    })
+    cache.set(id, val, exports.TTL)
 }
 
-exports.changeDB = (data,callback) => {
+exports.changeDB = (data, cb) => {
     exports.getPool(connection => {
         connection.changeUser(data, err => {
             exports.endPool(connection)
             if (err) {
-                exports.log('warn','Could not change database connection settings.')
-                callback(err)
+                exports.trace('warn','Could not change database connection settings.')
+                doCallback(cb, err)
                 return
             }
-            exports.log('success','Successfully changed database connection settings')
-            callback(null,true)
+            exports.trace('Successfully changed database connection settings')
+            doCallback(cb, null, true)
         })
     })
 }
 
 const getStackTrace = () => {
-  const obj = {}
-  Error.captureStackTrace(obj, getStackTrace)
-  return obj.stack
+    const obj = {}
+    Error.captureStackTrace(obj, getStackTrace)
+    return obj.stack
 }
 
-exports.getPool = callback => {
+exports.getPool = cb => {
     exports.pool.getConnection((err, connection) => {
         if (err) {
             throw new Error(err)
         }
 
         exports.poolConnections++
-        callback(connection)
+        cb(connection)
     })
 }
 
@@ -241,39 +214,29 @@ exports.endPool = connection => {
     return true
 }
 
-exports.log = (type,text) => {
-    if (type === 'error') throw new Error(text)
+exports.trace = text => {
+    if (exports.verboseMode) {
+        console.log(text)
+    }
+}
 
-	if (!exports.verboseMode) {
-		return
-	}
-
-    if (type === 'success') {
-    	console.info(text)
-    }
-    if (type === 'info') {
-    	console.info(text)
-    }
-    if (type === 'warn') {
-    	console.warn(text)
-    }
+exports.error = err => {
+    throw new Error(err)
 }
 
 const doCallback = (cb, args) => {
-	if (typeof cb === 'function') {
-		cb(args)
-	} else {
-		return false
-	}
+    if (typeof cb === 'function') {
+        cb(args)
+    } else {
+        return false
+    }
 }
 
 exports.testConnection = (cb = false) => {
-    exports.log('Connecting to DB')
     exports.pool.getConnection((err, connection) => {
-   		exports.log('Got pool connection')
         if (err) {
-            exports.log(err.code)
-            exports.log('Trying to reconnect in 3 seconds.')
+            exports.trace(err.code)
+            exports.trace('Trying to reconnect in 3 seconds.')
             setTimeout(() => {
                 exports.testConnection(() => {
 
@@ -281,13 +244,8 @@ exports.testConnection = (cb = false) => {
             }, 3000)
             return
         }
-        if (exports.endPool(connection)) {
-            exports.log('success','Connected to DB')
-            exports.ready = true
-            doCallback(cb, true)
-        } else {
-            exports.log('warn', 'Could not connect to DB')
-            doCallback(cb, false)
-        }
+        exports.trace('Connected to DB')
+        exports.ready = true
+        doCallback(cb, true)
     })
 }

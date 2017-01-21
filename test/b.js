@@ -1,8 +1,6 @@
 const db     = require('../app.js')
 const assert = require('assert-plus')
 
-
-
 it('Call init, disable cache, call query', done => {
 	db.init({
 		host: '127.0.0.1',

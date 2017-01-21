@@ -266,7 +266,7 @@ exports.testConnection = callback => {
 			exports.ready = true
 			callback(true)
 		} else {
-			exports.log('error', 'Could not connect to DB')
+			exports.log('warn', 'Could not connect to DB')
 			callback(false)
 		}
 	})

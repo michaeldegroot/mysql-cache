@@ -3,7 +3,7 @@ const assert = require('assert-plus')
 
 describe('Test', () => {
 	it('Call Init', () => {
-		this.timeout(15000)
+		timeout(15000)
 		assert.doesNotThrow(() => {
 			db.init({
 				host: '127.0.0.1',

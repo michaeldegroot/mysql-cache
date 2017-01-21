@@ -2,7 +2,7 @@ var db = require('../app.js')
 var assert = require('assert-plus')
 
 it('Fake db connect', done => {
-	this.timeout(15000)
+	timeout(15000)
 
 	db.init({
 		host: 'kappa',

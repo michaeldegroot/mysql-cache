@@ -26,7 +26,9 @@
   "dependencies": {
     "colors": "^1.1.2",
     "lru-cache": "^4.0.2",
+    "memoizee": "^0.4.1",
     "memored": "^0.1.0",
+    "mmap-object": "^1.1.1",
     "mysql": "^2.12.0",
     "node-cache": "^4.1.1",
     "optimist": "^0.6.1",

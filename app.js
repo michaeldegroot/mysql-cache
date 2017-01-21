@@ -11,7 +11,9 @@ let cacheProvider
 const LRU      = require('lru-cache')
 const LRUCache = LRU()
 
-// NMAP
+// MMAP
+const MMAPCache = require('mmap-object')
+let MMAPObject
 
 // REDIS
 const redis = require('redis')
@@ -24,44 +26,125 @@ const NodeCache = new ncache({
     checkperiod: 120,
 })
 
+// NATIVE
+let nativeCache = {}
+
 const supportedCacheProviders = [
     'LRU',
-    'nmap',
+    'mmap',
     'redis',
     'node-cache',
     'native',
 ]
 
 const cacheAction = (action, hash, val, ttl, callback) => {
-    exports.trace('cacheAction "' + action + '" with cacheProvider: ' + cacheProvider)
+    // TODO: redis needs to be serialized
+    // node_redis: Deprecated: The SET command contains a argument of type RowDataPacket.
+    // This is converted to "[object Object]" by using .toString() now and will return an error from v.3.0 on.
+    // Please handle this in your code to make sure everything works as you intended it to.
+
+    // TODO: mmap needs to be serialized
+    // mmap: Error: Value must be a string or number.
+
+    exports.trace('cacheAction ' + cacheProvider + ' ' + action.toUpperCase())
+
+    // FLUSH
     if (action === 'flush') {
+        // LRU
         if (cacheProvider === 'LRU') {
             LRUCache.reset()
         }
+
+        // REDIS
+        if (cacheProvider === 'redis') {
+            redisClient.flushdb()
+        }
+
+        // NATIVE
+        if (cacheProvider === 'native') {
+            nativeCache = {}
+        }
+
+        // MMAP
+        if (cacheProvider === 'mmap') {
+            MMAPObject = {}
+        }
     }
+
+    // REMOVE
     if (action === 'remove') {
+        // LRU
         if (cacheProvider === 'LRU') {
             LRUCache.del(hash)
         }
+
+        // REDIS
+        if (cacheProvider === 'redis') {
+            LRUCache.del(hash)
+        }
+
+        // NATIVE
+        if (cacheProvider === 'native') {
+            delete nativeCache.hash
+        }
+
+        // MMAP
+        if (cacheProvider === 'mmap') {
+            delete MMAPObject.hash
+        }
     }
+
+    // GET
     if (action === 'get') {
+        // LRU
         if (cacheProvider === 'LRU') {
             doCallback(callback, LRUCache.get(hash))
         }
+
+        // REDIS
         if (cacheProvider === 'redis') {
             redisClient.get(hash, (err, result) => {
                 exports.error(err)
-                doCallback(callback, result)
+                doCallback(callback, JSON.parse(result))
             })
         }
+
+        // NATIVE
+        if (cacheProvider === 'native') {
+            doCallback(callback, nativeCache.hash)
+        }
+
+        // MMAP
+        if (cacheProvider === 'mmap') {
+            if (MMAPObject.hash !== undefined) {
+                doCallback(callback, JSON.parse(MMAPObject.hash))
+            } else {
+                doCallback(callback, null)
+            }
+        }
     }
+
+    // SET
     if (action === 'set') {
+        // LRU
         if (cacheProvider === 'LRU') {
             LRUCache.set(hash, val, ttl)
             doCallback(callback, true)
         }
+
+        // REDIS
         if (cacheProvider === 'redis') {
-            redisClient.set(hash, val)
+            redisClient.set(hash, JSON.stringify(val))
+        }
+
+        // NATIVE
+        if (cacheProvider === 'native') {
+            nativeCache.hash = val
+        }
+
+        // MMAP
+        if (cacheProvider === 'mmap') {
+            MMAPObject.hash = JSON.stringify(val)
         }
     }
 }
@@ -97,6 +180,10 @@ exports.init = config => {
             redisClient.on('error', function (err) {
                 exports.error('Redis error: ' + err)
             })
+        }
+
+        if (found === 'mmap') {
+            MMAPObject = new MMAPCache.Create('mysqlcache')
         }
     }
 }
@@ -162,7 +249,7 @@ exports.query = (sql, params, callback, data) => {
     query = mysql.format(query, params)
 
     if (type.toLowerCase() == 'select') {
-        const hash = crypto.createHash('md5').update(query).digest('hex')
+        const hash = crypto.createHash('sha512').update(query).digest('hex')
 
         exports.getKey(hash, (cache) => {
             if (!cacheMode) {
@@ -189,14 +276,15 @@ exports.query = (sql, params, callback, data) => {
                         exports.endPool(connection)
                         if (err) {
                             exports.endPool(connection)
-                            callback(err,null)
+                            callback(err, null)
+
                             return false
                         }
                         if (data) {
                             if (data.TTL) {
                                 TTLSet = data.TTL
                             }
-                        }else{
+                        } else {
                             TTLSet = exports.TTL
                         }
                         exports.createKey(hash, rows, TTLSet)
@@ -205,15 +293,16 @@ exports.query = (sql, params, callback, data) => {
                 })
             }
         })
-    }else{
+    } else {
         exports.getPool(connection => {
             connection.query(sql,params, (err, rows) => {
                 exports.endPool(connection)
                 if (err) {
                     callback(err)
+
                     return false
                 }
-                exports.trace('warn',query)
+                exports.trace('warn', query)
                 callback(null,rows)
             })
         })
@@ -226,7 +315,7 @@ const createId = id => {
 
 exports.delKey = (id, params) => {
     id = mysql.format(id, params)
-    const hash = crypto.createHash('md5').update(id).digest('hex')
+    const hash = crypto.createHash('sha512').update(id).digest('hex')
 
     cacheAction('remove', hash)
 }
@@ -283,13 +372,13 @@ exports.endPool = connection => {
 
 exports.trace = text => {
     if (exports.verboseMode) {
-        console.log(text)
+        console.log(colors.green('MYSQL-CACHE') + ': ' + text)
     }
 }
 
 exports.error = err => {
     if (err) {
-        console.log('FATAL ERROR: ' + err)
+        console.log(colors.red('MYSQL-CACHE FATAL ERROR') + ': ' + err)
         process.exit()
     }
 }

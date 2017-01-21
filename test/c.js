@@ -1,10 +1,9 @@
-var db = require('../app.js')
+var db     = require('../app.js')
 var assert = require('assert-plus')
 
 describe('Fakerino', function() {
 	this.timeout(15000)
 	it('Fake db connect', done => {
-
 		db.init({
 			host: 'kappa',
 			user: 'root',

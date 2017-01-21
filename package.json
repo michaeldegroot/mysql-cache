@@ -25,10 +25,8 @@
   "license": "MIT",
   "dependencies": {
     "colors": "^1.1.2",
-    "console-debug": "^0.4.2",
     "memored": "^0.1.0",
     "mysql": "^2.12.0",
-    "node-cache": "^4.1.1",
     "optimist": "^0.6.1"
   },
   "devDependencies": {

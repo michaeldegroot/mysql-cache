@@ -217,7 +217,7 @@ const doCallback = (cb, args) => {
     }
 }
 
-exports.testConnection = (cb = false) => {
+exports.testConnection = cb => {
     exports.pool.getConnection((err, connection) => {
         if (err) {
             exports.trace(err.code)

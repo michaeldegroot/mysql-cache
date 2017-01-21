@@ -2,7 +2,7 @@ exports.settings = () => {
     return {
         host: '127.0.0.1',
         user: 'root',
-        password: '',
+        password: 'root',
         database: 'mysqlcache',
         TTL: 0,
         connectionLimit: 100,

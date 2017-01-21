@@ -1,18 +1,70 @@
+
+'use strict'
+
 const mysql   = require('mysql')
 const colors  = require('colors')
 const crypto  = require('crypto')
-const cluster = require('cluster')
-const md5sum  = crypto.createHash('md5')
-const LRU     = require('lru-cache')
-const cache   = LRU()
+
+let cacheProvider
+
+// LRU
+const LRU      = require('lru-cache')
+const LRUCache = LRU()
+
+// NMAP
+
+// REDIS
+const redis = require('redis')
+let redisClient
+
+// NODE-CACHE
+const ncache    = require('node-cache')
+const NodeCache = new ncache({
+    stdTTL:      0,
+    checkperiod: 120,
+})
 
 const supportedCacheProviders = [
     'LRU',
     'nmap',
     'redis',
     'node-cache',
-    'native'
+    'native',
 ]
+
+const cacheAction = (action, hash, val, ttl, callback) => {
+    exports.trace('cacheAction "' + action + '" with cacheProvider: ' + cacheProvider)
+    if (action === 'flush') {
+        if (cacheProvider === 'LRU') {
+            LRUCache.reset()
+        }
+    }
+    if (action === 'remove') {
+        if (cacheProvider === 'LRU') {
+            LRUCache.del(hash)
+        }
+    }
+    if (action === 'get') {
+        if (cacheProvider === 'LRU') {
+            doCallback(callback, LRUCache.get(hash))
+        }
+        if (cacheProvider === 'redis') {
+            redisClient.get(hash, (err, result) => {
+                exports.error(err)
+                doCallback(callback, result)
+            })
+        }
+    }
+    if (action === 'set') {
+        if (cacheProvider === 'LRU') {
+            LRUCache.set(hash, val, ttl)
+            doCallback(callback, true)
+        }
+        if (cacheProvider === 'redis') {
+            redisClient.set(hash, val)
+        }
+    }
+}
 
 exports.init = config => {
     exports.pool = mysql.createPool({
@@ -21,12 +73,32 @@ exports.init = config => {
         password:          config.password,
         database:          config.database,
         connectionLimit:   config.connectionLimit,
-        supportBigNumbers: true
+        supportBigNumbers: true,
     })
+
     exports.TTL             = config.TTL
     exports.verboseMode     = config.verbose
     exports.cacheMode       = config.caching
     exports.connectionLimit = config.connectionLimit
+
+    let found = false
+
+    for (let i = supportedCacheProviders.length - 1; i >= 0; i--) {
+        if (config.cacheProvider.toLowerCase() === supportedCacheProviders[i].toLowerCase()) {
+            found = supportedCacheProviders[i]
+        }
+    }
+    if (found === false) {
+        exports.error('Unknown cacheProvider: ' + config.cacheProvider)
+    } else {
+        cacheProvider = found
+        if (found === 'redis') {
+            redisClient = redis.createClient()
+            redisClient.on('error', function (err) {
+                exports.error('Redis error: ' + err)
+            })
+        }
+    }
 }
 
 exports.TTL             = 0
@@ -43,12 +115,12 @@ exports.queryPerSec = () => {
     setInterval(() => {
         exports.QPM    = exports.querys
         exports.querys = 0
-    },1000)
+    }, 1000)
 }
 exports.queryPerSec()
 
 exports.flushAll = () => {
-    cache.reset()
+    cacheAction('flush')
     exports.trace('Cache Flushed')
 }
 
@@ -68,22 +140,24 @@ exports.stats = () => {
 
 exports.query = (sql, params, callback, data) => {
     exports.lastTrace = getStackTrace()
-    cacheMode         = exports.cacheMode
+    const cacheMode   = exports.cacheMode
+    let query
 
     exports.querys++
 
     if (typeof params === 'function') {
-        data     = callback
-        callback = params
-        params   = []
-        query    = sql
-    }else{
+        data      = callback
+        callback  = params
+        params    = []
+        query = sql
+    } else {
         query = sql
     }
     if (typeof sql === 'object') {
         query = sql.sql
     }
     const type = query.split(' ')[0].toLowerCase()
+    let TTLSet = 0
 
     query = mysql.format(query, params)
 
@@ -106,7 +180,7 @@ exports.query = (sql, params, callback, data) => {
                 if (callback) {
                     callback(null,cache)
                 }
-            }else{
+            } else {
                 if (exports.verboseMode) {
                     exports.trace(colors.yellow(hash) + '-' + colors.red(query))
                 }
@@ -119,7 +193,6 @@ exports.query = (sql, params, callback, data) => {
                             return false
                         }
                         if (data) {
-                            TTLSet = 0
                             if (data.TTL) {
                                 TTLSet = data.TTL
                             }
@@ -147,22 +220,26 @@ exports.query = (sql, params, callback, data) => {
     }
 }
 
+const createId = id => {
+    return id.replace(/ /g, '').toLowerCase()
+}
+
 exports.delKey = (id, params) => {
     id = mysql.format(id, params)
     const hash = crypto.createHash('md5').update(id).digest('hex')
-    cache.del(hash)
+
+    cacheAction('remove', hash)
 }
 
 exports.getKey = (id, callback) => {
-    id = id.replace(/ /g, '').toLowerCase()
-    callback(cache.get(id))
+    cacheAction('get', createId(id), null, null, callback)
 }
 
 exports.createKey = (id, val, ttl) => {
-  id = id.replace(/ /g,'').toLowerCase()
-    const oldTTL = exports.TTL
-    if (ttl) exports.TTL = ttl
-    cache.set(id, val, exports.TTL)
+    if (ttl) {
+        exports.TTL = ttl
+    }
+    cacheAction('set', createId(id), val, exports.TTL)
 }
 
 exports.changeDB = (data, cb) => {

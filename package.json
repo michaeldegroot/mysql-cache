@@ -28,6 +28,7 @@
     "lru-cache": "^4.0.2",
     "memored": "^0.1.0",
     "mysql": "^2.12.0",
+    "node-cache": "^4.1.1",
     "optimist": "^0.6.1",
     "redis": "^2.6.5"
   },

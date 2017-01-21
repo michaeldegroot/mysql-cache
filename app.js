@@ -1,10 +1,9 @@
 const mysql   = require('mysql')
 const colors  = require('colors')
 const crypto  = require('crypto')
-const cluster = require('cluster')
 const md5sum  = crypto.createHash('md5')
-const LRU     = require('lru-cache')
-const cache   = LRU()
+const cluster = require('cluster')
+const memored = require('memored')
 
 exports.init = config => {
     if (!config.host) {
@@ -56,7 +55,7 @@ exports.queryPerSec = () => {
 exports.queryPerSec()
 
 exports.flushAll = () => {
-    cache.reset()
+    memored.clean()
     exports.trace('Cache Flushed')
 }
 
@@ -158,19 +157,28 @@ exports.query = (sql, params, callback, data) => {
 exports.delKey = (id, params) => {
     id = mysql.format(id, params)
     const hash = crypto.createHash('md5').update(id).digest('hex')
-    cache.del(hash)
+    memored.remove(hash)
 }
 
 exports.getKey = (id, callback) => {
     id = id.replace(/ /g, '').toLowerCase()
-    callback(cache.get(id))
+    if (cluster.isMaster) {
+        cluster.fork()
+    } else {
+        memored.read(id, (err, value, expirationTime) => {
+            exports.error(err)
+            callback(value)
+        })
+    }
 }
 
 exports.createKey = (id, val, ttl) => {
   id = id.replace(/ /g,'').toLowerCase()
     const oldTTL = exports.TTL
     if (ttl) exports.TTL = ttl
-    cache.set(id, val, exports.TTL)
+    memored.store(id, val, exports.TTL, () => {
+        // stored, yay
+    })
 }
 
 exports.changeDB = (data, cb) => {
@@ -196,9 +204,7 @@ const getStackTrace = () => {
 
 exports.getPool = cb => {
     exports.pool.getConnection((err, connection) => {
-        if (err) {
-            throw new Error(err)
-        }
+        exports.error(err)
 
         exports.poolConnections++
         cb(connection)
@@ -221,7 +227,9 @@ exports.trace = text => {
 }
 
 exports.error = err => {
-    throw new Error(err)
+    if (err) {
+        throw new Error(err)
+    }
 }
 
 const doCallback = (cb, args) => {

@@ -776,6 +776,10 @@ memoizee@^0.3.9:
     next-tick "~0.2.2"
     timers-ext "0.1"
 
+memored:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/memored/-/memored-0.1.0.tgz#7898bf1e9408a6c3e9afaf18482202a15563d679"
+
 merge-descriptors@1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/merge-descriptors/-/merge-descriptors-1.0.1.tgz#b00aaa556dd8b44568150ec9d1b953f3f90cbb61"

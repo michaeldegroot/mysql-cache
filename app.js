@@ -1,6 +1,5 @@
 const mysql     = require('mysql')
-const NodeCache = require( 'node-cache' )
-const myCache   = new NodeCache({ stdTTL: 0, checkperiod: 120 })
+const memored   = require('memored')
 const colors    = require('colors')
 const crypto    = require('crypto')
 const md5sum    = crypto.createHash('md5')
@@ -34,6 +33,10 @@ exports.init = config => {
 	exports.verboseMode     = config.verbose
 	exports.cacheMode       = config.caching
 	exports.connectionLimit = config.connectionLimit
+
+    memored.setup({
+    	purgeInterval: exports.TTL
+    })
 }
 
 exports.TTL             = 0
@@ -55,7 +58,7 @@ exports.queryPerSec = () => {
 exports.queryPerSec()
 
 exports.flushAll = () => {
-	myCache.flushAll()
+	memored.clean()
 	exports.log('success', 'Cache Flushed')
 }
 
@@ -64,11 +67,6 @@ exports.stats = () => {
 	console.log(colors.yellow(exports.prefix + ': ') + ' Statistics')
 	console.log('Open Pool Connections: ' + exports.poolConnections)
 	console.log('Requests Per Second: ' + exports.QPM)
-	console.log('Hits: ' + myCache.getStats().hits)
-	console.log('Misses: ' + myCache.getStats().misses)
-	console.log('Keys: ' + myCache.getStats().keys)
-	console.log('Key Size: ' + myCache.getStats().ksize)
-	console.log('Value Size: ' + myCache.getStats().vsize)
 	if (exports.QPM >= 100) {
 		console.log('**** ' + colors.red('QUERY PER SEC IS HIGH'))
 	}
@@ -166,23 +164,19 @@ exports.query = (sql, params, callback, data) => {
 	}
 }
 
-exports.delKey = (id,params) => {
-	id = mysql.format(id,params)
+exports.delKey = (id, params) => {
+	id = mysql.format(id, params)
 	const hash = crypto.createHash('md5').update(id).digest('hex')
-	myCache.del(hash)
+	memored.remove(hash)
 }
 
-exports.getKey = (id,callback) => {
+exports.getKey = (id, callback) => {
   id = id.replace(/ /g,'').toLowerCase()
-	myCache.get(id, (err, value) => {
-		if (!err) {
-			if (value == undefined) {
-				callback(false)
-
-			}else{
-				callback(value)
-			}
+	memored.read(id, (err, value) => {
+		if (err) {
+			exports.log('warn', err)
 		}
+		callback(value)
 	})
 }
 
@@ -190,7 +184,7 @@ exports.createKey = (id, val, callback, ttl) => {
   id = id.replace(/ /g,'').toLowerCase()
 	const oldTTL = exports.TTL
 	if (ttl) exports.TTL = ttl
-	myCache.set(id, val, exports.TTL, (err, success) => {
+	memored.store(id, val, exports.TTL, (err, success) => {
 		exports.TTL = oldTTL
 		if ( !err && success ) {
 			callback(true)

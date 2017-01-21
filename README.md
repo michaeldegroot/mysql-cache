@@ -1,5 +1,5 @@
 [![](https://nodei.co/npm/mysql-cache.png?downloads=true&downloadRank=true&stars=true)](https://www.npmjs.com/package/mysql-cache)  
-[![](https://david-dm.org/michaeldegroot/mysql-cache.svg)](https://david-dm.org/michaeldegroot/mysql-cache "david-dm")
+[![](https://david-dm.org/michaeldegroot/mysql-cache.svg)](https://david-dm.org/michaeldegroot/mysql-cache 'david-dm')
 [![](https://travis-ci.org/michaeldegroot/mysql-cache.svg?branch=master)](https://travis-ci.org/michaeldegroot/mysql-cache)
 [![](https://coveralls.io/repos/michaeldegroot/mysql-cache/badge.svg?branch=master&service=github)](https://coveralls.io/github/michaeldegroot/mysql-cache?branch=master)
 ![](https://img.shields.io/badge/Node-%3E%3D4.0-green.svg)
@@ -8,7 +8,9 @@
 
 ___
 # What it does
-Automatically caches SELECT sql's in the machine's memory using node-cache. This module is wrapping some functions of the [mysql](https://www.npmjs.com/package/mysql) module
+Automatically caches SELECT sql's in the machine's memory using [memored](https://github.com/PaquitoSoft/memored) so this can work in clustered mode!
+
+This module is wrapping some functions of the [mysql](https://www.npmjs.com/package/mysql) module for ease of use
 ___
 # Changelog
 
@@ -21,32 +23,32 @@ ___
 
 ##### 2. Load the code
 ```javascript
-var db = require('mysql-cache');
+const db = require('mysql-cache')
 
 db.init({
-    host: '',
-    user: '',
-    password: '',
-    database: '',
-    TTL: 0, 				// Time To Live for a cache key in seconds (0 = infinite)
-    connectionLimit: 100, 	// Mysql connection pool limit (increase value if you are having problems)
-    verbose: true, 			// Do you want console.log's about what the program is doing?
-    caching: true 			// Do you want to use SELECT SQL caching?
+    host:            '',
+    user:            '',
+    password:        '',
+    database:        '',
+    TTL:             0, 			// Time To Live for a cache key in seconds (0 = infinite)
+    connectionLimit: 100, 	        // Mysql connection pool limit (increase value if you are having problems)
+    verbose:         true, 			// Do you want console.log's about what the program is doing?
+    caching:         true 			// Do you want to use SELECT SQL caching?
 });
 ```
 ##### 3. Do awesome stuff!
 ```javascript
 // Start executing SQL like you are used to using the mysql module
 
-db.query("SELECT ? + ? AS solution", [1, 5], function(err, resultDatabase) {
+db.query('SELECT ? + ? AS solution', [1, 5], (err, resultDatabase) => {
     // This sql is not in the cache and will be cached for future references
     // Do something with the results
-}).
+})
 
-// Later in your code if this exact sql is run again,
-// It will retrieve it from cache instead of database.
+// Later in your code if this exact sql is run again (or on a different thread thanks to a clustered mode application),
+// It will retrieve it from cache instead of the database.
 
-db.query("SELECT ? + ? AS solution", [1, 5], function(err, resultCached) {
+db.query('SELECT ? + ? AS solution', [1, 5], (err, resultCached) => {
     // This query was retrieved from the cache
 	// Do something with the results
 })
@@ -82,22 +84,22 @@ If the SQL was executed before, it will skip the database request and retrieve i
 __Example__
 
 ```javascript
-db.query("SELECT id,username,avatar FROM accounts WHERE id = ?", [530], function(err, result) {
-    console.log(result);
+db.query('SELECT id,username,avatar FROM accounts WHERE id = ?', [530], (err, result) => {
+    console.log(result)
 });
 ```
 
 __Example with one time setting per query__
 
 ```javascript
-db.query("SELECT id, username, avatar FROM accounts WHERE id = ?", [530], function(err, result) {
-    console.log(result);
+db.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (err, result) => {
+    console.log(result)
 }, {
     TTL: 600 // Will set TTL to 600 only for this query
 });
 
-db.query("SELECT id, username, avatar FROM accounts WHERE id = ?", [530], function(err, result) {
-    console.log(result);
+db.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (err, result) => {
+    console.log(result)
 }, {
     cache: false // Will not cache this query
 });
@@ -106,9 +108,11 @@ db.query("SELECT id, username, avatar FROM accounts WHERE id = ?", [530], functi
 __Example with error handling__
 
 ```javascript
-db.query("SELECT id, username, avatar FROM accounts WHERE id = ?", [530], function(err, result) {
-    if(err) throw new Error(err); // catch the sql error
-    console.log(result);
+db.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (err, result) => {
+    if (err) {
+        throw new Error(err) // catch the sql error
+    }
+    console.log(result)
 });
 ```
 
@@ -128,7 +132,7 @@ _Deletes a cache key in the cache. You will need to supply a SQL format_
 __Example__
 
 ```javascript
-db.delKey("SELECT id,username,avatar FROM accounts WHERE id = ?", [530]);
+db.delKey('SELECT id,username,avatar FROM accounts WHERE id = ?', [530]);
 ```
 
 This exact SQL and result is now removed from the cache. Making sure the next time this query is executed; it will be retrieved from the database.
@@ -172,7 +176,7 @@ ___
 _MySQL offers a changeUser command that allows you to alter the current user and other aspects of the connection without shutting down the underlying socket_
 
 ```javascript
-db.changeDB({user:"testusername", password:"keepo", database:"kappa", charset:"utf8"}, function(err){
+db.changeDB({user:'testusername', password:'keepo', database:'kappa', charset:'utf8'}, function(err){
     if(err) throw err;
     // Database settings are now changed, do something.
 })

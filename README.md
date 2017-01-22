@@ -71,7 +71,14 @@ db.query('SELECT ? + ? AS solution', [1, 5], (err, resultCached) => {
     // Do something with the results
 })
 ```
+## Troubleshooting
 
+##### Glibc errors on yarn/npm install
+```
+sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+sudo apt-get update
+sudo apt-get install libstdc++-4.9-dev
+```
 ___
 ## Speedtest
 

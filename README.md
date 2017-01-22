@@ -1,4 +1,4 @@
-[![](https://nodei.co/npm/mysql-cache.png?downloads=true&downloadRank=true&stars=true)](https://www.npmjs.com/package/mysql-cache)  
+[![](https://nodei.co/npm/mysql-cache.png?downloads=true&downloadRank=true&stars=true)](https://www.npmjs.com/package/mysql-cache)
 [![](https://david-dm.org/michaeldegroot/mysql-cache.svg)](https://david-dm.org/michaeldegroot/mysql-cache 'david-dm')
 [![](https://travis-ci.org/michaeldegroot/mysql-cache.svg?branch=master)](https://travis-ci.org/michaeldegroot/mysql-cache)
 [![](https://coveralls.io/repos/michaeldegroot/mysql-cache/badge.svg?branch=master&service=github)](https://coveralls.io/github/michaeldegroot/mysql-cache?branch=master)
@@ -8,7 +8,7 @@
 
 ___
 # What it does
-Automatically caches SELECT sql's in the machine's memory using [memored](https://github.com/PaquitoSoft/memored) so this can work in clustered mode!
+Automatically caches SELECT sql's in memory, you have serveral cache providers at your disposale and it can even work in clustered mode via redis or mmap!!
 
 This module is wrapping some functions of the [mysql](https://www.npmjs.com/package/mysql) module for ease of use
 ___
@@ -16,6 +16,16 @@ ___
 
 [https://github.com/michaeldegroot/mysql-cache/commits/master](https://github.com/michaeldegroot/mysql-cache/commits/master)
 ___
+#  New in version 1.0.0
+cacheProviders!
+
+You are no longer binded to node-cache, you can now choose the following cache providers:
+ - [LRU](https://www.npmjs.com/package/lru-cache)
+ - [mmap](https://www.npmjs.com/package/mmap-object)
+ - [redis](https://www.npmjs.com/package/redis)
+ - [node-cache](https://www.npmjs.com/package/node-cache)
+ - native (local variable assignment)
+
 #  Getting Started
 
 ##### 1. Start by installing the package:
@@ -34,6 +44,14 @@ db.init({
     connectionLimit: 100,           // Mysql connection pool limit (increase value if you are having problems)
     verbose:         true,          // Do you want console.log's about what the program is doing?
     caching:         true           // Do you want to use SELECT SQL caching?
+    cacheProvider:   'LRU'          // You can choose different cache providers of your liking SEE BELOW:
+
+    // Here are the cache providers you can choose:
+    // LRU          (https://www.npmjs.com/package/lru-cache)
+    // mmap         (https://www.npmjs.com/package/mmap-object works in clustered mode but is using IO!)
+    // redis        (https://www.npmjs.com/package/redis using default 127.0.0.1 database 1)
+    // node-cache   (https://www.npmjs.com/package/node-cache)
+    // native       (local variable assignment)
 });
 ```
 ##### 3. Do awesome stuff!
@@ -78,7 +96,7 @@ data:       Object      // You can pass one time settings for this query, check 
 
 \* [More about escaping values by using params](https://github.com/felixge/node-mysql/blob/master/Readme.md#escaping-query-values)
 
-_Will execute the given SQL and cache the result if it's a SELECT statement.   
+_Will execute the given SQL and cache the result if it's a SELECT statement.
 If the SQL was executed before, it will skip the database request and retrieve it from the cache straight away._
 
 __Example__
@@ -116,8 +134,8 @@ db.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (err, 
 });
 ```
 
-The db.query function is using node-mysql for querying.  
-It's wrapping the sql function, check the [mysql](https://www.npmjs.com/package/mysql) [documentation](https://github.com/felixge/node-mysql/blob/master/Readme.md)   for more information about [escaping values](https://github.com/felixge/node-mysql/blob/master/Readme.md#escaping-query-values)  
+The db.query function is using node-mysql for querying.
+It's wrapping the sql function, check the [mysql](https://www.npmjs.com/package/mysql) [documentation](https://github.com/felixge/node-mysql/blob/master/Readme.md)   for more information about [escaping values](https://github.com/felixge/node-mysql/blob/master/Readme.md#escaping-query-values)
 
 *mysql-cache only supports the use of questionmarks in sql at the moment for escaping values*
 
@@ -155,7 +173,7 @@ __Example__
 db.flushAll();
 ```
 ___
-###  .TTL 
+###  .TTL
 _Changes the amount of Time To Live in seconds for all future made cache keys._
 
 __Example__
@@ -169,7 +187,7 @@ ___
 {
     user:       String      // The name of the new user
     password:   String      // The password of the new user
-    database:   String      // The new database 
+    database:   String      // The new database
     charset:    String      // The new charset
 }
 ```

@@ -20,8 +20,8 @@ const redis = require('redis')
 let redisClient
 
 // NODE-CACHE
-const ncache    = require('node-cache')
-const NodeCache = new ncache({
+const Ncache    = require('node-cache')
+const NodeCache = new Ncache({
     stdTTL:      0,
     checkperiod: 120,
 })
@@ -38,14 +38,6 @@ const supportedCacheProviders = [
 ]
 
 const cacheAction = (action, hash, val, ttl, callback) => {
-    // TODO: redis needs to be serialized
-    // node_redis: Deprecated: The SET command contains a argument of type RowDataPacket.
-    // This is converted to "[object Object]" by using .toString() now and will return an error from v.3.0 on.
-    // Please handle this in your code to make sure everything works as you intended it to.
-
-    // TODO: mmap needs to be serialized
-    // mmap: Error: Value must be a string or number.
-
     exports.trace('cacheAction ' + cacheProvider + ' ' + action.toUpperCase())
 
     // FLUSH
@@ -92,6 +84,11 @@ const cacheAction = (action, hash, val, ttl, callback) => {
         if (cacheProvider === 'mmap') {
             delete MMAPObject.hash
         }
+
+        // NODE-CACHE
+        if (cacheProvider === 'node-cache') {
+            NodeCache.flushAll()
+        }
     }
 
     // GET
@@ -122,6 +119,14 @@ const cacheAction = (action, hash, val, ttl, callback) => {
                 doCallback(callback, null)
             }
         }
+
+        // NODE-CACHE
+        if (cacheProvider === 'node-cache') {
+            NodeCache.get(hash, (err, result) => {
+                exports.error(err)
+                doCallback(callback, result)
+            })
+        }
     }
 
     // SET
@@ -146,6 +151,11 @@ const cacheAction = (action, hash, val, ttl, callback) => {
         if (cacheProvider === 'mmap') {
             MMAPObject.hash = JSON.stringify(val)
         }
+
+        // NODE-CACHE
+        if (cacheProvider === 'node-cache') {
+            NodeCache.set(hash, val)
+        }
     }
 }
 
@@ -163,6 +173,10 @@ exports.init = config => {
     exports.verboseMode     = config.verbose
     exports.cacheMode       = config.caching
     exports.connectionLimit = config.connectionLimit
+
+    if (config.hasOwnProperty('cacheProvider') === false) {
+        exports.error('No cache provider given, please check the documentation if you have just updated this package https://github.com/michaeldegroot/mysql-cache/')
+    }
 
     let found = false
 
@@ -248,7 +262,7 @@ exports.query = (sql, params, callback, data) => {
 
     query = mysql.format(query, params)
 
-    if (type.toLowerCase() == 'select') {
+    if (type.toLowerCase() === 'select') {
         const hash = crypto.createHash('sha512').update(query).digest('hex')
 
         exports.getKey(hash, (cache) => {
@@ -256,7 +270,7 @@ exports.query = (sql, params, callback, data) => {
                 cache = false
             }
             if (data) {
-                if (data.cache == false) {
+                if (data.cache === false) {
                     cache = false
                 }
             }
@@ -265,7 +279,7 @@ exports.query = (sql, params, callback, data) => {
                     exports.trace(colors.yellow(hash) + '-' + colors.green(query))
                 }
                 if (callback) {
-                    callback(null,cache)
+                    callback(null, cache)
                 }
             } else {
                 if (exports.verboseMode) {
@@ -295,7 +309,7 @@ exports.query = (sql, params, callback, data) => {
         })
     } else {
         exports.getPool(connection => {
-            connection.query(sql,params, (err, rows) => {
+            connection.query(sql, params, (err, rows) => {
                 exports.endPool(connection)
                 if (err) {
                     callback(err)
@@ -303,7 +317,7 @@ exports.query = (sql, params, callback, data) => {
                     return false
                 }
                 exports.trace('warn', query)
-                callback(null,rows)
+                callback(null, rows)
             })
         })
     }
@@ -336,8 +350,9 @@ exports.changeDB = (data, cb) => {
         connection.changeUser(data, err => {
             exports.endPool(connection)
             if (err) {
-                exports.trace('warn','Could not change database connection settings.')
+                exports.trace('warn', 'Could not change database connection settings.')
                 doCallback(cb, err)
+
                 return
             }
             exports.trace('Successfully changed database connection settings')
@@ -348,7 +363,9 @@ exports.changeDB = (data, cb) => {
 
 const getStackTrace = () => {
     const obj = {}
+
     Error.captureStackTrace(obj, getStackTrace)
+
     return obj.stack
 }
 
@@ -362,11 +379,12 @@ exports.getPool = cb => {
 }
 
 exports.endPool = connection => {
-    if (exports.poolConnections == 0) {
+    if (exports.poolConnections === 0) {
         return false
     }
     exports.poolConnections--
     connection.release()
+
     return true
 }
 
@@ -379,7 +397,7 @@ exports.trace = text => {
 exports.error = err => {
     if (err) {
         console.log(colors.red('MYSQL-CACHE FATAL ERROR') + ': ' + err)
-        process.exit()
+        throw new Error(console.trace())
     }
 }
 
@@ -401,6 +419,7 @@ exports.testConnection = cb => {
 
                 })
             }, 3000)
+
             return
         } else {
             exports.trace('Connected to DB')

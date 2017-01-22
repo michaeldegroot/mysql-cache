@@ -3,14 +3,17 @@
 const appRoot            = require('app-root-path')
 const moment             = require('moment')
 const async              = require('async')
+const rightpad           = require('rightpad')
 const colors             = require('colors')
 const speedteststep      = require(appRoot + '/speedteststep')
+const settings           = require(appRoot + '/settings').settings()
 const util               = require(appRoot + '/util')
 const speedtestbase      = require(appRoot + '/speedtestbase')
 const loopCacheProviders = [
     'redis',
     'node-cache',
     'file',
+    'native',
     'lru',
 ]
 
@@ -27,7 +30,11 @@ if (/^win/.test(process.platform) === false) {
 
 const resultsCache   = {}
 const resultsNoCache = {}
-const times          = 1000
+let times          = 60
+
+if (settings.host.toLowerCase() === 'localhost' || settings.host === '127.0.0.1') {
+    times = 1000
+}
 
 speedteststep.start((times * loopCacheProviders.length) * 2)
 
@@ -61,8 +68,14 @@ async.eachSeries(loopCacheProviders, function iteratee(item1, callback1) {
             if (time <= 0) {
                 faster = colors.red(colors.bold(timeref + 'ms') + ' slower')
             }
-            console.log(colors.bold(loopCacheProviders[i]) + ' is ' + faster + ' at getting ' + colors.underline(times) + ' records with mysql-cache enabled')
+
+            const extraInfo = colors.red(parseInt(resultsNoCache[loopCacheProviders[i]].diff)) + 'ms' + colors.bold(' VS ') + colors.green(parseInt(resultsCache[loopCacheProviders[i]].diff)) + 'ms'
+
+            console.log(rightpad(colors.bold(loopCacheProviders[i]), 20) + ' is ' + rightpad(faster, 10) + ' (' + extraInfo + ')' + ' at getting ' + colors.underline(times) + ' records with mysql-cache enabled')
         }
+        console.log()
+        console.log(colors.red('red = no cache'))
+        console.log(colors.green('green = cache'))
         process.exit()
     })
 })

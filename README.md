@@ -17,7 +17,7 @@ ___
 
 [https://github.com/michaeldegroot/mysql-cache/commits/master](https://github.com/michaeldegroot/mysql-cache/commits/master)
 ___
-#  New in version 1.0.0
+#  New in version 1.0.0 :rocket:
 cacheProviders!
 
 You are no longer binded to node-cache, you can now choose the following cache providers:
@@ -75,7 +75,10 @@ db.query('SELECT ? + ? AS solution', [1, 5], (err, resultCached) => {
 ## Troubleshooting
 
 ##### Glibc errors on yarn/npm install (ubuntu)
-update gcc and g++
+```
+wget http://launchpadlibrarian.net/130794928/libc6_2.17-0ubuntu4_amd64.deb
+sudo dpkg -i libc6_2.17-0ubuntu4_amd64.deb
+```
 ___
 ## Speedtest
 

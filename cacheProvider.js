@@ -83,8 +83,6 @@ exports.run = (action, hash, val, ttl, callback) => {
     util.trace('cacheProvider ' + cacheProvider + ' ' + action.toUpperCase())
 
     let actionHit = false
-    let parsedResult
-    let jsonVal
 
     // FLUSH
     if (action === 'flush') {
@@ -177,11 +175,11 @@ exports.run = (action, hash, val, ttl, callback) => {
             redisClient.get(hash, (err, result) => {
                 util.error(err)
                 try {
-                    parsedResult = JSON.parse(result)
+                    JSON.parse(result)
                 } catch (e) {
                     util.error('Could not JSON.parse result: ' + e.toString())
                 }
-                util.doCallback(callback, parsedResult)
+                util.doCallback(callback, JSON.parse(result))
             })
             actionHit = true
         }
@@ -196,12 +194,12 @@ exports.run = (action, hash, val, ttl, callback) => {
         if (cacheProvider === 'mmap') {
             if (MMAPObject.hash !== undefined) {
                 try {
-                    parsedResult = JSON.parse(MMAPObject.hash)
+                    JSON.parse(MMAPObject.hash)
                 } catch (e) {
                     util.error('Could not JSON.parse result: ' + e.toString())
+                } finally {
+                    util.doCallback(callback, JSON.parse(MMAPObject.hash))
                 }
-
-                util.doCallback(callback, parsedResult)
             } else {
                 util.doCallback(callback, null)
             }
@@ -241,14 +239,15 @@ exports.run = (action, hash, val, ttl, callback) => {
         // REDIS
         if (cacheProvider === 'redis') {
             try {
-                jsonVal = JSON.stringify(val)
+                JSON.stringify(val)
             } catch (e) {
                 util.error('Could not JSON.stringify value: ' + e.toString())
+            } finally {
+                redisClient.set(hash, JSON.stringify(val), err => {
+                    util.error(err)
+                    util.doCallback(callback, true)
+                })
             }
-            redisClient.set(hash, jsonVal, err => {
-                util.error(err)
-                util.doCallback(callback, true)
-            })
             actionHit = true
         }
 
@@ -267,10 +266,11 @@ exports.run = (action, hash, val, ttl, callback) => {
                 MMAPObject.hash = JSON.stringify('fds##')
             } catch (e) {
                 util.error('Could not JSON.stringify value' + e.toString())
+            } finally {
+                process.nextTick(() => {
+                    util.doCallback(callback, true)
+                })
             }
-            process.nextTick(() => {
-                util.doCallback(callback, true)
-            })
             actionHit = true
         }
 

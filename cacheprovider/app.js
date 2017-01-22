@@ -232,6 +232,6 @@ exports.run = (action, hash, val, ttl, callback) => {
 
     // CHECK
     if (actionHit !== true) {
-        exports
+        util.error('Action not completed, missing condition for action ' + action + ' with cacheProvider: ' + cacheProvider)
     }
 }

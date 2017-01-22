@@ -84,6 +84,17 @@ db.query('SELECT ? + ? AS solution', [1, 5], (err, resultCached) => {
     // Do something with the results
 })
 ```
+___
+# Clustered mode
+Running a application in clustered mode but want to share the cache? check this list below for compatibility for the cacheProviders:
+
+- [ ] LRU
+- [x] mmap
+- [x] redis
+- [ ] node-cache
+- [x] file
+- [ ] native
+
 ## Troubleshooting
 
 ##### Glibc errors on yarn/npm install (ubuntu)

@@ -71,7 +71,7 @@ db.init({
 ```javascript
 // Start executing SQL like you are used to using the mysql module
 
-db.query('SELECT ? + ? AS solution', [1, 5], result => {
+db.query('SELECT ? + ? AS solution', [1, 5], (err, result) => {
     // This sql is not in the cache and will be cached for future references
 
 
@@ -80,7 +80,7 @@ db.query('SELECT ? + ? AS solution', [1, 5], result => {
     // Later in your code if this exact sql is run again (or on a different thread thanks to a clustered mode application),
     // It will retrieve it from cache instead of the database.
 
-    db.query('SELECT ? + ? AS solution', [1, 5], result => {
+    db.query('SELECT ? + ? AS solution', [1, 5], (err, result) => {
         // This query was retrieved from the cache
         // Do something with the results
     })
@@ -122,20 +122,20 @@ ___
 ```js
 sql:        String      // The sql you want to execute
 *params:    Object      // This is used if you want to escape values
-callback:   Function    // For getting the result back of the query.
+callback:   Function    // For getting the (err, result) back of the query.
 data:       Object      // You can pass one time settings for this query, check the examples below!
 ````
 
 \* [More about escaping values by using params](https://github.com/felixge/node-mysql/blob/master/Readme.md#escaping-query-values)
 
-_Will execute the given SQL and cache the result if it's a SELECT statement.
+_Will execute the given SQL and cache the (err, result) if it's a SELECT statement.
 If the SQL was executed before, it will skip the database request and retrieve it from the cache straight away.
 Invalid queries will throw a error_
 
 __Example__
 
 ```javascript
-db.query('SELECT id,username,avatar FROM accounts WHERE id = ?', [530], result => {
+db.query('SELECT id,username,avatar FROM accounts WHERE id = ?', [530], (err, result) => {
     console.log(result)
 })
 ```
@@ -143,13 +143,13 @@ db.query('SELECT id,username,avatar FROM accounts WHERE id = ?', [530], result =
 __Example with one time setting per query__
 
 ```javascript
-db.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], result => {
+db.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (err, result) => {
     console.log(result)
 }, {
     TTL: 600 // Will set TTL to 600 only for this query
 })
 
-db.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], result => {
+db.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (err, result) => {
     console.log(result)
 }, {
     cache: false // Will not cache this query
@@ -159,7 +159,10 @@ db.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], result
 __Example with error handling__
 
 ```javascript
-db.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], result => {
+db.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (err, result) => {
+    if (err) {
+        throw new Error(err)
+    }
     console.log(result)
 })
 ```
@@ -183,7 +186,7 @@ __Example__
 db.delKey('SELECT id,username,avatar FROM accounts WHERE id = ?', [530])
 ```
 
-This exact SQL and result is now removed from the cache. Making sure the next time this query is executed it will be retrieved from the database.
+This exact SQL and (err, result) is now removed from the cache. Making sure the next time this query is executed it will be retrieved from the database.
 ___
 ###  .stats ()
 _Will console.log() some statistics regarding mysql-cache_

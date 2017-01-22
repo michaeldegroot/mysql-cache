@@ -61,7 +61,7 @@ db.init({
     // node-cache   (https://www.npmjs.com/package/node-cache)
     // file         (https://www.npmjs.com/package/cacheman-file)
     // native       (local variable assignment)
-});
+})
 ```
 
  **Important** If you want to use mmap you have to install the dependency: `
@@ -71,17 +71,19 @@ db.init({
 ```javascript
 // Start executing SQL like you are used to using the mysql module
 
-db.query('SELECT ? + ? AS solution', [1, 5], (err, resultDatabase) => {
+db.query('SELECT ? + ? AS solution', [1, 5], result => {
     // This sql is not in the cache and will be cached for future references
-    // Do something with the results
-})
 
-// Later in your code if this exact sql is run again (or on a different thread thanks to a clustered mode application),
-// It will retrieve it from cache instead of the database.
 
-db.query('SELECT ? + ? AS solution', [1, 5], (err, resultCached) => {
-    // This query was retrieved from the cache
     // Do something with the results
+
+    // Later in your code if this exact sql is run again (or on a different thread thanks to a clustered mode application),
+    // It will retrieve it from cache instead of the database.
+
+    db.query('SELECT ? + ? AS solution', [1, 5], result => {
+        // This query was retrieved from the cache
+        // Do something with the results
+    })
 })
 ```
 ___
@@ -110,9 +112,9 @@ ___
 node speedtest
 ```
 
-On my crappy wifi connection (and external database host) I had the following results:
+Example output:
 
-![cachetest.png](https://bitbucket.org/repo/jjGr8o/images/418494615-cachetest.png)
+![cachetest.png](http://i.imgur.com/mBj0Jwg.png)
 ___
 ## API
 
@@ -127,41 +129,39 @@ data:       Object      // You can pass one time settings for this query, check 
 \* [More about escaping values by using params](https://github.com/felixge/node-mysql/blob/master/Readme.md#escaping-query-values)
 
 _Will execute the given SQL and cache the result if it's a SELECT statement.
-If the SQL was executed before, it will skip the database request and retrieve it from the cache straight away._
+If the SQL was executed before, it will skip the database request and retrieve it from the cache straight away.
+Invalid queries will throw a error_
 
 __Example__
 
 ```javascript
-db.query('SELECT id,username,avatar FROM accounts WHERE id = ?', [530], (err, result) => {
+db.query('SELECT id,username,avatar FROM accounts WHERE id = ?', [530], result => {
     console.log(result)
-});
+})
 ```
 
 __Example with one time setting per query__
 
 ```javascript
-db.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (err, result) => {
+db.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], result => {
     console.log(result)
 }, {
     TTL: 600 // Will set TTL to 600 only for this query
-});
+})
 
-db.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (err, result) => {
+db.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], result => {
     console.log(result)
 }, {
     cache: false // Will not cache this query
-});
+})
 ```
 
 __Example with error handling__
 
 ```javascript
-db.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (err, result) => {
-    if (err) {
-        throw new Error(err) // catch the sql error
-    }
+db.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], result => {
     console.log(result)
-});
+})
 ```
 
 The db.query function is using node-mysql for querying.
@@ -180,10 +180,10 @@ _Deletes a cache key in the cache. You will need to supply a SQL format_
 __Example__
 
 ```javascript
-db.delKey('SELECT id,username,avatar FROM accounts WHERE id = ?', [530]);
+db.delKey('SELECT id,username,avatar FROM accounts WHERE id = ?', [530])
 ```
 
-This exact SQL and result is now removed from the cache. Making sure the next time this query is executed; it will be retrieved from the database.
+This exact SQL and result is now removed from the cache. Making sure the next time this query is executed it will be retrieved from the database.
 ___
 ###  .stats ()
 _Will console.log() some statistics regarding mysql-cache_
@@ -191,7 +191,7 @@ _Will console.log() some statistics regarding mysql-cache_
 __Example__
 
 ```javascript
-db.stats();
+db.stats()
 ```
 ___
 ###  .flushAll ()
@@ -200,7 +200,7 @@ _removes all keys and values from the cache_
 __Example__
 
 ```javascript
-db.flushAll();
+db.flushAll()
 ```
 ___
 ###  .TTL
@@ -209,7 +209,7 @@ _Changes the amount of Time To Live in seconds for all future made cache keys._
 __Example__
 
 ```javascript
-db.TTL = 5;
+db.TTL = 5
 ```
 ___
 ### .changeDB (Object)
@@ -225,7 +225,7 @@ _MySQL offers a changeUser command that allows you to alter the current user and
 
 ```javascript
 db.changeDB({user:'testusername', password:'keepo', database:'kappa', charset:'utf8'}, function(err){
-    if(err) throw err;
+    if(err) throw err
     // Database settings are now changed, do something.
 })
 ```

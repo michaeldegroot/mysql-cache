@@ -61,7 +61,7 @@ exports.setup = config => {
 
         if (found === 'mmap') {
             try {
-                console.log(require.resolve('mmap-object'))
+                require.resolve('mmap-object')
             } catch (e) {
                 util.error('mmap-object is not installed on this system. You need to install it manually to use this as a cacheProvider')
             }
@@ -197,9 +197,8 @@ exports.run = (action, hash, val, ttl, callback) => {
                     JSON.parse(MMAPObject.hash)
                 } catch (e) {
                     util.error('Could not JSON.parse result: ' + e.toString())
-                } finally {
-                    util.doCallback(callback, JSON.parse(MMAPObject.hash))
                 }
+                util.doCallback(callback, JSON.parse(MMAPObject.hash))
             } else {
                 util.doCallback(callback, null)
             }
@@ -230,9 +229,7 @@ exports.run = (action, hash, val, ttl, callback) => {
         // LRU
         if (cacheProvider === 'LRU') {
             LRUCache.set(hash, val, ttl)
-            process.nextTick(() => {
-                util.doCallback(callback, true)
-            })
+            util.doCallback(callback, true)
             actionHit = true
         }
 
@@ -242,12 +239,12 @@ exports.run = (action, hash, val, ttl, callback) => {
                 JSON.stringify(val)
             } catch (e) {
                 util.error('Could not JSON.stringify value: ' + e.toString())
-            } finally {
-                redisClient.set(hash, JSON.stringify(val), err => {
-                    util.error(err)
-                    util.doCallback(callback, true)
-                })
             }
+
+            redisClient.set(hash, JSON.stringify(val), err => {
+                util.error(err)
+                util.doCallback(callback, true)
+            })
             actionHit = true
         }
 
@@ -266,11 +263,10 @@ exports.run = (action, hash, val, ttl, callback) => {
                 MMAPObject.hash = JSON.stringify(val)
             } catch (e) {
                 util.error('Could not JSON.stringify value' + e.toString())
-            } finally {
-                process.nextTick(() => {
-                    util.doCallback(callback, true)
-                })
             }
+            process.nextTick(() => {
+                util.doCallback(callback, true)
+            })
             actionHit = true
         }
 
@@ -282,7 +278,7 @@ exports.run = (action, hash, val, ttl, callback) => {
                     util.error('Could not save value to node-cache')
                 }
 
-                util.doCallback(callback, true)
+                callback()
             })
             actionHit = true
         }

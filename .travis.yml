@@ -4,24 +4,8 @@ cache:
     - $HOME/.npm
     - node_modules
 before_install:
-  - if [ $TRAVIS_OS_NAME == "linux" ]; then
-      export CC="gcc-4.7";
-      export CXX="g++-4.7";
-      export LINK="gcc-4.7";
-      export LINKXX="g++-4.7";
-    fi
-  - nvm --version
-  - node --version
-  - npm --version
-  - gcc --version
-  - g++ --version
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-    packages:
-      - gcc-4.7
-      - g++-4.7
+   - wget http://launchpadlibrarian.net/130794928/libc6_2.17-0ubuntu4_amd64.deb
+   - sudo dpkg -i libc6_2.17-0ubuntu4_amd64.deb
 language: node_js
 compiler: gcc
 services:

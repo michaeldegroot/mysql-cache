@@ -11,6 +11,9 @@ ___
 # What it does
 Automatically caches SELECT sql's in memory, you have serveral cache providers at your disposale and it can even work in clustered mode via redis or mmap!!
 
+If you want to use the mmap cacheprovider install the dependency: `
+    yarn add mmap-object@1.1.1` this is because windows users have reported problems with it.
+
 This module is wrapping some functions of the [mysql](https://www.npmjs.com/package/mysql) module for ease of use
 ___
 # Changelog
@@ -27,10 +30,13 @@ You are no longer binded to node-cache, you can now choose the following cache p
  - [node-cache](https://www.npmjs.com/package/node-cache)
  - native (local variable assignment)
 
+ **Important** If you want to use mmap you have to install the dependency: `
+    yarn add mmap-object@1.1.1`
+
 #  Getting Started
 
 ##### 1. Start by installing the package:
-    npm install mysql-cache
+    yarn add mysql-cache
 
 ##### 2. Load the code
 ```javascript
@@ -55,6 +61,10 @@ db.init({
     // native       (local variable assignment)
 });
 ```
+
+ **Important** If you want to use mmap you have to install the dependency: `
+    yarn add mmap-object@1.1.1`
+
 ##### 3. Do awesome stuff!
 ```javascript
 // Start executing SQL like you are used to using the mysql module

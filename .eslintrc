@@ -11,10 +11,8 @@
   },
 
   "globals": {
-    "CKEDITOR": true,
-    "$", true,
-    "toastr": true,
-    "startInspinia": true,
+    "it": true,
+    "describe": true
   },
 
   "rules": {

@@ -1,6 +1,6 @@
 {
   "name": "mysql-cache",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Automatically caches SELECT sql's in memory with cacheProviders of your choice",
   "main": "app.js",
   "scripts": {
@@ -26,12 +26,12 @@
   "dependencies": {
     "colors": "^1.1.2",
     "lru-cache": "^4.0.2",
-    "mmap-object": "^1.1.1",
     "mysql": "^2.12.0",
     "node-cache": "^4.1.1",
     "redis": "^2.6.5"
   },
   "devDependencies": {
+    "app-root-path": "^2.0.1",
     "assert-plus": "^1.0.0",
     "async": "^2.1.4",
     "coveralls": "^2.11.8",

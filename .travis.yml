@@ -18,4 +18,5 @@ before_script:
   - export PATH=$PATH:/usr/local/mysql/bin
   - mysql -e 'create database mysqlcache;use mysqlcache;SET FOREIGN_KEY_CHECKS=0;DROP TABLE IF EXISTS `test`;CREATE TABLE `test` (`id` int(11) NOT NULL AUTO_INCREMENT,PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;'
   - yarn
+  - yarn add mmap-object@1.1.1
 after_script: NODE_ENV=test istanbul cover ./node_modules/mocha/bin/_mocha -- -R spec ./test/* && node node_modules/coveralls/bin/coveralls.js < coverage/lcov.info

@@ -1,6 +1,14 @@
-const db     = require('../app')
+'use strict'
+
+// Skip mmap on windows
+if (/^win/.test(process.platform)) {
+    return
+}
+
 const assert = require('assert-plus')
-const settings = require('./settings').settings()
+const appRoot  = require('app-root-path')
+const db       = require(appRoot + '/app')
+const settings = require(appRoot + '/settings/settings').settings()
 
 settings.cacheProvider = 'mmap'
 

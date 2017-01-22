@@ -1,6 +1,9 @@
-const db     = require('../app')
+'use strict'
+
 const assert = require('assert-plus')
-const settings = require('./settings').settings()
+const appRoot  = require('app-root-path')
+const db       = require(appRoot + '/app')
+const settings = require(appRoot + '/settings/settings').settings()
 
 settings.cacheProvider = 'native'
 

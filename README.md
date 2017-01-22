@@ -74,15 +74,7 @@ db.query('SELECT ? + ? AS solution', [1, 5], (err, resultCached) => {
 ## Troubleshooting
 
 ##### Glibc errors on yarn/npm install (ubuntu)
-```
-sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test;
-sudo apt-get update;
-sudo apt-get install gcc-4.8 g++-4.8;
-sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 20;
-sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 20;
-sudo g++ --version;
-sudo apt-get update -qq;
-```
+update gcc and g++
 ___
 ## Speedtest
 

@@ -28,6 +28,7 @@ You are no longer binded to node-cache, you can now choose the following cache p
  - [mmap](https://www.npmjs.com/package/mmap-object)
  - [redis](https://www.npmjs.com/package/redis)
  - [node-cache](https://www.npmjs.com/package/node-cache)
+ - [file](https://www.npmjs.com/package/cacheman-file)
  - native (local variable assignment)
 
  **Important** If you want to use mmap you have to install the dependency: `
@@ -58,6 +59,7 @@ db.init({
     // mmap         (https://www.npmjs.com/package/mmap-object works in clustered mode but is using IO!)
     // redis        (https://www.npmjs.com/package/redis using default 127.0.0.1 database 1)
     // node-cache   (https://www.npmjs.com/package/node-cache)
+    // file         (https://www.npmjs.com/package/cacheman-file)
     // native       (local variable assignment)
 });
 ```

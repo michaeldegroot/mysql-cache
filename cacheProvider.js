@@ -263,7 +263,7 @@ exports.run = (action, hash, val, ttl, callback) => {
         // MMAP
         if (cacheProvider === 'mmap') {
             try {
-                MMAPObject.hash = JSON.stringify('fds##')
+                MMAPObject.hash = JSON.stringify(val)
             } catch (e) {
                 util.error('Could not JSON.stringify value' + e.toString())
             } finally {

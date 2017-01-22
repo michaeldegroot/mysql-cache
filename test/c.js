@@ -1,4 +1,4 @@
-const db       = require('../app.js')
+const db       = require('../app')
 const assert   = require('assert-plus')
 const settings = require('./settings').settings()
 
@@ -6,20 +6,21 @@ describe('Fakerino', function() {
     this.timeout(15000)
     it('Fake db connect', done => {
         db.init({
-            host: 'kappa',
-            user: settings.user,
-            password: settings.password,
-            database: 'mysqlcache',
-            TTL: 0,
+            host:            'kappa',
+            user:            settings.user,
+            password:        settings.password,
+            database:        'mysqlcache',
+            TTL:             0,
             connectionLimit: 100,
-            verbose: true,
-            caching: true
+            verbose:         true,
+            caching:         true,
+            cacheProvider:   'node-cache',
         })
         db.testConnection(res => {
             console.log(res)
         })
         setTimeout(() => {
             done()
-        }, 6000)
+        }, 3000)
     })
 })

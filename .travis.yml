@@ -1,5 +1,15 @@
+cache:
+  directories:
+    - $HOME/.node-gyp
+    - $HOME/.npm
+    - node_modules
+before_install:
+   - wget http://launchpadlibrarian.net/130794928/libc6_2.17-0ubuntu4_amd64.deb
+   - sudo dpkg -i libc6_2.17-0ubuntu4_amd64.deb
 language: node_js
+compiler: gcc
 services:
+  - redis-server
   - mysql
 node_js:
   - '7.4'

@@ -1,7 +1,7 @@
 {
   "name": "mysql-cache",
-  "version": "0.6.0",
-  "description": "Automatically caches SELECT sql's in memory",
+  "version": "1.0.0",
+  "description": "Automatically caches SELECT sql's in memory with cacheProviders of your choice",
   "main": "app.js",
   "scripts": {
     "test": "mocha",
@@ -26,9 +26,13 @@
   "dependencies": {
     "colors": "^1.1.2",
     "lru-cache": "^4.0.2",
+    "memoizee": "^0.4.1",
     "memored": "^0.1.0",
+    "mmap-object": "^1.1.1",
     "mysql": "^2.12.0",
-    "optimist": "^0.6.1"
+    "node-cache": "^4.1.1",
+    "optimist": "^0.6.1",
+    "redis": "^2.6.5"
   },
   "devDependencies": {
     "assert-plus": "^1.0.0",
@@ -36,6 +40,7 @@
     "express": "^4.13.3",
     "istanbul": "^0.4.1",
     "mocha": "^3.2.0",
-    "mocha-lcov-reporter": "^1.0.0"
+    "mocha-lcov-reporter": "^1.0.0",
+    "moment": "^2.17.1"
   }
 }

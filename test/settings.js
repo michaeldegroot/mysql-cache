@@ -7,6 +7,7 @@ exports.settings = () => {
         TTL: 0,
         connectionLimit: 100,
         verbose: true,
-        caching: true
+        caching: true,
+        cacheProvider: 'node-cache'
     }
 }

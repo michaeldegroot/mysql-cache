@@ -1,4 +1,4 @@
-const db     = require('../app.js')
+const db     = require('../app')
 const assert = require('assert-plus')
 const settings = require('./settings').settings()
 
@@ -13,7 +13,8 @@ describe('Test2', function() {
             TTL: 0, // Time To Live for a cache key in seconds (0 = infinite)
             connectionLimit: 100, // Mysql connection pool limit (increase value if you are having problems)
             verbose: true, // Do you want info and success messages about what the program is doing?
-            caching: false // Do you want to enable caching?
+            caching: false, // Do you want to enable caching?
+            cacheProvider: 'node-cache',
         })
         db.query({sql:'SELECT 6 + 6 AS solution'}, (err, resultMysql) => {
             assert.equal(resultMysql[0].solution, 12)

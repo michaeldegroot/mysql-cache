@@ -1,10 +1,163 @@
+
+'use strict'
+
 const mysql   = require('mysql')
 const colors  = require('colors')
 const crypto  = require('crypto')
-const cluster = require('cluster')
-const md5sum  = crypto.createHash('md5')
-const LRU     = require('lru-cache')
-const cache   = LRU()
+
+let cacheProvider
+
+// LRU
+const LRU      = require('lru-cache')
+const LRUCache = LRU()
+
+// MMAP
+const MMAPCache = require('mmap-object')
+let MMAPObject
+
+// REDIS
+const redis = require('redis')
+let redisClient
+
+// NODE-CACHE
+const Ncache    = require('node-cache')
+const NodeCache = new Ncache({
+    stdTTL:      0,
+    checkperiod: 120,
+})
+
+// NATIVE
+let nativeCache = {}
+
+const supportedCacheProviders = [
+    'LRU',
+    'mmap',
+    'redis',
+    'node-cache',
+    'native',
+]
+
+const cacheAction = (action, hash, val, ttl, callback) => {
+    exports.trace('cacheAction ' + cacheProvider + ' ' + action.toUpperCase())
+
+    // FLUSH
+    if (action === 'flush') {
+        // LRU
+        if (cacheProvider === 'LRU') {
+            LRUCache.reset()
+        }
+
+        // REDIS
+        if (cacheProvider === 'redis') {
+            redisClient.flushdb()
+        }
+
+        // NATIVE
+        if (cacheProvider === 'native') {
+            nativeCache = {}
+        }
+
+        // MMAP
+        if (cacheProvider === 'mmap') {
+            MMAPObject = {}
+        }
+    }
+
+    // REMOVE
+    if (action === 'remove') {
+        // LRU
+        if (cacheProvider === 'LRU') {
+            LRUCache.del(hash)
+        }
+
+        // REDIS
+        if (cacheProvider === 'redis') {
+            LRUCache.del(hash)
+        }
+
+        // NATIVE
+        if (cacheProvider === 'native') {
+            delete nativeCache.hash
+        }
+
+        // MMAP
+        if (cacheProvider === 'mmap') {
+            delete MMAPObject.hash
+        }
+
+        // NODE-CACHE
+        if (cacheProvider === 'node-cache') {
+            NodeCache.flushAll()
+        }
+    }
+
+    // GET
+    if (action === 'get') {
+        // LRU
+        if (cacheProvider === 'LRU') {
+            doCallback(callback, LRUCache.get(hash))
+        }
+
+        // REDIS
+        if (cacheProvider === 'redis') {
+            redisClient.get(hash, (err, result) => {
+                exports.error(err)
+                doCallback(callback, JSON.parse(result))
+            })
+        }
+
+        // NATIVE
+        if (cacheProvider === 'native') {
+            doCallback(callback, nativeCache.hash)
+        }
+
+        // MMAP
+        if (cacheProvider === 'mmap') {
+            if (MMAPObject.hash !== undefined) {
+                doCallback(callback, JSON.parse(MMAPObject.hash))
+            } else {
+                doCallback(callback, null)
+            }
+        }
+
+        // NODE-CACHE
+        if (cacheProvider === 'node-cache') {
+            NodeCache.get(hash, (err, result) => {
+                exports.error(err)
+                doCallback(callback, result)
+            })
+        }
+    }
+
+    // SET
+    if (action === 'set') {
+        // LRU
+        if (cacheProvider === 'LRU') {
+            LRUCache.set(hash, val, ttl)
+            doCallback(callback, true)
+        }
+
+        // REDIS
+        if (cacheProvider === 'redis') {
+            redisClient.set(hash, JSON.stringify(val))
+        }
+
+        // NATIVE
+        if (cacheProvider === 'native') {
+            nativeCache.hash = val
+        }
+
+        // MMAP
+        if (cacheProvider === 'mmap') {
+            MMAPObject.hash = JSON.stringify(val)
+        }
+
+        // NODE-CACHE
+        if (cacheProvider === 'node-cache') {
+            NodeCache.set(hash, val)
+        }
+    }
+}
 
 exports.init = config => {
     exports.pool = mysql.createPool({
@@ -13,12 +166,40 @@ exports.init = config => {
         password:          config.password,
         database:          config.database,
         connectionLimit:   config.connectionLimit,
-        supportBigNumbers: true
+        supportBigNumbers: true,
     })
+
     exports.TTL             = config.TTL
     exports.verboseMode     = config.verbose
     exports.cacheMode       = config.caching
     exports.connectionLimit = config.connectionLimit
+
+    if (config.hasOwnProperty('cacheProvider') === false) {
+        exports.error('No cache provider given, please check the documentation if you have just updated this package https://github.com/michaeldegroot/mysql-cache/')
+    }
+
+    let found = false
+
+    for (let i = supportedCacheProviders.length - 1; i >= 0; i--) {
+        if (config.cacheProvider.toLowerCase() === supportedCacheProviders[i].toLowerCase()) {
+            found = supportedCacheProviders[i]
+        }
+    }
+    if (found === false) {
+        exports.error('Unknown cacheProvider: ' + config.cacheProvider)
+    } else {
+        cacheProvider = found
+        if (found === 'redis') {
+            redisClient = redis.createClient()
+            redisClient.on('error', function (err) {
+                exports.error('Redis error: ' + err)
+            })
+        }
+
+        if (found === 'mmap') {
+            MMAPObject = new MMAPCache.Create('mysqlcache')
+        }
+    }
 }
 
 exports.TTL             = 0
@@ -35,12 +216,12 @@ exports.queryPerSec = () => {
     setInterval(() => {
         exports.QPM    = exports.querys
         exports.querys = 0
-    },1000)
+    }, 1000)
 }
 exports.queryPerSec()
 
 exports.flushAll = () => {
-    cache.reset()
+    cacheAction('flush')
     exports.trace('Cache Flushed')
 }
 
@@ -60,34 +241,36 @@ exports.stats = () => {
 
 exports.query = (sql, params, callback, data) => {
     exports.lastTrace = getStackTrace()
-    cacheMode         = exports.cacheMode
+    const cacheMode   = exports.cacheMode
+    let query
 
     exports.querys++
 
     if (typeof params === 'function') {
-        data     = callback
-        callback = params
-        params   = []
-        query    = sql
-    }else{
+        data      = callback
+        callback  = params
+        params    = []
+        query = sql
+    } else {
         query = sql
     }
     if (typeof sql === 'object') {
         query = sql.sql
     }
     const type = query.split(' ')[0].toLowerCase()
+    let TTLSet = 0
 
     query = mysql.format(query, params)
 
-    if (type.toLowerCase() == 'select') {
-        const hash = crypto.createHash('md5').update(query).digest('hex')
+    if (type.toLowerCase() === 'select') {
+        const hash = crypto.createHash('sha512').update(query).digest('hex')
 
         exports.getKey(hash, (cache) => {
             if (!cacheMode) {
                 cache = false
             }
             if (data) {
-                if (data.cache == false) {
+                if (data.cache === false) {
                     cache = false
                 }
             }
@@ -96,9 +279,9 @@ exports.query = (sql, params, callback, data) => {
                     exports.trace(colors.yellow(hash) + '-' + colors.green(query))
                 }
                 if (callback) {
-                    callback(null,cache)
+                    callback(null, cache)
                 }
-            }else{
+            } else {
                 if (exports.verboseMode) {
                     exports.trace(colors.yellow(hash) + '-' + colors.red(query))
                 }
@@ -107,15 +290,15 @@ exports.query = (sql, params, callback, data) => {
                         exports.endPool(connection)
                         if (err) {
                             exports.endPool(connection)
-                            callback(err,null)
+                            callback(err, null)
+
                             return false
                         }
                         if (data) {
-                            TTLSet = 0
                             if (data.TTL) {
                                 TTLSet = data.TTL
                             }
-                        }else{
+                        } else {
                             TTLSet = exports.TTL
                         }
                         exports.createKey(hash, rows, TTLSet)
@@ -124,37 +307,42 @@ exports.query = (sql, params, callback, data) => {
                 })
             }
         })
-    }else{
+    } else {
         exports.getPool(connection => {
-            connection.query(sql,params, (err, rows) => {
+            connection.query(sql, params, (err, rows) => {
                 exports.endPool(connection)
                 if (err) {
                     callback(err)
+
                     return false
                 }
-                exports.trace('warn',query)
-                callback(null,rows)
+                exports.trace('warn', query)
+                callback(null, rows)
             })
         })
     }
 }
 
+const createId = id => {
+    return id.replace(/ /g, '').toLowerCase()
+}
+
 exports.delKey = (id, params) => {
     id = mysql.format(id, params)
-    const hash = crypto.createHash('md5').update(id).digest('hex')
-    cache.del(hash)
+    const hash = crypto.createHash('sha512').update(id).digest('hex')
+
+    cacheAction('remove', hash)
 }
 
 exports.getKey = (id, callback) => {
-    id = id.replace(/ /g, '').toLowerCase()
-    callback(cache.get(id))
+    cacheAction('get', createId(id), null, null, callback)
 }
 
 exports.createKey = (id, val, ttl) => {
-  id = id.replace(/ /g,'').toLowerCase()
-    const oldTTL = exports.TTL
-    if (ttl) exports.TTL = ttl
-    cache.set(id, val, exports.TTL)
+    if (ttl) {
+        exports.TTL = ttl
+    }
+    cacheAction('set', createId(id), val, exports.TTL)
 }
 
 exports.changeDB = (data, cb) => {
@@ -162,8 +350,9 @@ exports.changeDB = (data, cb) => {
         connection.changeUser(data, err => {
             exports.endPool(connection)
             if (err) {
-                exports.trace('warn','Could not change database connection settings.')
+                exports.trace('warn', 'Could not change database connection settings.')
                 doCallback(cb, err)
+
                 return
             }
             exports.trace('Successfully changed database connection settings')
@@ -174,7 +363,9 @@ exports.changeDB = (data, cb) => {
 
 const getStackTrace = () => {
     const obj = {}
+
     Error.captureStackTrace(obj, getStackTrace)
+
     return obj.stack
 }
 
@@ -188,24 +379,25 @@ exports.getPool = cb => {
 }
 
 exports.endPool = connection => {
-    if (exports.poolConnections == 0) {
+    if (exports.poolConnections === 0) {
         return false
     }
     exports.poolConnections--
     connection.release()
+
     return true
 }
 
 exports.trace = text => {
     if (exports.verboseMode) {
-        console.log(text)
+        console.log(colors.green('MYSQL-CACHE') + ': ' + text)
     }
 }
 
 exports.error = err => {
     if (err) {
-        console.log('FATAL ERROR: ' + err)
-        process.exit()
+        console.log(colors.red('MYSQL-CACHE FATAL ERROR') + ': ' + err)
+        throw new Error(console.trace())
     }
 }
 
@@ -227,6 +419,7 @@ exports.testConnection = cb => {
 
                 })
             }, 3000)
+
             return
         } else {
             exports.trace('Connected to DB')

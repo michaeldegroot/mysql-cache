@@ -1,4 +1,5 @@
 [![](https://nodei.co/npm/mysql-cache.png?downloads=true&downloadRank=true&stars=true)](https://www.npmjs.com/package/mysql-cache)
+
 [![](https://david-dm.org/michaeldegroot/mysql-cache.svg)](https://david-dm.org/michaeldegroot/mysql-cache 'david-dm')
 [![](https://travis-ci.org/michaeldegroot/mysql-cache.svg?branch=master)](https://travis-ci.org/michaeldegroot/mysql-cache)
 [![](https://coveralls.io/repos/michaeldegroot/mysql-cache/badge.svg?branch=master&service=github)](https://coveralls.io/github/michaeldegroot/mysql-cache?branch=master)

@@ -9,6 +9,7 @@ before_install:
 language: node_js
 compiler: gcc
 services:
+  - redis-server
   - mysql
 node_js:
   - '7.4'

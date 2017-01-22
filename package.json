@@ -1,6 +1,6 @@
 {
   "name": "mysql-cache",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Automatically caches SELECT sql's in memory with cacheProviders of your choice",
   "main": "app.js",
   "scripts": {
@@ -37,10 +37,12 @@
   "devDependencies": {
     "assert-plus": "^1.0.0",
     "coveralls": "^2.11.8",
+    "decache": "^4.1.0",
     "express": "^4.13.3",
     "istanbul": "^0.4.1",
     "mocha": "^3.2.0",
     "mocha-lcov-reporter": "^1.0.0",
-    "moment": "^2.17.1"
+    "moment": "^2.17.1",
+    "optimist": "^0.6.1"
   }
 }

@@ -64,13 +64,6 @@ describe('Test', function() {
         }, {cache:false, TTL:600})
     })
 
-    it('Non select statement', done => {
-        const post = {}
-        db.query('insert into test SET ?', post, (err, resultMysql) => {
-            done()
-        })
-    })
-
     it('Flush all cache', () => {
         assert.doesNotThrow(() => {
             db.flushAll()

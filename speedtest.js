@@ -1,55 +1,40 @@
-var argv = require('optimist').argv
-var async = require('async')
-var moment = require('moment')
+'use strict'
 
-// Require the module.
-var db = require('./app.js')
+const moment             = require('moment')
+const async              = require('async')
+const speedtestbase      = require('./speedtestbase')
+const loopCacheProviders = [
+    'redis',
+    'node-cache',
+]
 
-function testLRU() {
-    // Setup some information.
-    db.init({
-        host: argv.host,
-        user: argv.user,
-        password: argv.pass,
-        database: argv.database,
-        TTL: 0,
-        connectionLimit: 100,
-        verbose: true,
-        caching: true
+const resultsCache   = {}
+const resultsNoCache = {}
+const times          = 1000
+
+async.eachSeries(loopCacheProviders, function iteratee(item, callback) {
+    resultsCache[item] = {
+        startTime: moment(),
+    }
+    speedtestbase.run(item, times, true, () => {
+        resultsCache[item].stopTime = moment()
+        resultsCache[item].diff = moment.duration(resultsCache[item].stopTime.diff(resultsCache[item].startTime)).asMilliseconds()
+        callback()
     })
-
-    var querys = 0
-    var amount = 1000
-    noCacheTest(amount)
-    function noCacheTest(amount){
-        console.log("------------- NO CACHE TEST ----------")
-        var now = moment()
-        var asynctext = "async.series(["
-        for(i=0;i<amount;i++){
-            asynctext += "function(callback){test(callback,false)},"
+}, done => {
+    async.eachSeries(loopCacheProviders, function iteratee(item, callback) {
+        resultsNoCache[item] = {
+            startTime: moment(),
         }
-        asynctext += "], function(results){var then = moment();var diff = then.diff(now);console.log('Without caching, '+amount+' queries took: '+diff+'ms');cacheTest(amount)});"
-        eval(asynctext)
-    }
-
-    function cacheTest(amount){
-        console.log("------------- CACHE TEST -------------")
-        var now = moment()
-        var asynctext = "async.series(["
-        for(i=0;i<amount;i++){
-            asynctext += "function(callback){test(callback,true)},"
+        speedtestbase.run(item, times, false, () => {
+            resultsNoCache[item].stopTime = moment()
+            resultsNoCache[item].diff = moment.duration(resultsNoCache[item].stopTime.diff(resultsNoCache[item].startTime)).asMilliseconds()
+            callback()
+        })
+    }, done => {
+        for (let i = 0; i < loopCacheProviders.length; i++) {
+            console.log(loopCacheProviders[i] + ' is ' + (parseInt(resultsNoCache[loopCacheProviders[i]].diff) - parseInt(resultsCache[loopCacheProviders[i]].diff))  + 'ms faster at getting ' + times + ' records with mysql-cache enabled')
         }
-        asynctext += "], function(results){var then = moment();var diff = then.diff(now);console.log('With caching, '+amount+' queries took: '+diff+'ms');});"
-        eval(asynctext)
-
-    }
-
-    function test(callback,cache){
-            db.query("SELECT ? + ? AS solution",[420, 420],function(ret){
-                querys++
-                process.stdout.write("Executing query: "+querys+" / "+amount+" \033[0G")
-                callback()
-            },{cache:cache})
-    }
-
-}
+        process.exit()
+    })
+})

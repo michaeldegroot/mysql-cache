@@ -81,10 +81,10 @@ sudo dpkg -i libc6_2.17-0ubuntu4_amd64.deb
 ```
 ___
 ## Speedtest
-
-I have added a speedtest.js in the root directory of this module. You can execute it by yourself via this command:
+*Edit the file* **test/settings.js** *make sure it reflects your mysql database settings*
+*Then execute in the project root directory:*
 ```javascript
-node speedtest.js --host databasehostiphere --user databaseuserhere --pass databasepasswordhere --database databasenamehere
+node speedtest
 ```
 
 On my crappy wifi connection (and external database host) I had the following results:

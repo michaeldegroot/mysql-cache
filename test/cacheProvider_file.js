@@ -5,7 +5,7 @@ const appRoot  = require('app-root-path')
 const db       = require(appRoot + '/app')
 const settings = require(appRoot + '/settings').settings()
 
-settings.cacheProvider = 'LRU'
+settings.cacheProvider = 'file'
 
 describe(settings.cacheProvider + ' cacheProvider', function() {
     this.timeout(15000)

@@ -3,8 +3,9 @@
 const mysql         = require('mysql')
 const colors        = require('colors')
 const crypto        = require('crypto')
-const cacheProvider = require('./cacheprovider/app')
-const util          = require('./util')
+const appRoot       = require('app-root-path')
+const cacheProvider = require(appRoot + '/cacheProvider')
+const util          = require(appRoot + '/util')
 
 exports.init = (config, cb) => {
     exports.pool = mysql.createPool({
@@ -17,7 +18,7 @@ exports.init = (config, cb) => {
     })
 
     exports.TTL             = config.TTL
-    exports.verboseMode     = config.verbose
+    util.verboseMode        = config.verbose
     exports.cacheMode       = config.caching
     exports.connectionLimit = config.connectionLimit
 
@@ -112,16 +113,12 @@ exports.query = (sql, params, callback, data) => {
                 }
             }
             if (cache) {
-                if (exports.verboseMode) {
-                    util.trace(colors.yellow(hash) + '-' + colors.green(query))
-                }
+                util.trace(colors.yellow(hash) + '-' + colors.green(query))
                 if (callback) {
                     callback(null, cache)
                 }
             } else {
-                if (exports.verboseMode) {
-                    util.trace(colors.yellow(hash) + '-' + colors.red(query))
-                }
+                util.trace(colors.yellow(hash) + '-' + colors.red(query))
                 exports.getPool(connection => {
                     connection.query(sql, params, (err, rows) => {
                         exports.endPool(connection)

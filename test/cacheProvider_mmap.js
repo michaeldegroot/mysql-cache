@@ -8,7 +8,7 @@ if (/^win/.test(process.platform)) {
 const assert = require('assert-plus')
 const appRoot  = require('app-root-path')
 const db       = require(appRoot + '/app')
-const settings = require(appRoot + '/settings/settings').settings()
+const settings = require(appRoot + '/settings').settings()
 
 settings.cacheProvider = 'mmap'
 

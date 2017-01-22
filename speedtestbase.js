@@ -1,8 +1,9 @@
 'use strict'
 
+const appRoot  = require('app-root-path')
 const async    = require('async')
-const settings = require('./test/settings').settings()
-const db       = require('./app')
+const settings = require(appRoot + '/settings').settings()
+const db       = require(appRoot + '/app')
 
 exports.run = (set, amount, cache, callback) => {
     settings.verbose       = false

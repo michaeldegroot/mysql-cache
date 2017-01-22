@@ -1,6 +1,7 @@
 'use strict'
 
-const util = require('../util')
+const appRoot = require('app-root-path')
+const util    = require(appRoot + '/util')
 
 let cacheProvider
 
@@ -23,6 +24,10 @@ const NodeCache = new Ncache({
     checkperiod: 120,
 })
 
+// FILE
+const Cacheman = require('cacheman-file')
+let fileCache
+
 // NATIVE
 let nativeCache = {}
 
@@ -31,6 +36,7 @@ const supportedCacheProviders = [
     'mmap',
     'redis',
     'node-cache',
+    'file',
     'native',
 ]
 
@@ -61,7 +67,14 @@ exports.setup = config => {
             }
 
             MMAPCache = require('mmap-object')
-            MMAPObject = new MMAPCache.Create('mysqlcache')
+            MMAPObject = new MMAPCache.Create('mysqlcache', 5000000, 1024 * 10)
+        }
+
+        if (found === 'file') {
+            fileCache = new Cacheman('mysqlcache', {
+                ttl:    config.ttl,
+                engine: 'in file',
+            })
         }
     }
 }
@@ -70,6 +83,8 @@ exports.run = (action, hash, val, ttl, callback) => {
     util.trace('cacheProvider ' + cacheProvider + ' ' + action.toUpperCase())
 
     let actionHit = false
+    let parsedResult
+    let jsonVal
 
     // FLUSH
     if (action === 'flush') {
@@ -100,6 +115,12 @@ exports.run = (action, hash, val, ttl, callback) => {
         // NODE-CACHE
         if (cacheProvider === 'node-cache') {
             NodeCache.flushAll()
+            actionHit = true
+        }
+
+        // FILE
+        if (cacheProvider === 'file') {
+            fileCache.clear()
             actionHit = true
         }
     }
@@ -135,6 +156,12 @@ exports.run = (action, hash, val, ttl, callback) => {
             NodeCache.del(hash)
             actionHit = true
         }
+
+        // FILE
+        if (cacheProvider === 'file') {
+            fileCache.del(hash)
+            actionHit = true
+        }
     }
 
     // GET
@@ -142,13 +169,19 @@ exports.run = (action, hash, val, ttl, callback) => {
         // LRU
         if (cacheProvider === 'LRU') {
             util.doCallback(callback, LRUCache.get(hash))
+            actionHit = true
         }
 
         // REDIS
         if (cacheProvider === 'redis') {
             redisClient.get(hash, (err, result) => {
                 util.error(err)
-                util.doCallback(callback, JSON.parse(result))
+                try {
+                    parsedResult = JSON.parse(result)
+                } catch (e) {
+                    util.error('Could not JSON.parse result: ' + e.toString())
+                }
+                util.doCallback(callback, parsedResult)
             })
             actionHit = true
         }
@@ -162,7 +195,13 @@ exports.run = (action, hash, val, ttl, callback) => {
         // MMAP
         if (cacheProvider === 'mmap') {
             if (MMAPObject.hash !== undefined) {
-                util.doCallback(callback, JSON.parse(MMAPObject.hash))
+                try {
+                    parsedResult = JSON.parse(MMAPObject.hash)
+                } catch (e) {
+                    util.error('Could not JSON.parse result: ' + e.toString())
+                }
+
+                util.doCallback(callback, parsedResult)
             } else {
                 util.doCallback(callback, null)
             }
@@ -172,6 +211,15 @@ exports.run = (action, hash, val, ttl, callback) => {
         // NODE-CACHE
         if (cacheProvider === 'node-cache') {
             NodeCache.get(hash, (err, result) => {
+                util.error(err)
+                util.doCallback(callback, result)
+            })
+            actionHit = true
+        }
+
+        // FILE
+        if (cacheProvider === 'file') {
+            fileCache.get(hash, (err, result) => {
                 util.error(err)
                 util.doCallback(callback, result)
             })
@@ -192,10 +240,16 @@ exports.run = (action, hash, val, ttl, callback) => {
 
         // REDIS
         if (cacheProvider === 'redis') {
-            redisClient.set(hash, JSON.stringify(val), err => {
+            try {
+                jsonVal = JSON.stringify(val)
+            } catch (e) {
+                util.error('Could not JSON.stringify value: ' + e.toString())
+            }
+            redisClient.set(hash, jsonVal, err => {
                 util.error(err)
                 util.doCallback(callback, true)
             })
+            actionHit = true
         }
 
         // NATIVE
@@ -209,7 +263,11 @@ exports.run = (action, hash, val, ttl, callback) => {
 
         // MMAP
         if (cacheProvider === 'mmap') {
-            MMAPObject.hash = JSON.stringify(val)
+            try {
+                MMAPObject.hash = JSON.stringify('fds##')
+            } catch (e) {
+                util.error('Could not JSON.stringify value' + e.toString())
+            }
             process.nextTick(() => {
                 util.doCallback(callback, true)
             })
@@ -224,6 +282,15 @@ exports.run = (action, hash, val, ttl, callback) => {
                     util.error('Could not save value to node-cache')
                 }
 
+                util.doCallback(callback, true)
+            })
+            actionHit = true
+        }
+
+        // FILE
+        if (cacheProvider === 'file') {
+            fileCache.set(hash, val, ttl, (err, value) => {
+                util.error(err)
                 util.doCallback(callback, true)
             })
             actionHit = true

@@ -1,8 +1,9 @@
 'use strict'
 
+const appRoot            = require('app-root-path')
 const moment             = require('moment')
 const async              = require('async')
-const speedtestbase      = require('./speedtestbase')
+const speedtestbase      = require(appRoot + '/speedtestbase')
 const loopCacheProviders = [
     'redis',
     'node-cache',
@@ -10,7 +11,7 @@ const loopCacheProviders = [
 
 const resultsCache   = {}
 const resultsNoCache = {}
-const times          = 1000
+const times          = 600
 
 async.eachSeries(loopCacheProviders, function iteratee(item, callback) {
     resultsCache[item] = {

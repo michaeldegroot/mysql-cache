@@ -174,7 +174,7 @@ db.event.on('flush', () => {
     console.log('mysql-cache cache was flushed!')
 })
 
-// When all the cache gets flushed, by db.flush() for example
+// When a cache object key gets deleted by db.deleteKey() for example
 db.event.on('delete', hash => {
     console.log('this cache object was deleted from cache: ', hash)
 })

@@ -117,24 +117,13 @@ db.query('SELECT ? + ? AS solution', [1, 5], (err, result) => {
 })
 ```
 ___
-# Clustered mode
-Running a application in clustered mode but want to share the cache? check this list below for compatibility for the cacheProviders:
+# Clustered mode or Persistent mode
+Want cached data to persist on restarts in your application? OR Running a application in clustered mode but want to share the cache? check this list below for compatibility for the cacheProviders:
 
 - [ ] LRU
 - [x] mmap
 - [x] redis
 - [ ] node-cache
-- [x] file
-- [ ] native
-
-___
-# Persistent mode
-Want cached data to persist on restarts in your application? check the list below for compatible cacheProviders
-
-- [ ] LRU
-- [x] mmap
-- [x] redis
-- [x] node-cache
 - [x] file
 - [ ] native
 

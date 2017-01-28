@@ -13,12 +13,6 @@ describe('Test', function() {
         }, Error)
     })
 
-    it('Test connection', (done) => {
-        db.testConnection(() => {
-            done()
-        })
-    })
-
     it('Show stats', () => {
         db.stats()
     })
@@ -81,7 +75,7 @@ describe('Test', function() {
             charset:'utf8'
         }, err => {
             assert.doesNotThrow(() => {
-                if(err) {
+                if (err) {
                     throw err
                 }
                 done()
@@ -108,13 +102,13 @@ describe('Test', function() {
 
     it('Change DB to a wrong host', done => {
         db.changeDB({
-            user:'root',
-            pass:'',
+            user:     'root',
+            pass:     '',
             database: 'mysqlcache',
-            charset:'utf8'
+            charset:  'utf8',
         }, err => {
             assert.throws(() => {
-                if(err) {
+                if (err) {
                     throw err
                 }
                 done()
@@ -128,11 +122,5 @@ describe('Test', function() {
             assert.equal(db.endPool(connection), false)
             done()
         })
-    })
-
-    it('Fake some error messages', () => {
-        db.QPM = 2000
-        db.poolConnections = 2000
-        db.stats()
     })
 })

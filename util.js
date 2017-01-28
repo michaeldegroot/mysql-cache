@@ -1,6 +1,8 @@
 'use strict'
 
-const colors = require('colors')
+const colors  = require('colors')
+const appRoot = require('app-root-path')
+const db      = require(appRoot + '/app')
 
 exports.doCallback = (cb, args) => {
     if (typeof cb === 'function') {
@@ -26,7 +28,6 @@ exports.trace = text => {
 
 exports.error = err => {
     if (err) {
-        console.log(colors.red('MYSQL-CACHE FATAL ERROR') + ': ' + err)
-        throw new Error(err)
+        db.event.emit('error', err)
     }
 }

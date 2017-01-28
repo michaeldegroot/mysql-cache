@@ -10,7 +10,6 @@ const settings           = require(appRoot + '/settings').settings()
 const util               = require(appRoot + '/util')
 const speedtestbase      = require(appRoot + '/speedtestbase')
 const loopCacheProviders = [
-    'redis',
     'node-cache',
     'file',
     'native',

@@ -4,9 +4,20 @@ const mysql         = require('mysql')
 const colors        = require('colors')
 const crypto        = require('crypto')
 const appRoot       = require('app-root-path')
+const events        = require('events')
+const eventEmitter  = new events.EventEmitter()
 const cacheProvider = require(appRoot + '/cacheProvider')
 const util          = require(appRoot + '/util')
 
+exports.TTL             = 0
+exports.ready           = false
+exports.poolConnections = 0
+
+/**
+ * Starts the connection to mysql and initializes cacheProvider setup
+ * @param    {Object}    config
+ * @param    {Function}  cb
+ */
 exports.init = (config, cb) => {
     exports.pool = mysql.createPool({
         host:              config.host,
@@ -28,62 +39,56 @@ exports.init = (config, cb) => {
 
     cacheProvider.setup(config)
 
-    // Check connection
     exports.pool.getConnection(function(err, connection) {
-        util.error(err)
+        if (err) {
+            cb(false, err)
+            util.error(err)
+
+            return
+        }
         exports.endPool(connection)
         let showConfig = JSON.parse(JSON.stringify(config))
 
         showConfig.password = showConfig.password.replace(/./gi, '*')
         util.trace(JSON.stringify(showConfig))
         util.trace(colors.green('Connected!'))
+        eventEmitter.emit('connected')
         if (cb) {
             cb(true)
         }
     })
 }
 
-exports.TTL             = 0
-exports.ready           = false
-exports.lastTrace       = null
-exports.cacheShow       = 0
-exports.poolConnections = 0
-exports.querys          = 0
-exports.totalquerys     = 0
-exports.QPM             = 0
-
-exports.queryPerSec = () => {
-    setInterval(() => {
-        exports.QPM    = exports.querys
-        exports.querys = 0
-    }, 1000)
-}
-exports.queryPerSec()
-
+/**
+ * Flushes all cache
+ */
 exports.flushAll = () => {
     cacheProvider.run('flush')
     util.trace('Cache Flushed')
 }
 
+/**
+ * Returns some statistics about mysql-cache
+ */
 exports.stats = () => {
     util.trace('-----------------------')
     util.trace('Open Pool Connections: ' + exports.poolConnections)
-    util.trace('Requests Per Second: ' + exports.QPM)
-    if (exports.QPM >= 100) {
-        util.trace('**** ' + colors.red('QUERY PER SEC IS HIGH'))
-    }
     if (exports.poolConnections >= exports.connectionLimit) {
         util.trace('**** ' + colors.red('MYSQL POOL CONNECTION LIMIT REACHED'))
     }
     util.trace('-----------------------')
 }
 
+/**
+ * Query the database and cache the result, or retrieve the value from cache straight away
+ * @param    {Object}   sql
+ * @param    {Object}   params
+ * @param    {Function} callback
+ * @param    {Object}   data
+ */
 exports.query = (sql, params, callback, data) => {
-    exports.lastTrace = util.getStackTrace()
     const cacheMode   = exports.cacheMode
     let query
-
-    exports.querys++
 
     if (typeof params === 'function') {
         data      = callback
@@ -95,11 +100,14 @@ exports.query = (sql, params, callback, data) => {
     }
     if (typeof sql === 'object') {
         query = sql.sql
+        params = sql.params
     }
     const type = query.split(' ')[0].toLowerCase()
     let TTLSet = 0
 
     query = mysql.format(query, params)
+
+    eventEmitter.emit('query', query)
     if (type.toLowerCase() === 'select') {
         const hash = crypto.createHash('sha512').update(query).digest('hex')
 
@@ -113,46 +121,54 @@ exports.query = (sql, params, callback, data) => {
                 }
             }
             if (cache) {
+                eventEmitter.emit('hit', query, hash, cache)
                 util.trace(colors.yellow(hash) + '-' + colors.green(query))
                 if (callback) {
                     callback(null, cache)
                 }
             } else {
                 util.trace(colors.yellow(hash) + '-' + colors.red(query))
-                exports.getPool(connection => {
-                    connection.query(sql, params, (err, rows) => {
-                        exports.endPool(connection)
-                        util.error(err)
-                        if (data) {
-                            if (data.TTL) {
-                                TTLSet = data.TTL
-                            }
-                        } else {
-                            TTLSet = exports.TTL
+                dbQuery(sql, params, (err, result) => {
+                    if (data) {
+                        if (data.TTL) {
+                            TTLSet = data.TTL
                         }
-                        exports.createKey(hash, rows, TTLSet, () => {
-                            callback(null, rows)
-                        })
+                    } else {
+                        TTLSet = exports.TTL
+                    }
+                    exports.createKey(hash, result, TTLSet, () => {
+                        eventEmitter.emit('miss', query, hash, result)
+                        callback(err, result)
                     })
                 })
             }
         })
     } else {
-        exports.getPool(connection => {
-            connection.query(sql, params, (err, rows) => {
-                util.error(err)
-                exports.endPool(connection)
-                util.trace('warn', query)
-                callback(null, rows)
-            })
+        dbQuery(sql, params, (err, result) => {
+            callback(err, result)
         })
     }
+}
+
+const dbQuery = (sql, params, callback) => {
+    exports.getPool(connection => {
+        connection.query(sql, params, (err, rows) => {
+            util.error(err)
+            exports.endPool(connection)
+            callback(err, rows)
+        })
+    })
 }
 
 const createId = id => {
     return id.replace(/ /g, '').toLowerCase()
 }
 
+/**
+ * Deletes a cache object by key
+ * @param    {Object}   id
+ * @param    {Object}   params
+ */
 exports.delKey = (id, params) => {
     id = mysql.format(id, params)
     const hash = crypto.createHash('sha512').update(id).digest('hex')
@@ -160,10 +176,22 @@ exports.delKey = (id, params) => {
     cacheProvider.run('remove', hash)
 }
 
+/**
+ * Retrieves a cache object by key
+ * @param    {Object}   id
+ * @param    {Function} callback
+ */
 exports.getKey = (id, cb) => {
     cacheProvider.run('get', createId(id), null, null, cb)
 }
 
+/**
+ * Creates a cache object
+ * @param    {Object}   id
+ * @param    {Object}   val
+ * @param    {Number}   ttl
+ * @param    {Function} cb
+ */
 exports.createKey = (id, val, ttl, cb) => {
     if (ttl) {
         exports.TTL = ttl
@@ -171,6 +199,11 @@ exports.createKey = (id, val, ttl, cb) => {
     cacheProvider.run('set', createId(id), val, exports.TTL, cb)
 }
 
+/**
+ * Changes database settings on the fly
+ * @param    {Object}   data
+ * @param    {Function} cb
+ */
 exports.changeDB = (data, cb) => {
     exports.getPool(connection => {
         connection.changeUser(data, err => {
@@ -187,6 +220,10 @@ exports.changeDB = (data, cb) => {
     })
 }
 
+/**
+ * Create or get a pool connection
+ * @param    {Function} cb
+ */
 exports.getPool = cb => {
     exports.pool.getConnection((err, connection) => {
         util.error(err)
@@ -196,6 +233,10 @@ exports.getPool = cb => {
     })
 }
 
+/**
+ * Kill a pool connection
+ * @param    {Object} connection
+ */
 exports.endPool = connection => {
     if (exports.poolConnections === 0) {
         return false
@@ -206,22 +247,4 @@ exports.endPool = connection => {
     return true
 }
 
-exports.testConnection = cb => {
-    exports.pool.getConnection((err, connection) => {
-        if (err) {
-            util.trace(err.code)
-            util.trace('Trying to reconnect in 3 seconds.')
-            setTimeout(() => {
-                exports.testConnection(() => {
-
-                })
-            }, 3000)
-
-            return
-        } else {
-            util.trace('Connected to DB')
-            exports.ready = true
-            util.doCallback(cb, true)
-        }
-    })
-}
+exports.event = eventEmitter

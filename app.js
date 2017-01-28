@@ -9,6 +9,7 @@ const eventEmitter  = new events.EventEmitter()
 const cacheProvider = require(appRoot + '/cacheProvider')
 const util          = require(appRoot + '/util')
 
+exports.event = eventEmitter
 exports.TTL             = 0
 exports.ready           = false
 exports.poolConnections = 0
@@ -30,7 +31,7 @@ exports.init = (config, cb) => {
 
     exports.TTL             = config.TTL
     util.verboseMode        = config.verbose
-    exports.cacheMode       = config.caching
+    exports.caching         = config.caching
     exports.connectionLimit = config.connectionLimit
 
     if (config.hasOwnProperty('cacheProvider') === false) {
@@ -62,10 +63,14 @@ exports.init = (config, cb) => {
 /**
  * Flushes all cache
  */
-exports.flushAll = () => {
+exports.flush = () => {
     cacheProvider.run('flush')
+    eventEmitter.emit('flush')
     util.trace('Cache Flushed')
 }
+
+// Backward compatibility with flushAll command
+exports.flushAll = exports.flush
 
 /**
  * Returns some statistics about mysql-cache
@@ -87,7 +92,7 @@ exports.stats = () => {
  * @param    {Object}   data
  */
 exports.query = (sql, params, callback, data) => {
-    const cacheMode   = exports.cacheMode
+    const cacheMode   = exports.caching
     let query
 
     if (typeof params === 'function') {
@@ -109,7 +114,7 @@ exports.query = (sql, params, callback, data) => {
 
     eventEmitter.emit('query', query)
     if (type.toLowerCase() === 'select') {
-        const hash = crypto.createHash('sha512').update(query).digest('hex')
+        const hash = crypto.createHash('sha512').update(createId(query)).digest('hex')
 
         exports.getKey(hash, (cache) => {
             if (!cacheMode) {
@@ -129,6 +134,7 @@ exports.query = (sql, params, callback, data) => {
             } else {
                 util.trace(colors.yellow(hash) + '-' + colors.red(query))
                 dbQuery(sql, params, (err, result) => {
+                    eventEmitter.emit('miss', query, hash, result)
                     if (data) {
                         if (data.TTL) {
                             TTLSet = data.TTL
@@ -136,16 +142,25 @@ exports.query = (sql, params, callback, data) => {
                     } else {
                         TTLSet = exports.TTL
                     }
-                    exports.createKey(hash, result, TTLSet, () => {
-                        eventEmitter.emit('miss', query, hash, result)
-                        callback(err, result)
-                    })
+                    if (!cacheMode) {
+                        if (callback) {
+                            callback(err, result)
+                        }
+                    } else {
+                        exports.createKey(hash, result, TTLSet, () => {
+                            if (callback) {
+                                callback(err, result)
+                            }
+                        })
+                    }
                 })
             }
         })
     } else {
         dbQuery(sql, params, (err, result) => {
-            callback(err, result)
+            if (callback) {
+                callback(err, result)
+            }
         })
     }
 }
@@ -153,7 +168,7 @@ exports.query = (sql, params, callback, data) => {
 const dbQuery = (sql, params, callback) => {
     exports.getPool(connection => {
         connection.query(sql, params, (err, rows) => {
-            util.error(err)
+            util.error(err, mysql.format(sql, params))
             exports.endPool(connection)
             callback(err, rows)
         })
@@ -170,9 +185,14 @@ const createId = id => {
  * @param    {Object}   params
  */
 exports.delKey = (id, params) => {
+    if (typeof id === 'object') {
+        params = id['params']
+        id     = id['sql']
+    }
     id = mysql.format(id, params)
     const hash = crypto.createHash('sha512').update(id).digest('hex')
 
+    eventEmitter.emit('delete', hash)
     cacheProvider.run('remove', hash)
 }
 
@@ -246,5 +266,3 @@ exports.endPool = connection => {
 
     return true
 }
-
-exports.event = eventEmitter

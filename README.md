@@ -27,6 +27,8 @@ Improved error handling and event emitters!
  - Connected: when you want to know when a connection has been established with mysql
  - Error: when a error occurred within mysql-cache 
  - Miss: when a cache object was not found
+ - Flush: when the cache was flushed
+ - Delete: when a cache was delete
  - Hit: when a cache object was found
  - Query: when a query is going to be run, before the cache check and cache object key generation
 
@@ -167,6 +169,16 @@ db.event.on('error', err => {
     throw new Error(err)
 })
 
+// When all the cache gets flushed, by db.flush() for example
+db.event.on('flush', () => {
+    console.log('mysql-cache cache was flushed!')
+})
+
+// When all the cache gets flushed, by db.flush() for example
+db.event.on('delete', hash => {
+    console.log('this cache object was deleted from cache: ', hash)
+})
+
 // When a cache object was found when a query was run
 db.event.on('hit', (query, hash, result) => {
     // query  = the sql code that was used
@@ -265,7 +277,13 @@ ___
 ```
 _Deletes a cache key in the cache. You will need to supply a SQL format_
 
-__Example__
+__Example #1__
+
+```javascript
+db.delKey('SELECT id,username,avatar FROM accounts WHERE id = ?', [530])
+```
+
+__Example #2__
 
 ```javascript
 db.delKey('SELECT id,username,avatar FROM accounts WHERE id = ?', [530])
@@ -282,13 +300,13 @@ __Example__
 db.stats()
 ```
 ___
-###  .flushAll ()
+###  .flush ()
 _removes all keys and values from the cache_
 
 __Example__
 
 ```javascript
-db.flushAll()
+db.flush()
 ```
 ___
 ###  .TTL
@@ -298,6 +316,20 @@ __Example__
 
 ```javascript
 db.TTL = 5
+```
+___
+###  .caching
+_Changes caching mode on/off._
+
+__Example__
+
+```javascript
+db.caching = false
+
+// All queries run now will not be utilizing the cache system
+
+db.caching = true
+// All queries run now will be utilizing the cache system
 ```
 ___
 ### .changeDB (Object)

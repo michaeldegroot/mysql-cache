@@ -80,6 +80,11 @@ exports.setup = config => {
 }
 
 exports.run = (action, hash, val, ttl, callback) => {
+    // Do not run if the cacheProvider has not been set yet.
+    if (typeof cacheProvider === 'undefined') {
+        return
+    }
+
     util.trace('cacheProvider ' + cacheProvider + ' ' + action.toUpperCase())
 
     let actionHit = false

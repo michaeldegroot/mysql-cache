@@ -27,7 +27,7 @@ exports.trace = text => {
     }
 }
 
-exports.error = (err, sql = false) => {
+exports.error = (err, sql) => {
     if (err) {
         if (sql) {
             if (sql.hasOwnProperty('sql')) {

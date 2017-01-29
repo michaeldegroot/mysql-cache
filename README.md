@@ -71,8 +71,8 @@ db.init({
     TTL:             0,             // Time To Live for a cache key in seconds (0 = infinite, MMAP is not supported in TTL)
     connectionLimit: 100,           // Mysql connection pool limit (increase value if you are having problems)
     verbose:         true,          // Do you want console.log's about what the program is doing?
-    caching:         true           // Do you want to use SELECT SQL caching?
-    cacheProvider:   'LRU'          // You can choose different cache providers of your liking SEE BELOW:
+    caching:         true,           // Do you want to use SELECT SQL caching?
+    cacheProvider:   'LRU',          // You can choose different cache providers of your liking SEE BELOW:
 
     // Here are the cache providers you can choose:
     // LRU          (https://www.npmjs.com/package/lru-cache)

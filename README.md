@@ -91,6 +91,8 @@ db.init({
 
     if (connected) {
         console.log("W00t! i'm connected!!")
+
+        // Lets run some queries!
     }
 })
 ```

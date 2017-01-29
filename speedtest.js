@@ -3,7 +3,6 @@
 const appRoot            = require('app-root-path')
 const moment             = require('moment')
 const async              = require('async')
-const rightpad           = require('rightpad')
 const colors             = require('colors')
 const speedteststep      = require(appRoot + '/speedteststep')
 const settings           = require(appRoot + '/settings').settings()
@@ -78,3 +77,18 @@ async.eachSeries(loopCacheProviders, function iteratee(item1, callback1) {
         process.exit()
     })
 })
+
+function rightpad (str, len, ch) {
+    str = String(str)
+    let i = -1
+
+    if (!ch && ch !== 0) {
+        ch = ' '
+    }
+    len = len - str.length
+    while (++i < len) {
+        str = str + ch
+    }
+
+    return str
+}

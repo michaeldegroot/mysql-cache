@@ -195,7 +195,7 @@ exports.run = (action, hash, val, ttl, callback) => {
 
         // NATIVE
         if (cacheProvider === 'native') {
-            util.doCallback(callback, nativeCache.hash)
+            util.doCallback(callback, nativeCache[hash])
             actionHit = true
         }
 
@@ -203,7 +203,7 @@ exports.run = (action, hash, val, ttl, callback) => {
         if (cacheProvider === 'mmap') {
             if (MMAPObject.hash !== undefined) {
                 try {
-                    JSON.parse(MMAPObject.hash)
+                    JSON.parse(MMAPObject[hash])
                 } catch (e) {
                     util.error('Could not JSON.parse result: ' + e.toString())
                 }
@@ -259,7 +259,7 @@ exports.run = (action, hash, val, ttl, callback) => {
 
         // NATIVE
         if (cacheProvider === 'native') {
-            nativeCache.hash = val
+            nativeCache[hash] = val
             process.nextTick(() => {
                 util.doCallback(callback, true)
             })
@@ -269,7 +269,7 @@ exports.run = (action, hash, val, ttl, callback) => {
         // MMAP
         if (cacheProvider === 'mmap') {
             try {
-                MMAPObject.hash = JSON.stringify(val)
+                MMAPObject[hash] = JSON.stringify(val)
             } catch (e) {
                 util.error('Could not JSON.stringify value' + e.toString())
             }

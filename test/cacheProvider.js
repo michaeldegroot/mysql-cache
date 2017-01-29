@@ -8,6 +8,7 @@ const async    = require('async')
 const mysql    = require('mysql')
 const crypto   = require('crypto')
 const decache  = require('decache')
+let i          = 0
 
 const cacheProviders = db.cacheProviders
 
@@ -18,7 +19,7 @@ db.event.on('error', err => {
 describe('main cache provider suite', function() {
     this.timeout(15000)
     it('Start ' + cacheProviders.length + ' cacheProviders', done => {
-        async.each(cacheProviders, function(cacheProvider, callback) {
+        async.each(cacheProviders, cacheProvider => {
             doRun(cacheProvider)
         })
         done()

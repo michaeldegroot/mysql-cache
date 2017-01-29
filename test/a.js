@@ -148,17 +148,6 @@ describe('Test', function() {
         }, Error)
     })
 
-    it('Trigger: A Connection was trying to be released while it already was!', done => {
-        db.getPool(connection => {
-            db.endPool(connection)
-            db.endPool(connection)
-            db.query('SELECT ? + ? AS solution', [1, 5], (err, resultMysql) => {
-                assert.equal(resultMysql[0].solution, 6)
-            })
-            done()
-        }, Error)
-    })
-
     it('Change DB to a wrong host', done => {
         db.changeDB({
             user:     'root',

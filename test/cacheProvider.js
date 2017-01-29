@@ -32,7 +32,7 @@ const doRun = (provider, cb) => {
         } catch (e) {
             console.log('mmap-object is not installed and this test will be skipped!!')
 
-            // return
+            return
         }
     }
     describe(provider + ' cacheProvider', function() {

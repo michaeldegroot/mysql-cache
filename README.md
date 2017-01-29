@@ -81,6 +81,8 @@ db.init({
     // node-cache   (https://www.npmjs.com/package/node-cache)
     // file         (https://www.npmjs.com/package/cacheman-file)
     // native       (local variable assignment)
+
+    // You can also use db.cacheProviders this is a array with strings of the avaliable cacheProviders
 }, (connected, err) => { // This is a callback for the init function
     if (err) {
         // Catch any connection establishment errors
@@ -101,10 +103,18 @@ db.init({
 // Start executing SQL like you are used to using the mysql module
 
 
-db.query('SELECT ? + ? AS solution', [1, 5], (err, result) => {
+db.query('SELECT ? + ? AS solution', [1, 5], (err, result, mysqlCache) => {
     if (err) {
         throw new Error(err)
     }
+    // Some extra information
+    console.log(mysqlCache.hash + ' is the cache key')
+    console.log(mysqlCache.sql + ' was the sql generated and run (if not cached)')
+    console.log(mysqlCache.isCache + ' boolean if the result was from cache or not')
+
+    // The actual sql result
+    console.log(result)
+
     // This sql was not in the cache and was cached for future references
 
     // Do something with the output of the sql
@@ -112,8 +122,11 @@ db.query('SELECT ? + ? AS solution', [1, 5], (err, result) => {
     // Later in your code if this exact sql is run again (or in a different thread depending on cacheProvider chosen),
     // It will retrieve it from cache instead of the database.
 
-    db.query('SELECT ? + ? AS solution', [1, 5], (err, result) => {
-        // This query was retrieved from the cache, which was much faster!
+    db.query('SELECT ? + ? AS solution', [1, 5], (err, result, mysqlCache) => {
+        // This query was retrieved from the cache because it was the exact same sql code, which was retrieved much faster then a database call!
+
+        console.log(mysqlCache.isCache === true) // Should be true :)
+
         // Do something with the results
     })
 })
@@ -300,7 +313,10 @@ db.delKey('SELECT id,username,avatar FROM accounts WHERE id = ?', [530])
 __Example #2__
 
 ```javascript
-db.delKey('SELECT id,username,avatar FROM accounts WHERE id = ?', [530])
+db.delKey({
+    sql:    'SELECT id,username,avatar FROM accounts WHERE id = ?',
+    params: [530],
+})
 ```
 
 This exact SQL is now removed from the cache. Making sure the next time this query is executed it will be retrieved from the database.

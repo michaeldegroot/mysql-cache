@@ -52,70 +52,61 @@ const doRun = (provider, cb) => {
         })
 
         if (provider !== 'mmap') {
-            it('Test TTL one time setting (3 seconds)', done => {
-                db.query('SELECT ? + ? AS solution', [9, 5], (err, resultMysql, mysqlCache) => {
-                    if (err) {
-                        throw new Error(err)
+            it('Test TTL one time setting (2 seconds)', done => {
+                db.query('SELECT ? + ? AS solution', [344, 1], (err1, resultMysql1, mysqlCache1) => {
+                    if (err1) {
+                        throw new Error(err1)
                     }
-                    assert.equal(resultMysql[0].solution, 14)
-                    assert.equal(mysqlCache.isCache, false)
-                    setTimeout(() => {
-                        // Over 3 seconds, should still be cached
-                        db.query('SELECT ? + ? AS solution', [9, 5], (err, resultMysql, mysqlCache) => {
-                            if (err) {
-                                throw new Error(err)
-                            }
-                            assert.equal(resultMysql[0].solution, 14)
-                            assert.equal(mysqlCache.isCache, true)
-
-                            setTimeout(() => {
-                                // Now well over 5 seconds total
-                                db.query('SELECT ? + ? AS solution', [9, 5], (err, resultMysql, mysqlCache) => {
-                                    if (err) {
-                                        throw new Error(err)
-                                    }
-                                    assert.equal(resultMysql[0].solution, 14)
-                                    assert.equal(mysqlCache.isCache, false)
-                                    done()
-                                })
-                            }, 2000)
-                        })
-                    }, 1000)
+                    assert.equal(resultMysql1[0].solution, 345)
+                    assert.equal(mysqlCache1.isCache, false)
+                    db.query('SELECT ? + ? AS solution', [344, 1], (err2, resultMysql2, mysqlCache2) => {
+                        if (err2) {
+                            throw new Error(err2)
+                        }
+                        assert.equal(resultMysql2[0].solution, 345)
+                        assert.equal(mysqlCache2.isCache, true)
+                        setTimeout(() => {
+                            db.query('SELECT ? + ? AS solution', [344, 1], (err3, resultMysql3, mysqlCache3) => {
+                                if (err3) {
+                                    throw new Error(err3)
+                                }
+                                assert.equal(resultMysql3[0].solution, 345)
+                                assert.equal(mysqlCache3.isCache, false)
+                                done()
+                            })
+                        }, 2000)
+                    })
                 }, {
-                    TTL: 2 // Will set TTL to 5 seconds only for this query
+                    TTL: 1 // Will set TTL to 5 seconds only for this query
                 })
             })
 
             it('Test TTL main setting (2 seconds)', done => {
-                db.TTL = 2
-                db.query('SELECT ? + ? AS solution', [344, 1], (err, resultMysql, mysqlCache) => {
+                db.TTL = 1
+                db.query('SELECT ? + ? AS solution', [1, 344], (err, resultMysql, mysqlCache) => {
                     if (err) {
                         throw new Error(err)
                     }
                     assert.equal(resultMysql[0].solution, 345)
                     assert.equal(mysqlCache.isCache, false)
-                    setTimeout(() => {
-                        // Over 3 seconds, should still be cached
-                        db.query('SELECT ? + ? AS solution', [344, 1], (err, resultMysql, mysqlCache) => {
-                            if (err) {
-                                throw new Error(err)
-                            }
-                            assert.equal(resultMysql[0].solution, 345)
-                            assert.equal(mysqlCache.isCache, true)
-
-                            setTimeout(() => {
-                                // Now well over 5 seconds total
-                                db.query('SELECT ? + ? AS solution', [344, 1], (err, resultMysql, mysqlCache) => {
-                                    if (err) {
-                                        throw new Error(err)
-                                    }
-                                    assert.equal(resultMysql[0].solution, 345)
-                                    assert.equal(mysqlCache.isCache, false)
-                                    done()
-                                })
-                            }, 1000)
-                        })
-                    }, 1000)
+                    db.query('SELECT ? + ? AS solution', [1, 344], (err, resultMysql, mysqlCache) => {
+                        if (err) {
+                            throw new Error(err)
+                        }
+                        assert.equal(resultMysql[0].solution, 345)
+                        assert.equal(mysqlCache.isCache, true)
+                        setTimeout(() => {
+                            // Now well over 5 seconds total
+                            db.query('SELECT ? + ? AS solution', [1, 344], (err, resultMysql, mysqlCache) => {
+                                if (err) {
+                                    throw new Error(err)
+                                }
+                                assert.equal(resultMysql[0].solution, 345)
+                                assert.equal(mysqlCache.isCache, false)
+                                done()
+                            })
+                        }, 2000)
+                    })
                 })
             })
         }

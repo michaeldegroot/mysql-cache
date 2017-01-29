@@ -40,6 +40,10 @@ const supportedCacheProviders = [
     'native',
 ]
 
+exports.getAll = () => {
+    return supportedCacheProviders
+}
+
 exports.setup = config => {
     let found = false
 
@@ -82,7 +86,7 @@ exports.setup = config => {
 exports.run = (action, hash, val, ttl, callback) => {
     // Do not run if the cacheProvider has not been set yet.
     if (typeof cacheProvider === 'undefined') {
-        return
+        return false
     }
 
     util.trace('cacheProvider ' + cacheProvider + ' ' + action.toUpperCase())

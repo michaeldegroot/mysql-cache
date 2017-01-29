@@ -5,20 +5,12 @@ const appRoot    = require('app-root-path')
 const db         = require(appRoot + '/app')
 const mysql      = require('mysql')
 
-exports.doCallback = (cb, args) => {
+exports.doCallback = (cb, a, b, c, d, e, f, g) => {
     if (typeof cb === 'function') {
-        cb(args)
+        cb(a, b, c, d, e, f, g)
     } else {
         return false
     }
-}
-
-exports.getStackTrace = () => {
-    const obj = {}
-
-    Error.captureStackTrace(obj)
-
-    return obj.stack
 }
 
 exports.trace = text => {

@@ -264,6 +264,20 @@ db.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (err, 
 })
 ```
 
+__Example with getting some extra information from mysql-cache__
+
+```javascript
+db.query('SELECT 6 + 6 AS solution', (err, mysqlResult, mysqlCache) => {
+    const mysqlCacheHash = mysqlCache.hash.slice(0, 12)
+    if (mysqlCache.isCache) {
+        console.log(mysqlCacheHash + ': is from the cache!')
+    } else {
+        console.log(mysqlCacheHash + ': is NOT from the cache!')
+    }
+    console.log('The result of the sql ' + mysqlCache.sql + ' = ' + mysqlResult[0].solution)
+})
+```
+
 The db.query function is using node-mysql for querying.
 It's wrapping the sql function, check the [mysql](https://www.npmjs.com/package/mysql) [documentation](https://github.com/felixge/node-mysql/blob/master/Readme.md)   for more information about [escaping values](https://github.com/felixge/node-mysql/blob/master/Readme.md#escaping-query-values)
 

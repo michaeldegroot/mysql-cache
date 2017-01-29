@@ -9,9 +9,10 @@ const eventEmitter  = new events.EventEmitter()
 const cacheProvider = require(appRoot + '/cacheProvider')
 const util          = require(appRoot + '/util')
 
-exports.event = eventEmitter
+exports.event           = eventEmitter
+exports.cacheProvider   = cacheProvider
+exports.cacheProviders  = cacheProvider.getAll()
 exports.TTL             = 0
-exports.ready           = false
 exports.poolConnections = 0
 
 /**
@@ -111,9 +112,9 @@ exports.query = (sql, params, callback, data) => {
     let TTLSet = 0
 
     query = mysql.format(query, params)
-
     eventEmitter.emit('query', query)
-    if (type.toLowerCase() === 'select') {
+
+    if (type === 'select') {
         const hash = crypto.createHash('sha512').update(createId(query)).digest('hex')
 
         exports.getKey(hash, (cache) => {
@@ -128,29 +129,23 @@ exports.query = (sql, params, callback, data) => {
             if (cache) {
                 eventEmitter.emit('hit', query, hash, cache)
                 util.trace(colors.yellow(hash) + '-' + colors.green(query))
-                if (callback) {
-                    callback(null, cache)
-                }
+                util.doCallback(callback, null, cache, generateObject(true, hash, query))
             } else {
                 util.trace(colors.yellow(hash) + '-' + colors.red(query))
                 dbQuery(sql, params, (err, result) => {
                     eventEmitter.emit('miss', query, hash, result)
                     if (data) {
-                        if (data.TTL) {
+                        if (data.hasOwnProperty('TTL')) {
                             TTLSet = data.TTL
                         }
                     } else {
                         TTLSet = exports.TTL
                     }
                     if (!cacheMode) {
-                        if (callback) {
-                            callback(err, result)
-                        }
+                        util.doCallback(callback, err, result, generateObject(false, hash, query))
                     } else {
                         exports.createKey(hash, result, TTLSet, () => {
-                            if (callback) {
-                                callback(err, result)
-                            }
+                            util.doCallback(callback, err, result, generateObject(false, hash, query))
                         })
                     }
                 })
@@ -162,6 +157,14 @@ exports.query = (sql, params, callback, data) => {
                 callback(err, result)
             }
         })
+    }
+}
+
+const generateObject = (isCache, hash, sql) => {
+    return {
+        isCache,
+        hash,
+        sql,
     }
 }
 
@@ -178,6 +181,8 @@ const dbQuery = (sql, params, callback) => {
 const createId = id => {
     return id.replace(/ /g, '').toLowerCase()
 }
+
+exports.createId = createId
 
 /**
  * Deletes a cache object by key
@@ -213,10 +218,7 @@ exports.getKey = (id, cb) => {
  * @param    {Function} cb
  */
 exports.createKey = (id, val, ttl, cb) => {
-    if (ttl) {
-        exports.TTL = ttl
-    }
-    cacheProvider.run('set', createId(id), val, exports.TTL, cb)
+    cacheProvider.run('set', createId(id), val, ttl, cb)
 }
 
 /**

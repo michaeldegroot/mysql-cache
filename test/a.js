@@ -7,6 +7,11 @@ const settings = require(appRoot + '/settings').settings()
 
 describe('Test', function() {
     this.timeout(15000)
+
+    it('Call a query while init was not called yet', () => {
+        assert.equal(db.cacheProvider.run('get', db.createId('test:D'), null, null), false)
+    })
+
     it('Call Init', () => {
         assert.doesNotThrow(() => {
             db.init(settings)
@@ -15,6 +20,12 @@ describe('Test', function() {
 
     it('Show stats', () => {
         db.stats()
+    })
+
+    it('Call invalid cacheprovider action', () => {
+        assert.throws(() => {
+            db.cacheProvider.run('thiswillneverexistsprobably', db.createId('test:D'), null, null)
+        }, Error)
     })
 
     it('Call a query', done => {
@@ -31,6 +42,21 @@ describe('Test', function() {
         })
     })
 
+    it('Call a INSERT query', done => {
+        db.query('insert into test set ?', {
+            name: 1337,
+        }, (err, resultMysql) => {
+            assert.equal(err, null)
+            done()
+        })
+    })
+
+    it('Delete the inserted row', () => {
+        db.query('delete from test where name = ?', [1337], (err, resultMysql) => {
+            assert.equal(resultMysql.affectedRows, 1)
+        })
+    })
+
     it('Call a query as sql object', done => {
         db.query({sql:'SELECT 6 + 6 AS solution'}, (err, resultMysql) => {
             assert.equal(resultMysql[0].solution, 12)
@@ -44,14 +70,19 @@ describe('Test', function() {
     })
 
     it('Test cache', done => {
-        db.query('SELECT ? + ? AS solution', [1, 5], (err, resultMysql) => {
+        db.query('SELECT ? + ? AS solution', [1, 5], (err, resultMysql, mysqlCache) => {
             assert.equal(resultMysql[0].solution, 6)
+            assert.equal(mysqlCache.isCache, true)
             done()
         })
     })
 
     it('Delete a key', () => {
         db.delKey('SELECT ? + ? AS solution', [1, 5])
+    })
+
+    it('Delete a key version 2', () => {
+        db.delKey({sql:'SELECT ? + ? AS solution', params: [1, 5]})
     })
 
     it('One time setting per query', done => {

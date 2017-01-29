@@ -22,7 +22,7 @@ describe('Invalid Host Mysql Error Test Suite', function() {
             verbose: false, // Do you want info and success messages about what the program is doing?
             caching: false, // Do you want to enable caching?
             cacheProvider: 'node-cache',
-        }, (connected, err) => {
+        }, (err, connected) => {
             assert.throws(() => {
                 if (err) {
                     throw new Error(err)

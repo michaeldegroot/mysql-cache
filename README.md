@@ -83,7 +83,7 @@ db.init({
     // native       (local variable assignment)
 
     // You can also use db.cacheProviders this is a array with strings of the avaliable cacheProviders
-}, (connected, err) => { // This is a callback for the init function
+}, (err, connect) => { // This is a callback for the init function
     if (err) {
         // Catch any connection establishment errors
         throw new Error(err)

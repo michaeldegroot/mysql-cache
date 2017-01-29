@@ -112,7 +112,31 @@ const doRun = (provider, cb) => {
             })
         }
 
-        it('Call a query', done => {
+        it('Call a new query', done => {
+            db.query('SELECT ? + ? AS solution', [60, 2], (err, resultMysql, mysqlCache) => {
+                if (err) {
+                    throw new Error(err)
+                }
+                assert.equal(resultMysql[0].solution, 62)
+                assert.equal(mysqlCache.isCache, false)
+                done()
+            }, {
+                cache: false,
+            })
+        })
+
+        it('Call the same query again (no cache hit)', done => {
+            db.query('SELECT ? + ? AS solution', [60, 2], (err, resultMysql, mysqlCache) => {
+                if (err) {
+                    throw new Error(err)
+                }
+                assert.equal(resultMysql[0].solution, 62)
+                assert.equal(mysqlCache.isCache, false)
+                done()
+            })
+        })
+
+        it('Call a new query', done => {
             db.query('SELECT ? + ? AS solution', [1, 5], (err, resultMysql) => {
                 if (err) {
                     throw new Error(err)
@@ -122,7 +146,7 @@ const doRun = (provider, cb) => {
             })
         })
 
-        it('Call a query again (cache hit)', done => {
+        it('Call the same query again (cache hit)', done => {
             db.query('SELECT ? + ? AS solution', [1, 5], (err, resultMysql, mysqlCache) => {
                 if (err) {
                     throw new Error(err)
@@ -145,7 +169,7 @@ const doRun = (provider, cb) => {
             })
         })
 
-        it('Call a query again (no cache hit)', done => {
+        it('Call the same query again (no cache hit)', done => {
             db.query('SELECT ? + ? AS solution', [5, 55], (err, resultMysql, mysqlCache) => {
                 if (err) {
                     throw new Error(err)

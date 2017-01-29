@@ -49,7 +49,7 @@ exports.init = (config, cb) => {
 
     exports.pool.getConnection(function(err, connection) {
         if (err) {
-            cb(false, err)
+            cb(err, false)
             util.error(err)
         }
         exports.endPool(connection)
@@ -60,7 +60,7 @@ exports.init = (config, cb) => {
         util.trace(colors.green('Connected!'))
         eventEmitter.emit('connected')
         if (cb) {
-            cb(true)
+            cb(null, true)
         }
     })
 }
@@ -103,7 +103,6 @@ exports.stats = object => {
  */
 exports.query = (sql, params, callback, data) => {
     exports.queries++
-    const cacheMode   = exports.caching
     let query
 
     if (typeof params === 'function') {
@@ -128,7 +127,7 @@ exports.query = (sql, params, callback, data) => {
         const hash = crypto.createHash('sha512').update(createId(query)).digest('hex')
 
         exports.getKey(hash, (cache) => {
-            if (!cacheMode) {
+            if (!exports.caching) {
                 cache = false
             }
             if (data) {
@@ -146,14 +145,19 @@ exports.query = (sql, params, callback, data) => {
                 exports.misses++
                 dbQuery(sql, params, (err, result) => {
                     eventEmitter.emit('miss', query, hash, result)
+                    let enableCache = true
+
                     if (data) {
                         if (data.hasOwnProperty('TTL')) {
                             TTLSet = data.TTL * 1000
                         }
+                        if (data.hasOwnProperty('cache')) {
+                            enableCache = data.cache
+                        }
                     } else {
                         TTLSet = exports.TTL * 1000
                     }
-                    if (!cacheMode) {
+                    if (!exports.caching || !enableCache) {
                         util.doCallback(callback, err, result, generateObject(false, hash, query))
                     } else {
                         exports.createKey(hash, result, TTLSet, () => {
@@ -244,7 +248,7 @@ exports.changeDB = (data, cb) => {
             exports.endPool(connection)
             util.error(err)
             util.trace('Successfully changed database connection settings')
-            util.doCallback(cb, null, true)
+            util.doCallback(cb, err, !err)
         })
     })
 }

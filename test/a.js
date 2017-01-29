@@ -18,7 +18,7 @@ describe('Main Application Suite', function() {
 
     it('Call Init', done => {
         assert.doesNotThrow(() => {
-            db.init(settings, (connected, err) => {
+            db.init(settings, (err, connected) => {
                 if (err) {
                     throw new Error(err)
                 }
@@ -43,14 +43,26 @@ describe('Main Application Suite', function() {
     it('Call a query', done => {
         db.query('SELECT ? + ? AS solution', [1, 5], (err, resultMysql) => {
             assert.equal(resultMysql[0].solution, 6)
-            done()
+            setTimeout(() => {
+                assert.equal(db.queries, 1)
+                assert.equal(db.misses, 1)
+                assert.equal(db.hits, 0)
+                assert.equal(db.poolConnections, 0)
+                done()
+            }, 100)
         })
     })
 
     it('Call a query without params', done => {
         db.query('SELECT 1 + 1 AS solution', (err, resultMysql) => {
             assert.equal(resultMysql[0].solution, 2)
-            done()
+            setTimeout(() => {
+                assert.equal(db.queries, 2)
+                assert.equal(db.misses, 2)
+                assert.equal(db.hits, 0)
+                assert.equal(db.poolConnections, 0)
+                done()
+            }, 100)
         })
     })
 
@@ -59,38 +71,76 @@ describe('Main Application Suite', function() {
             name: 1337,
         }, (err, resultMysql) => {
             assert.equal(err, null)
-            done()
+            setTimeout(() => {
+                assert.equal(db.queries, 3)
+                assert.equal(db.misses, 2)
+                assert.equal(db.hits, 0)
+                assert.equal(db.poolConnections, 0)
+                done()
+            }, 100)
         })
     })
 
-    it('Delete the inserted row', () => {
+    it('Delete the inserted row', done => {
         db.query('delete from test where name = ?', [1337], (err, resultMysql) => {
             assert.equal(resultMysql.affectedRows, 1)
+            setTimeout(() => {
+                assert.equal(db.queries, 4)
+                assert.equal(db.misses, 2)
+                assert.equal(db.hits, 0)
+                assert.equal(db.poolConnections, 0)
+                done()
+            }, 100)
         })
     })
 
     it('Call a query as sql object', done => {
         db.query({sql:'SELECT 6 + 6 AS solution'}, (err, resultMysql) => {
             assert.equal(resultMysql[0].solution, 12)
-            done()
+            setTimeout(() => {
+                assert.equal(db.queries, 5)
+                assert.equal(db.misses, 3)
+                assert.equal(db.hits, 0)
+                assert.equal(db.poolConnections, 0)
+                done()
+            }, 100)
         })
     })
 
     it('Call a query without a callback', done => {
-            db.query({sql:'SELECT 6 + 6 AS solution'})
+        db.query({sql:'SELECT 6 + 6 AS solution'})
+        setTimeout(() => {
+            assert.equal(db.queries, 6)
+            assert.equal(db.misses, 3)
+            assert.equal(db.hits, 1)
+            assert.equal(db.poolConnections, 0)
             done()
+        }, 100)
     })
 
     it('Test cache', done => {
         db.query('SELECT ? + ? AS solution', [1, 5], (err, resultMysql, mysqlCache) => {
             assert.equal(resultMysql[0].solution, 6)
             assert.equal(mysqlCache.isCache, true)
-            done()
+            setTimeout(() => {
+                assert.equal(db.queries, 7)
+                assert.equal(db.misses, 3)
+                assert.equal(db.hits, 2)
+                assert.equal(db.poolConnections, 0)
+                done()
+            }, 100)
         })
     })
 
-    it('Delete a key', () => {
+    it('Delete a key', done => {
         db.delKey('SELECT ? + ? AS solution', [1, 5])
+        setTimeout(() => {
+            assert.equal(db.queries, 7)
+            assert.equal(db.misses, 3)
+            assert.equal(db.hits, 2)
+            assert.equal(db.poolConnections, 0)
+            done()
+        }, 100)
     })
 
     it('Test trace', () => {
@@ -116,11 +166,23 @@ describe('Main Application Suite', function() {
     it('One time setting per query', done => {
         db.query('SELECT ? + ? AS solution', [10, 5], (err, resultMysql) => {
             assert.equal(resultMysql[0].solution, 15)
-            done()
+            setTimeout(() => {
+                assert.equal(db.queries, 8)
+                assert.equal(db.misses, 4)
+                assert.equal(db.hits, 2)
+                assert.equal(db.poolConnections, 0)
+                done()
+            }, 100)
         }, {cache:false, TTL:600})
     })
 
     it('Flush all cache', () => {
+        assert.doesNotThrow(() => {
+            db.flush()
+        }, Error)
+    })
+
+    it('Flush all cache (compatiblity)', () => {
         assert.doesNotThrow(() => {
             db.flushAll()
         }, Error)
@@ -132,7 +194,7 @@ describe('Main Application Suite', function() {
             pass: '',
             database: 'mysqlcache',
             charset:'utf8'
-        }, err => {
+        }, (err, success) => {
             assert.doesNotThrow(() => {
                 if (err) {
                     throw err

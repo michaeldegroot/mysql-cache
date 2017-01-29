@@ -147,13 +147,13 @@ exports.run = (action, hash, val, ttl, callback) => {
 
         // NATIVE
         if (cacheProvider === 'native') {
-            delete nativeCache.hash
+            delete nativeCache[hash]
             actionHit = true
         }
 
         // MMAP
         if (cacheProvider === 'mmap') {
-            delete MMAPObject.hash
+            delete MMAPObject[hash]
             actionHit = true
         }
 
@@ -200,13 +200,13 @@ exports.run = (action, hash, val, ttl, callback) => {
 
         // MMAP
         if (cacheProvider === 'mmap') {
-            if (MMAPObject.hash !== undefined) {
+            if (MMAPObject[hash] !== undefined) {
                 try {
                     JSON.parse(MMAPObject[hash])
                 } catch (e) {
                     util.error('Could not JSON.parse result: ' + e.toString())
                 }
-                util.doCallback(callback, JSON.parse(MMAPObject.hash))
+                util.doCallback(callback, JSON.parse(MMAPObject[hash]))
             } else {
                 util.doCallback(callback, null)
             }

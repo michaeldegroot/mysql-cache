@@ -29,7 +29,8 @@ const Cacheman = require('cacheman-file')
 let fileCache
 
 // NATIVE
-let nativeCache = {}
+const NodeTtl     = require('node-ttl')
+const nativeCache = new NodeTtl()
 
 const supportedCacheProviders = [
     'LRU',
@@ -88,7 +89,7 @@ exports.run = (action, hash, val, ttl, callback) => {
         return false
     }
 
-    util.trace('cacheProvider ' + cacheProvider + ' ' + action.toUpperCase())
+    util.trace('cacheProvider ' + cacheProvider + ' ' + action.toUpperCase() + ' with a TTL of ' + ttl)
 
     let actionHit = false
 
@@ -108,7 +109,7 @@ exports.run = (action, hash, val, ttl, callback) => {
 
         // NATIVE
         if (cacheProvider === 'native') {
-            nativeCache = {}
+            nativeCache.clear()
             actionHit = true
         }
 
@@ -147,7 +148,7 @@ exports.run = (action, hash, val, ttl, callback) => {
 
         // NATIVE
         if (cacheProvider === 'native') {
-            delete nativeCache[hash]
+            nativeCache.del(hash)
             actionHit = true
         }
 
@@ -194,7 +195,7 @@ exports.run = (action, hash, val, ttl, callback) => {
 
         // NATIVE
         if (cacheProvider === 'native') {
-            util.doCallback(callback, nativeCache[hash])
+            util.doCallback(callback, nativeCache.get(hash))
             actionHit = true
         }
 
@@ -253,12 +254,15 @@ exports.run = (action, hash, val, ttl, callback) => {
                 util.error(err)
                 util.doCallback(callback, true)
             })
+            if (ttl / 1000 >= 1) {
+                redisClient.expire(hash, ttl / 1000)
+            }
             actionHit = true
         }
 
         // NATIVE
         if (cacheProvider === 'native') {
-            nativeCache[hash] = val
+            nativeCache.push(hash, val, null, ttl / 1000)
             process.nextTick(() => {
                 util.doCallback(callback, true)
             })
@@ -286,14 +290,21 @@ exports.run = (action, hash, val, ttl, callback) => {
                     util.error('Could not save value to node-cache')
                 }
 
-                callback()
+                NodeCache.ttl(hash, ttl / 1000, (err, changed) => {
+                    util.error(err)
+                    if (changed) {
+                        callback()
+                    } else {
+                        util.error('node-cache ttl key could not be changed')
+                    }
+                })
             })
             actionHit = true
         }
 
         // FILE
         if (cacheProvider === 'file') {
-            fileCache.set(hash, val, ttl, (err, value) => {
+            fileCache.set(hash, val, ttl / 1000, (err, value) => {
                 util.error(err)
                 util.doCallback(callback, true)
             })

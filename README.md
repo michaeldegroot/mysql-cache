@@ -68,7 +68,7 @@ db.init({
     user:            '',
     password:        '',
     database:        '',
-    TTL:             0,             // Time To Live for a cache key in seconds (0 = infinite)
+    TTL:             0,             // Time To Live for a cache key in seconds (0 = infinite, MMAP is not supported in TTL)
     connectionLimit: 100,           // Mysql connection pool limit (increase value if you are having problems)
     verbose:         true,          // Do you want console.log's about what the program is doing?
     caching:         true           // Do you want to use SELECT SQL caching?
@@ -256,7 +256,7 @@ __Example with one time setting per query__
 db.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (err, result) => {
     console.log(result)
 }, {
-    TTL: 600 // Will set TTL to 600 only for this query
+    TTL: 6 // Will set TTL to 6 seconds only for this query
 })
 
 db.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (err, result) => {
@@ -345,7 +345,7 @@ _Changes the amount of Time To Live in seconds for all future made cache keys._
 __Example__
 
 ```javascript
-db.TTL = 5
+db.TTL = 5 // TTL is always defined in SECONDS
 ```
 ___
 ###  .caching

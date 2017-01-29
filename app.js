@@ -31,7 +31,7 @@ exports.init = (config, cb) => {
         supportBigNumbers: true,
     })
 
-    exports.TTL             = config.TTL
+    exports.TTL             = config.TTL * 1000
     util.verboseMode        = config.verbose
     exports.caching         = config.caching
     exports.connectionLimit = config.connectionLimit
@@ -137,10 +137,10 @@ exports.query = (sql, params, callback, data) => {
                     eventEmitter.emit('miss', query, hash, result)
                     if (data) {
                         if (data.hasOwnProperty('TTL')) {
-                            TTLSet = data.TTL
+                            TTLSet = data.TTL * 1000
                         }
                     } else {
-                        TTLSet = exports.TTL
+                        TTLSet = exports.TTL * 1000
                     }
                     if (!cacheMode) {
                         util.doCallback(callback, err, result, generateObject(false, hash, query))

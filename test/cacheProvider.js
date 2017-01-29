@@ -8,7 +8,6 @@ const async    = require('async')
 const mysql    = require('mysql')
 const crypto   = require('crypto')
 const decache  = require('decache')
-let i          = 0
 
 const cacheProviders = db.cacheProviders
 

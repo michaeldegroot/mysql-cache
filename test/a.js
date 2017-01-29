@@ -18,7 +18,7 @@ describe('Test', function() {
 
     it('Call Init', done => {
         assert.doesNotThrow(() => {
-            db.init(settings, (err, connected) => {
+            db.init(settings, (connected, err) => {
                 if (err) {
                     throw new Error(err)
                 }

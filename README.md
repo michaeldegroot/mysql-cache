@@ -119,7 +119,7 @@ db.query('SELECT ? + ? AS solution', [1, 5], (err, result, mysqlCache) => {
 
     // Do something with the output of the sql
 
-    // Later in your code if this exact sql is run again (or in a different thread depending on cacheProvider chosen),
+    // Later in your code if this exact sql is run again
     // It will retrieve it from cache instead of the database.
 
     db.query('SELECT ? + ? AS solution', [1, 5], (err, result, mysqlCache) => {

@@ -77,12 +77,12 @@ const doRun = (provider, cb) => {
                         }, 2000)
                     })
                 }, {
-                    TTL: 1 // Will set TTL to 5 seconds only for this query
+                    TTL: 1 // Will set TTL to 1 seconds only for this query
                 })
             })
 
             it('Test TTL main setting (2 seconds)', done => {
-                db.TTL = 1
+                db.TTL = 1 // Will set TTL to 1 seconds for feature queries
                 db.query('SELECT ? + ? AS solution', [1, 344], (err, resultMysql, mysqlCache) => {
                     if (err) {
                         throw new Error(err)
@@ -96,13 +96,14 @@ const doRun = (provider, cb) => {
                         assert.equal(resultMysql[0].solution, 345)
                         assert.equal(mysqlCache.isCache, true)
                         setTimeout(() => {
-                            // Now well over 5 seconds total
+                            // Now well over 2 seconds total
                             db.query('SELECT ? + ? AS solution', [1, 344], (err, resultMysql, mysqlCache) => {
                                 if (err) {
                                     throw new Error(err)
                                 }
                                 assert.equal(resultMysql[0].solution, 345)
                                 assert.equal(mysqlCache.isCache, false)
+                                db.TTL = 0 // Reset TTL
                                 done()
                             })
                         }, 2000)

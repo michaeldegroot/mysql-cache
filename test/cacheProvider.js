@@ -15,7 +15,7 @@ db.event.on('error', err => {
     throw new Error(err)
 })
 
-describe('main cache provider suite', function() {
+describe('CacheProvider Test Suite', function() {
     this.timeout(15000)
     it('Start ' + cacheProviders.length + ' cacheProviders', done => {
         async.each(cacheProviders, cacheProvider => {
@@ -35,7 +35,7 @@ const doRun = (provider, cb) => {
             return
         }
     }
-    describe(provider + ' cacheProvider', function() {
+    describe(provider.toUpperCase() + ' cacheProvider', function() {
         this.timeout(15000)
         it('Call Init', () => {
             decache(appRoot + '/app')

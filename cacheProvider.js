@@ -294,8 +294,6 @@ exports.run = (action, hash, val, ttl, callback) => {
                     util.error(err)
                     if (changed) {
                         callback()
-                    } else {
-                        util.error('node-cache ttl key could not be changed')
                     }
                 })
             })

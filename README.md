@@ -214,6 +214,26 @@ db.event.on('query', sql => {
 })
 ```
 
+## Properties
+```js
+const db = require('mysql-cache')
+
+// Get total cache misses
+console.log(db.misses) 
+
+// Get total cache hits
+console.log(db.hits) 
+
+// Get total qeury requests
+console.log(db.queries) 
+
+// Get total open pool connections
+console.log(db.poolConnections)
+
+// Get the configured settings for mysql-cache
+console.log(db.config)
+```
+
 ## API
 
 ###  .query (sql,params,callback,data)
@@ -321,13 +341,24 @@ db.delKey({
 
 This exact SQL is now removed from the cache. Making sure the next time this query is executed it will be retrieved from the database.
 ___
-###  .stats ()
+###  .stats (object)
+```js
+    object:         boolean    // Print in verbose mode or return as a object
+```
 _Will console.log() some statistics regarding mysql-cache_
 
-__Example__
+__Example #1__
 
 ```javascript
-db.stats()
+db.stats() // default is display via verbose mode
+```
+___
+
+__Example #2__
+
+```javascript
+console.log(db.stats(true))
+// Returns: { poolConnections: 0, hits: 3, misses: 1 }
 ```
 ___
 ###  .flush ()

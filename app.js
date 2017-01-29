@@ -15,6 +15,10 @@ exports.cacheProviders  = cacheProvider.getAll()
 exports.util            = util
 exports.TTL             = 0
 exports.poolConnections = 0
+exports.hits            = 0
+exports.misses          = 0
+exports.queries         = 0
+exports.config          = null
 
 /**
  * Starts the connection to mysql and initializes cacheProvider setup
@@ -22,6 +26,7 @@ exports.poolConnections = 0
  * @param    {Function}  cb
  */
 exports.init = (config, cb) => {
+    exports.config = config
     exports.pool = mysql.createPool({
         host:              config.host,
         user:              config.user,
@@ -46,8 +51,6 @@ exports.init = (config, cb) => {
         if (err) {
             cb(false, err)
             util.error(err)
-
-            return
         }
         exports.endPool(connection)
         let showConfig = JSON.parse(JSON.stringify(config))
@@ -77,13 +80,18 @@ exports.flushAll = exports.flush
 /**
  * Returns some statistics about mysql-cache
  */
-exports.stats = () => {
-    util.trace('-----------------------')
-    util.trace('Open Pool Connections: ' + exports.poolConnections)
-    if (exports.poolConnections >= exports.connectionLimit) {
-        util.trace('**** ' + colors.red('MYSQL POOL CONNECTION LIMIT REACHED'))
+exports.stats = object => {
+    if (object) {
+        return {
+            poolConnections: exports.poolConnections,
+            hits:            exports.hits,
+            misses:          exports.misses,
+        }
+    } else {
+        util.trace('Open Pool Connections: ' + exports.poolConnections)
+        util.trace('Cache Hits: ' + exports.hits)
+        util.trace('Cache Misses: ' + exports.misses)
     }
-    util.trace('-----------------------')
 }
 
 /**
@@ -94,6 +102,7 @@ exports.stats = () => {
  * @param    {Object}   data
  */
 exports.query = (sql, params, callback, data) => {
+    exports.queries++
     const cacheMode   = exports.caching
     let query
 
@@ -130,9 +139,11 @@ exports.query = (sql, params, callback, data) => {
             if (cache) {
                 eventEmitter.emit('hit', query, hash, cache)
                 util.trace(colors.yellow(hash) + '-' + colors.green(query))
+                exports.hits++
                 util.doCallback(callback, null, cache, generateObject(true, hash, query))
             } else {
                 util.trace(colors.yellow(hash) + '-' + colors.red(query))
+                exports.misses++
                 dbQuery(sql, params, (err, result) => {
                     eventEmitter.emit('miss', query, hash, result)
                     if (data) {
@@ -231,12 +242,7 @@ exports.changeDB = (data, cb) => {
     exports.getPool(connection => {
         connection.changeUser(data, err => {
             exports.endPool(connection)
-            if (err) {
-                util.trace('warn', 'Could not change database connection settings.')
-                util.doCallback(cb, err)
-
-                return
-            }
+            util.error(err)
             util.trace('Successfully changed database connection settings')
             util.doCallback(cb, null, true)
         })
@@ -250,7 +256,6 @@ exports.changeDB = (data, cb) => {
 exports.getPool = cb => {
     exports.pool.getConnection((err, connection) => {
         util.error(err)
-
         exports.poolConnections++
         cb(connection)
     })

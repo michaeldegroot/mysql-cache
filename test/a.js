@@ -9,7 +9,7 @@ db.event.on('error', err => {
     throw new Error(err)
 })
 
-describe('Test', function() {
+describe('Main Application Suite', function() {
     this.timeout(15000)
 
     it('Call a query while init was not called yet', () => {

@@ -9,7 +9,7 @@ db.event.on('error', err => {
     throw new Error(err)
 })
 
-describe('error messages test #1', function() {
+describe('Random Error Message Suite 1#', function() {
     this.timeout(15000)
     it('create a cacheProvider error', () => {
         assert.throws(() => {

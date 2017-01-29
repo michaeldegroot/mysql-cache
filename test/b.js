@@ -5,6 +5,10 @@ const appRoot  = require('app-root-path')
 const db       = require(appRoot + '/app')
 const settings = require(appRoot + '/settings').settings()
 
+db.event.on('error', err => {
+    throw new Error(err)
+})
+
 describe('Test2', function() {
     this.timeout(15000)
     it('Call init, disable cache, call query', done => {
@@ -15,7 +19,7 @@ describe('Test2', function() {
             database: 'mysqlcache',
             TTL: 0, // Time To Live for a cache key in seconds (0 = infinite)
             connectionLimit: 100, // Mysql connection pool limit (increase value if you are having problems)
-            verbose: true, // Do you want info and success messages about what the program is doing?
+            verbose: false, // Do you want info and success messages about what the program is doing?
             caching: false, // Do you want to enable caching?
             cacheProvider: 'node-cache',
         })

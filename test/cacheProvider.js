@@ -11,15 +11,15 @@ const decache  = require('decache')
 
 const cacheProviders = db.cacheProviders
 
-settings.verbose = true
+db.event.on('error', err => {
+    throw new Error(err)
+})
 
 describe('main cache provider suite', function() {
     this.timeout(15000)
     it('Start ' + cacheProviders.length + ' cacheProviders', done => {
         async.each(cacheProviders, function(cacheProvider, callback) {
-            doRun(cacheProvider, () => {
-                callback()
-            })
+            doRun(cacheProvider)
         })
         done()
     })
@@ -78,6 +78,10 @@ const doRun = (provider, cb) => {
             })
         })
 
+        it('Delete a key', () => {
+            db.delKey('SELECT ? + ? AS solution', [1, 5])
+        })
+
         it('Call a INSERT query', done => {
             db.query('insert into test set ?', {
                 name: 1337,
@@ -91,11 +95,6 @@ const doRun = (provider, cb) => {
             db.query('delete from test where name = ?', [1337], (err, resultMysql) => {
                 assert.equal(resultMysql.affectedRows, 1)
             })
-        })
-
-        it('Delete a key', () => {
-            db.delKey('SELECT ? + ? AS solution', [1, 5])
-            cb()
         })
 
         it('Verify hash', done => {

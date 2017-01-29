@@ -12,6 +12,7 @@ const util          = require(appRoot + '/util')
 exports.event           = eventEmitter
 exports.cacheProvider   = cacheProvider
 exports.cacheProviders  = cacheProvider.getAll()
+exports.util            = util
 exports.TTL             = 0
 exports.poolConnections = 0
 

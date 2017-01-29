@@ -5,6 +5,10 @@ const appRoot  = require('app-root-path')
 const db       = require(appRoot + '/app')
 const settings = require(appRoot + '/settings').settings()
 
+db.event.on('error', err => {
+    throw new Error(err)
+})
+
 describe('Test', function() {
     this.timeout(15000)
 
@@ -12,9 +16,17 @@ describe('Test', function() {
         assert.equal(db.cacheProvider.run('get', db.createId('test:D'), null, null), false)
     })
 
-    it('Call Init', () => {
+    it('Call Init', done => {
         assert.doesNotThrow(() => {
-            db.init(settings)
+            db.init(settings, (err, connected) => {
+                if (err) {
+                    throw new Error(err)
+                }
+                assert.equal(connected, true)
+                if (connected) {
+                    done()
+                }
+            })
         }, Error)
     })
 
@@ -79,6 +91,22 @@ describe('Test', function() {
 
     it('Delete a key', () => {
         db.delKey('SELECT ? + ? AS solution', [1, 5])
+    })
+
+    it('Test trace', () => {
+        db.util.verboseMode = true
+        db.util.trace('test')
+        db.util.verboseMode = false
+    })
+
+    it('Test error', done => {
+        assert.throws(() => {
+            db.util.error('test', {
+                sql: 'test sql ?',
+                params: ['woot'],
+            })
+        }, Error)
+            done()
     })
 
     it('Delete a key version 2', () => {

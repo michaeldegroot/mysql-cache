@@ -62,16 +62,15 @@ exports.setup = config => {
                 util.error('Redis error: ' + err)
             })
         }
-
         if (found === 'mmap') {
             try {
                 require.resolve('mmap-object')
             } catch (e) {
-                util.error('mmap-object is not installed on this system. You need to install it manually to use this as a cacheProvider')
+                throw new Error('mmap-object is not installed on this system. You need to install it manually to use this as a cacheProvider')
             }
 
             MMAPCache = require('mmap-object')
-            MMAPObject = new MMAPCache.Create('mysqlcache', 5000000, 1024 * 10)
+            MMAPObject = new MMAPCache.Create('mysqlcache')
         }
 
         if (found === 'file') {

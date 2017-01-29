@@ -26,8 +26,14 @@ describe('main cache provider suite', function() {
 })
 
 const doRun = (provider, cb) => {
-    if (/^win/.test(process.platform) && provider === 'mmap') {
-        return
+    if (provider === 'mmap') {
+        try {
+            require.resolve('mmap-object')
+        } catch (e) {
+            console.log('mmap-object is not installed and this test will be skipped!!')
+
+            // return
+        }
     }
     describe(provider + ' cacheProvider', function() {
         this.timeout(15000)
@@ -47,6 +53,9 @@ const doRun = (provider, cb) => {
 
         it('Call a query', done => {
             db.query('SELECT ? + ? AS solution', [1, 5], (err, resultMysql) => {
+                if (err) {
+                    throw new Error(err)
+                }
                 assert.equal(resultMysql[0].solution, 6)
                 done()
             })
@@ -54,6 +63,9 @@ const doRun = (provider, cb) => {
 
         it('Call a query again (cache hit)', done => {
             db.query('SELECT ? + ? AS solution', [1, 5], (err, resultMysql, mysqlCache) => {
+                if (err) {
+                    throw new Error(err)
+                }
                 assert.equal(resultMysql[0].solution, 6)
                 assert.equal(mysqlCache.isCache, true)
                 done()
@@ -61,7 +73,11 @@ const doRun = (provider, cb) => {
         })
 
         it('Call a new query', done => {
+            db.caching = false
             db.query('SELECT ? + ? AS solution', [5, 55], (err, resultMysql, mysqlCache) => {
+                if (err) {
+                    throw new Error(err)
+                }
                 assert.equal(mysqlCache.isCache, false)
                 assert.equal(resultMysql[0].solution, 60)
                 done()
@@ -69,8 +85,10 @@ const doRun = (provider, cb) => {
         })
 
         it('Call a query again (no cache hit)', done => {
-            db.caching = false
             db.query('SELECT ? + ? AS solution', [5, 55], (err, resultMysql, mysqlCache) => {
+                if (err) {
+                    throw new Error(err)
+                }
                 assert.equal(resultMysql[0].solution, 60)
                 assert.equal(mysqlCache.isCache, false)
                 db.caching = true
@@ -86,6 +104,9 @@ const doRun = (provider, cb) => {
             db.query('insert into test set ?', {
                 name: 1337,
             }, (err, resultMysql) => {
+                if (err) {
+                    throw new Error(err)
+                }
                 assert.equal(err, null)
                 done()
             })
@@ -93,6 +114,9 @@ const doRun = (provider, cb) => {
 
         it('Delete the inserted row', () => {
             db.query('delete from test where name = ?', [1337], (err, resultMysql) => {
+                if (err) {
+                    throw new Error(err)
+                }
                 assert.equal(resultMysql.affectedRows, 1)
             })
         })
@@ -104,6 +128,9 @@ const doRun = (provider, cb) => {
             const generatedHash = crypto.createHash('sha512').update(db.createId(generatedSql)).digest('hex')
 
             db.query(generatedSql, (err, resultMysql, mysqlCache) => {
+                if (err) {
+                    throw new Error(err)
+                }
                 assert.equal(mysqlCache.hash, generatedHash)
                 assert.equal(mysqlCache.hash.length === 128, true)
                 done()
@@ -119,7 +146,13 @@ const doRun = (provider, cb) => {
             const generatedSql2  = String(mysql.format(sql2, params2))
 
             db.query(generatedSql1, (err1, resultMysql1, mysqlCache1) => {
+                if (err1) {
+                    throw new Error(err1)
+                }
                 db.query(generatedSql2, (err2, resultMysql2, mysqlCache2) => {
+                    if (err2) {
+                        throw new Error(err2)
+                    }
                     assert.equal(resultMysql1[0].solution === resultMysql2[0].solution, true)
                     assert.equal(resultMysql1[0].solution, 10)
                     assert.equal(mysqlCache1.hash, mysqlCache2.hash)
@@ -138,7 +171,13 @@ const doRun = (provider, cb) => {
             const generatedSql2 = String(mysql.format(sql2, params2))
 
             db.query(generatedSql1, (err1, resultMysql1, mysqlCache1) => {
+                if (err1) {
+                    throw new Error(err1)
+                }
                 db.query(generatedSql2, (err2, resultMysql2, mysqlCache2) => {
+                    if (err2) {
+                        throw new Error(err2)
+                    }
                     assert.equal(resultMysql1[0].solution === resultMysql2[0].solution, true)
                     assert.equal(resultMysql1[0].solution, 10)
                     assert.equal(mysqlCache1.hash, mysqlCache2.hash)
@@ -158,7 +197,13 @@ const doRun = (provider, cb) => {
             const generatedSql2 = String(mysql.format(sql2, params2))
 
             db.query(generatedSql1, (err1, resultMysql1, mysqlCache1) => {
+                if (err1) {
+                    throw new Error(err1)
+                }
                 db.query(generatedSql2, (err2, resultMysql2, mysqlCache2) => {
+                    if (err2) {
+                        throw new Error(err2)
+                    }
                     assert.equal(resultMysql1[0].solution === resultMysql2[0].solution, true)
                     assert.equal(resultMysql1[0].solution, 10)
                     assert.equal(mysqlCache1.hash, mysqlCache2.hash)

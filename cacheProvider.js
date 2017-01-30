@@ -14,8 +14,8 @@ let MMAPCache
 let MMAPObject
 
 // REDIS
-const redis = require('redis')
-let redisClient
+const CachemanRedis = require('cacheman-redis')
+let redisCache
 
 // NODE-CACHE
 const Ncache    = require('node-cache')
@@ -57,10 +57,11 @@ exports.setup = config => {
         util.error('Unknown cacheProvider: ' + config.cacheProvider)
     } else {
         cacheProvider = found
+
         if (found === 'redis') {
-            redisClient = redis.createClient()
-            redisClient.on('error', function (err) {
-                util.error('Redis error: ' + err)
+            redisCache = new CachemanRedis({
+                ttl:    config.ttl,
+                engine: 'redis',
             })
         }
         if (found === 'mmap') {
@@ -110,7 +111,7 @@ exports.run = (action, hash, val, ttl, callback) => {
 
         // REDIS
         if (cacheProvider === 'redis') {
-            redisClient.flushdb()
+            redisCache.clear()
             actionHit = true
         }
 
@@ -149,7 +150,7 @@ exports.run = (action, hash, val, ttl, callback) => {
 
         // REDIS
         if (cacheProvider === 'redis') {
-            LRUCache.del(hash)
+            redisCache.del(hash)
             actionHit = true
         }
 
@@ -188,14 +189,9 @@ exports.run = (action, hash, val, ttl, callback) => {
 
         // REDIS
         if (cacheProvider === 'redis') {
-            redisClient.get(hash, (err, result) => {
+            redisCache.get(hash, (err, result) => {
                 util.error(err)
-                try {
-                    JSON.parse(result)
-                } catch (e) {
-                    util.error('Could not JSON.parse result: ' + e.toString())
-                }
-                util.doCallback(callback, JSON.parse(result))
+                util.doCallback(callback, result)
             })
             actionHit = true
         }
@@ -254,25 +250,16 @@ exports.run = (action, hash, val, ttl, callback) => {
 
         // REDIS
         if (cacheProvider === 'redis') {
-            try {
-                JSON.stringify(val)
-            } catch (e) {
-                util.error('Could not JSON.stringify value: ' + e.toString())
-            }
-
-            redisClient.set(hash, JSON.stringify(val), err => {
+            redisCache.set(hash, val, ttl / 1000, err => {
                 util.error(err)
                 util.doCallback(callback, true)
             })
-            if (ttl / 1000 >= 1) {
-                redisClient.expire(hash, ttl / 1000)
-            }
             actionHit = true
         }
 
         // NATIVE
         if (cacheProvider === 'native') {
-            nativeCache.set(hash, val, ttl / 1000, (err, value) => {
+            nativeCache.set(hash, val, ttl / 1000, err => {
                 util.error(err)
                 util.doCallback(callback, true)
             })

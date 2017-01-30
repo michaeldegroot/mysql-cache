@@ -28,11 +28,6 @@ exports.error = (err, sql) => {
             err = 'QUERY FAILURE: ' + sql + '\n' + err
         }
 
-        // If there are no listeners, just throw the error
-        if (db.event.listeners('error').length <= 0) {
-            throw new Error(err)
-        }
-
         db.event.emit('error', err)
     }
 }

@@ -27,6 +27,7 @@
     "cacheman": "^2.2.1",
     "cacheman-file": "^0.2.1",
     "cacheman-memory": "^1.0.2",
+    "cacheman-redis": "^1.1.2",
     "colors": "^1.1.2",
     "lru-cache": "^4.0.2",
     "mysql": "^2.13.0",

@@ -7,22 +7,22 @@ const colors             = require('colors')
 const speedteststep      = require(appRoot + '/speedteststep')
 const settings           = require(appRoot + '/settings').settings()
 const util               = require(appRoot + '/util')
+const db                 = require(appRoot + '/app')
 const speedtestbase      = require(appRoot + '/speedtestbase')
-const loopCacheProviders = [
-    'node-cache',
-    'file',
-    'native',
-    'lru',
-]
+const loopCacheProviders = db.cacheProviders
 
 util.verboseMode = true
 
-if (/^win/.test(process.platform) === false) {
-    try {
-        require.resolve('mmap-object')
-        loopCacheProviders.push('mmap')
-    } catch (e) {
-        util.trace('mmap-object is not installed on this system and will be skipped in this test.')
+try {
+    require.resolve('mmap-object')
+    loopCacheProviders.push('mmap')
+} catch (e) {
+    util.trace('mmap-object is not installed on this system and will be skipped in this test.')
+    for (let i in loopCacheProviders) {
+        if (loopCacheProviders[i] === 'mmap') {
+            loopCacheProviders.splice(i, 1)
+            break
+        }
     }
 }
 

@@ -197,7 +197,8 @@ const generateObject = (isCache, hash, sql) => {
 }
 
 const dbQuery = (sql, params, callback) => {
-    exports.getPool(connection => {
+    exports.getPool((err, connection) => {
+        util.error(err)
         connection.query(sql, params, (err, rows) => {
             util.error(err, mysql.format(sql, params))
             exports.endPool(connection)
@@ -258,7 +259,8 @@ exports.createKey = (id, val, ttl, cb) => {
  */
 exports.changeDB = (data, cb) => {
     eventEmitter.emit('databaseChanged', data)
-    exports.getPool(connection => {
+    exports.getPool((err, connection) => {
+        util.error(err)
         connection.changeUser(data, err => {
             exports.endPool(connection)
             util.error(err)

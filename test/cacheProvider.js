@@ -416,9 +416,11 @@ const doRun = (provider, cb) => {
                 }
             }
         })
-
-        it('Kills the connection pool', done => {
-            db.killPool(done)
-        })
     })
 }
+
+describe('Close Application', function() {
+    it('Kills the connection pool', done => {
+        db.killPool(done)
+    })
+})

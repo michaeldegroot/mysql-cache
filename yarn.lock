@@ -46,15 +46,15 @@ assert-plus@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/assert-plus/-/assert-plus-1.0.0.tgz#f12e0f3c5d77b0b1cdd9146942e4e96c1e4dd525"
 
-async@*, async@^2.1.4:
+async@^1.4.0, async@1.x:
+  version "1.5.2"
+  resolved "https://registry.yarnpkg.com/async/-/async-1.5.2.tgz#ec6a61ae56480c0c3cb241c95618e20892f9672a"
+
+async@^2.1.4:
   version "2.1.4"
   resolved "https://registry.yarnpkg.com/async/-/async-2.1.4.tgz#2d2160c7788032e4dd6cbe2502f1f9a2c8f6cde4"
   dependencies:
     lodash "^4.14.0"
-
-async@^1.4.0, async@1.x:
-  version "1.5.2"
-  resolved "https://registry.yarnpkg.com/async/-/async-1.5.2.tgz#ec6a61ae56480c0c3cb241c95618e20892f9672a"
 
 async@~0.2.6:
   version "0.2.10"
@@ -109,14 +109,14 @@ browser-stdout@1.3.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/browser-stdout/-/browser-stdout-1.3.0.tgz#f351d32969d32fa5d7a5567154263d928ae3bd1f"
 
-cacheman-file@^0.2.1:
+cacheman-file:
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/cacheman-file/-/cacheman-file-0.2.1.tgz#f333559d13a18ace28f3eb14a26ff7ca0db4a365"
   dependencies:
     fs-extra "~0.26.2"
     sanitize-filename "^1.5.3"
 
-cacheman-memory@^1.0.2:
+cacheman-memory, cacheman-memory@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/cacheman-memory/-/cacheman-memory-1.0.2.tgz#38c79b80f012b103bfaa8346d6ed74730a7ede9c"
   dependencies:
@@ -226,7 +226,7 @@ debug@2.2.0:
   dependencies:
     ms "0.7.1"
 
-decache:
+decache@^4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/decache/-/decache-4.1.0.tgz#2037d5edf756dda230c85023659e7c3d1d6e0105"
   dependencies:
@@ -717,7 +717,7 @@ ms@0.7.1:
   version "0.7.1"
   resolved "https://registry.yarnpkg.com/ms/-/ms-0.7.1.tgz#9cd13c03adbff25b65effde7ce864ee952017098"
 
-mysql:
+mysql@^2.13.0:
   version "2.13.0"
   resolved "https://registry.yarnpkg.com/mysql/-/mysql-2.13.0.tgz#998f1f8ca46e2e3dd7149ce982413653986aae47"
   dependencies:
@@ -725,18 +725,12 @@ mysql:
     readable-stream "1.1.14"
     sqlstring "2.2.0"
 
-node-cache:
+node-cache@^4.1.1:
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/node-cache/-/node-cache-4.1.1.tgz#08524645ee4039dedc3dcc1dd7c6b979e0619e44"
   dependencies:
     clone "2.x"
     lodash "4.x"
-
-node-ttl:
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/node-ttl/-/node-ttl-0.0.5.tgz#c5b8c5f51a8a261caf99c36ccff1f6483d714e02"
-  dependencies:
-    async "*"
 
 node-uuid@~1.4.7:
   version "1.4.7"

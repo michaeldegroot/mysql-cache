@@ -190,11 +190,6 @@ db.event.on('flush', () => {
     console.log('mysql-cache cache was flushed!')
 })
 
-// When a cache object key gets deleted by db.deleteKey() for example
-db.event.on('delete', hash => {
-    console.log('this cache object was deleted from cache: ', hash)
-})
-
 // When a cache object was found when a query was run
 db.event.on('hit', (query, hash, result) => {
     // query  = the sql code that was used
@@ -215,6 +210,44 @@ db.event.on('miss', (query, hash, result) => {
 db.event.on('query', sql => {
     console.log('mysql-cache is going to run a query, it might be cached or not we dont know yet: ' + sql)
 })
+
+// When a pool connection is accquired
+db.event.on('getPool', connection => {
+    console.log('Pool connection aqquired!')
+    // connection = mysql module variable
+})
+
+// When a pool connection is closed
+db.event.on('endPool', connection => {
+    console.log('Pool connection was dropped!')
+    // connection = mysql module variable
+})
+
+// When a pool connection has been killed
+db.event.on('killPool', () => {
+    console.log('Pool connection was killed!')
+})
+
+// When a database setting has been changed
+db.event.on('databaseChanged', settings => {
+    console.log('Pool connection was killed!')
+})
+
+// When a cache object will be created
+db.event.on('create', (hash, val, ttl) => {
+    console.log('Creating cache object: ', hash, val, ttl)
+})
+
+// When a cache object is about to be retrieved
+db.event.on('get', hash => {
+    console.log('Retrieving cache object: ', hash)
+})
+
+// When a cache object key gets deleted by db.deleteKey() for example
+db.event.on('delete', hash => {
+    console.log('this cache object was deleted from cache: ', hash)
+})
+
 ```
 
 ## Properties

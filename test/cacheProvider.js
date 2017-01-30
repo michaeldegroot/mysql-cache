@@ -16,7 +16,7 @@ db.event.on('error', err => {
 })
 
 describe('CacheProvider Test Suite', function() {
-    this.timeout(15000)
+    this.timeout(120000)
     it('Start ' + cacheProviders.length + ' cacheProviders', done => {
         async.each(cacheProviders, cacheProvider => {
             doRun(cacheProvider)
@@ -36,7 +36,7 @@ const doRun = (provider, cb) => {
         }
     }
     describe(provider.toUpperCase() + ' cacheProvider', function() {
-        this.timeout(15000)
+        this.timeout(120000)
         it('Call Init', () => {
             decache(appRoot + '/app')
             db = require(appRoot + '/app')
@@ -217,6 +217,7 @@ const doRun = (provider, cb) => {
                     throw new Error(err)
                 }
                 assert.equal(mysqlCache.hash, generatedHash)
+                assert.equal(resultMysql[0].solution, 99)
                 assert.equal(mysqlCache.hash.length === 128, true)
                 done()
             })
@@ -297,6 +298,71 @@ const doRun = (provider, cb) => {
                     done()
                 })
             })
+        })
+
+        const didSql = []
+
+        it('Create and read 10k NEW cache keys', done => {
+            db.flushAll()
+
+            const amountArray = []
+            const amount = 10000
+
+            for (let i = 0; i < amount; i++) {
+                amountArray.push(i)
+            }
+
+            async.eachSeries(amountArray, function iteratee(item, innerCallback) {
+                const randomA = Math.round(Math.random() * 10000000000000000)
+                const randomB = Math.round(Math.random() * 10000000000000000)
+
+                didSql.push(['SELECT ? + ? AS solution', [randomA, randomB]])
+                db.query('SELECT ? + ? AS solution', [randomA, randomB], (err, mysql1, cache1) => {
+                    if (err) {
+                        throw new Error(err)
+                    }
+                    assert.equal(mysql1[0].solution, randomA + randomB)
+                    assert.equal(cache1.isCache, false)
+                    db.query('SELECT ? + ? AS solution', [randomA, randomB], (err, mysql2, cache2) => {
+                        if (err) {
+                            throw new Error(err)
+                        }
+                        assert.equal(mysql2[0].solution, randomA + randomB)
+                        assert.equal(cache2.isCache, true)
+                        innerCallback()
+                    })
+                })
+            }, function kappa() {
+                done()
+            })
+        })
+
+        it('Read those created keys 4 times in a row!', done => {
+            const doRuns = 4
+            let index    = 0
+            let running  = true
+
+            while (running) {
+                async.every(didSql, function(sql, callback) {
+                    db.query(sql[0], sql[1], (err, mysql, cache) => {
+                        if (err) {
+                            throw new Error(err)
+                        }
+                        assert.equal(cache.isCache, true)
+                        callback(null, !err)
+                    })
+                }, function(err, result) {
+                    if (err) {
+                        throw new Error(err)
+                    }
+                })
+                if (doRuns === index) {
+                    running = false
+                    done()
+                } else {
+                    index++
+                }
+            }
         })
     })
 }

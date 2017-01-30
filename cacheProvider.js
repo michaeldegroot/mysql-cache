@@ -25,12 +25,12 @@ const NodeCache = new Ncache({
 })
 
 // FILE
-const Cacheman = require('cacheman-file')
+const CachemanFile = require('cacheman-file')
 let fileCache
 
 // NATIVE
-const NodeTtl     = require('node-ttl')
-const nativeCache = new NodeTtl()
+const CachemanMemory = require('cacheman-memory')
+let nativeCache
 
 const supportedCacheProviders = [
     'LRU',
@@ -75,9 +75,16 @@ exports.setup = config => {
         }
 
         if (found === 'file') {
-            fileCache = new Cacheman('mysqlcache', {
+            fileCache = new CachemanFile('mysqlcache', {
                 ttl:    config.ttl,
                 engine: 'in file',
+            })
+        }
+
+        if (found === 'native') {
+            nativeCache = new CachemanMemory({
+                ttl:    config.ttl,
+                engine: 'memory',
             })
         }
     }
@@ -89,7 +96,7 @@ exports.run = (action, hash, val, ttl, callback) => {
         return false
     }
 
-    util.trace('cacheProvider ' + cacheProvider + ' ' + action.toUpperCase() + ' with a TTL of ' + ttl)
+    util.trace('CacheProvider: ' + cacheProvider + ' ' + action.toUpperCase())
 
     let actionHit = false
 
@@ -195,7 +202,10 @@ exports.run = (action, hash, val, ttl, callback) => {
 
         // NATIVE
         if (cacheProvider === 'native') {
-            util.doCallback(callback, nativeCache.get(hash))
+            nativeCache.get(hash, (err, result) => {
+                util.error(err)
+                util.doCallback(callback, result)
+            })
             actionHit = true
         }
 
@@ -262,8 +272,8 @@ exports.run = (action, hash, val, ttl, callback) => {
 
         // NATIVE
         if (cacheProvider === 'native') {
-            nativeCache.push(hash, val, null, ttl / 1000)
-            process.nextTick(() => {
+            nativeCache.set(hash, val, ttl / 1000, (err, value) => {
+                util.error(err)
                 util.doCallback(callback, true)
             })
             actionHit = true

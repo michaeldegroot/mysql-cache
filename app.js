@@ -11,6 +11,7 @@ const util          = require(appRoot + '/util')
 
 exports.event           = eventEmitter
 exports.cacheProvider   = cacheProvider
+exports.mysql           = mysql
 exports.cacheProviders  = cacheProvider.getAll()
 exports.util            = util
 exports.TTL             = 0
@@ -47,9 +48,9 @@ exports.init = (config, cb) => {
 
     cacheProvider.setup(config)
 
-    exports.pool.getConnection(function(err, connection) {
+    exports.pool.getConnection((err, connection) => {
         if (err) {
-            cb(err, false)
+            util.doCallback(cb, err, false)
             util.error(err)
         }
         exports.endPool(connection)
@@ -59,9 +60,22 @@ exports.init = (config, cb) => {
         util.trace(JSON.stringify(showConfig))
         util.trace(colors.green('Connected!'))
         eventEmitter.emit('connected')
-        if (cb) {
-            cb(null, true)
-        }
+        util.doCallback(cb, null, true)
+    })
+    exports.pool.on('acquire', connection => {
+        util.trace(`Pool: recieved connection with id ${connection.threadId}`)
+    })
+
+    exports.pool.on('connection', connection => {
+        util.trace(`Pool: Connection established with id ${connection.threadId}`)
+    })
+
+    exports.pool.on('enqueue', () => {
+        util.trace(`Pool: Waiting for available connection slot`)
+    })
+
+    exports.pool.on('release', connection => {
+        util.trace(`Pool: Connection ${connection.threadId} released`)
     })
 }
 
@@ -137,11 +151,11 @@ exports.query = (sql, params, callback, data) => {
             }
             if (cache) {
                 eventEmitter.emit('hit', query, hash, cache)
-                util.trace(colors.yellow(hash) + '-' + colors.green(query))
+                util.trace(colors.yellow(hash.slice(0, 15)) + '-' + colors.green(query))
                 exports.hits++
                 util.doCallback(callback, null, cache, generateObject(true, hash, query))
             } else {
-                util.trace(colors.yellow(hash) + '-' + colors.red(query))
+                util.trace(colors.yellow(hash.slice(0, 15)) + '-' + colors.red(query))
                 exports.misses++
                 dbQuery(sql, params, (err, result) => {
                     eventEmitter.emit('miss', query, hash, result)
@@ -169,9 +183,7 @@ exports.query = (sql, params, callback, data) => {
         })
     } else {
         dbQuery(sql, params, (err, result) => {
-            if (callback) {
-                callback(err, result)
-            }
+            util.doCallback(callback, err, result)
         })
     }
 }
@@ -223,6 +235,7 @@ exports.delKey = (id, params) => {
  * @param    {Function} callback
  */
 exports.getKey = (id, cb) => {
+    eventEmitter.emit('get', createId(id))
     cacheProvider.run('get', createId(id), null, null, cb)
 }
 
@@ -234,6 +247,7 @@ exports.getKey = (id, cb) => {
  * @param    {Function} cb
  */
 exports.createKey = (id, val, ttl, cb) => {
+    eventEmitter.emit('create', createId(id), val, ttl)
     cacheProvider.run('set', createId(id), val, ttl, cb)
 }
 
@@ -243,6 +257,7 @@ exports.createKey = (id, val, ttl, cb) => {
  * @param    {Function} cb
  */
 exports.changeDB = (data, cb) => {
+    eventEmitter.emit('databaseChanged', data)
     exports.getPool(connection => {
         connection.changeUser(data, err => {
             exports.endPool(connection)
@@ -260,8 +275,11 @@ exports.changeDB = (data, cb) => {
 exports.getPool = cb => {
     exports.pool.getConnection((err, connection) => {
         util.error(err)
-        exports.poolConnections++
-        cb(connection)
+        if (!err) {
+            eventEmitter.emit('getPool', connection)
+            exports.poolConnections++
+        }
+        util.doCallback(cb, connection)
     })
 }
 
@@ -270,11 +288,23 @@ exports.getPool = cb => {
  * @param    {Object} connection
  */
 exports.endPool = connection => {
-    if (exports.poolConnections === 0) {
-        return false
+    eventEmitter.emit('endPool', connection)
+    if (exports.pool._freeConnections.indexOf(connection) === -1) {
+        exports.poolConnections--
+        connection.release()
     }
-    exports.poolConnections--
-    connection.release()
 
     return true
+}
+
+/**
+ * Kills the pool
+ * @param    {Function} cb
+ */
+exports.killPool = cb => {
+    eventEmitter.emit('killPool')
+    exports.pool.end(err => {
+        util.error(err)
+        util.doCallback(cb, true)
+    })
 }

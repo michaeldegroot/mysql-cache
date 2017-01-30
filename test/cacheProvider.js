@@ -181,8 +181,32 @@ const doRun = (provider, cb) => {
             })
         })
 
-        it('Delete a key', () => {
-            db.delKey('SELECT ? + ? AS solution', [1, 5])
+        it('Delete a key', done => {
+            db.query('SELECT ? + ? AS solution', [66, 66], (err1, resultMysql1, mysqlCache1) => {
+                if (err1) {
+                    throw new Error(err1)
+                }
+                assert.equal(resultMysql1[0].solution, 132)
+                assert.equal(mysqlCache1.isCache, false)
+                db.query('SELECT ? + ? AS solution', [66, 66], (err2, resultMysql2, mysqlCache2) => {
+                    if (err2) {
+                        throw new Error(err2)
+                    }
+                    assert.equal(resultMysql2[0].solution, 132)
+                    assert.equal(mysqlCache2.isCache, true)
+                    db.delKey('SELECT ? + ? AS solution', [66, 66])
+                    setTimeout(() => {
+                        db.query('SELECT ? + ? AS solution', [66, 66], (err3, resultMysql3, mysqlCache3) => {
+                            if (err3) {
+                                throw new Error(err3)
+                            }
+                            assert.equal(resultMysql3[0].solution, 132)
+                            assert.equal(mysqlCache3.isCache, false)
+                            done()
+                        })
+                    }, 1000)
+                })
+            })
         })
 
         it('Call a INSERT query', done => {
@@ -363,6 +387,10 @@ const doRun = (provider, cb) => {
                     index++
                 }
             }
+        })
+
+        it('Kills the connection pool', done => {
+            db.killPool(done)
         })
     })
 }

@@ -243,7 +243,7 @@ db.event.on('get', hash => {
     console.log('Retrieving cache object: ', hash)
 })
 
-// When a cache object key gets deleted by db.deleteKey() for example
+// When a cache object key gets deleted by db.delKey() for example
 db.event.on('delete', hash => {
     console.log('this cache object was deleted from cache: ', hash)
 })
@@ -268,6 +268,16 @@ console.log(db.poolConnections)
 
 // Get the configured settings for mysql-cache
 console.log(db.config)
+
+// Get or set the configured TTL for all future made caches
+db.TTL = 5  // TTL is always defined in SECONDS
+console.log(db.TTL)
+
+// Get the mysql package mysql variable
+console.log(db.mysql)
+
+// Get the cache providers availible
+console.log(db.cacheProviders)
 ```
 
 ## API
@@ -388,7 +398,6 @@ __Example #1__
 ```javascript
 db.stats() // default is display via verbose mode
 ```
-___
 
 __Example #2__
 
@@ -406,27 +415,15 @@ __Example__
 db.flush()
 ```
 ___
-###  .TTL
-_Changes the amount of Time To Live in seconds for all future made cache keys._
+###  .killPool ()
+_Kills the connection pool, you will need to re-call the db.init function if you want to make new queries_
 
 __Example__
 
 ```javascript
-db.TTL = 5 // TTL is always defined in SECONDS
-```
-___
-###  .caching
-_Changes caching mode on/off._
-
-__Example__
-
-```javascript
-db.caching = false
-
-// All queries run now will not be utilizing the cache system
-
-db.caching = true
-// All queries run now will be utilizing the cache system
+db.killPool(() => {
+    console.log('Pool killed!')
+})
 ```
 ___
 ### .changeDB (Object)

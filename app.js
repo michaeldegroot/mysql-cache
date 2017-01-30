@@ -222,7 +222,7 @@ exports.delKey = (id, params) => {
         params = id['params']
         id     = id['sql']
     }
-    id = mysql.format(id, params)
+    id = createId(mysql.format(id, params))
     const hash = crypto.createHash('sha512').update(id).digest('hex')
 
     eventEmitter.emit('delete', hash)
@@ -279,7 +279,7 @@ exports.getPool = cb => {
             eventEmitter.emit('getPool', connection)
             exports.poolConnections++
         }
-        util.doCallback(cb, connection)
+        util.doCallback(cb, err, connection)
     })
 }
 
@@ -305,6 +305,6 @@ exports.killPool = cb => {
     eventEmitter.emit('killPool')
     exports.pool.end(err => {
         util.error(err)
-        util.doCallback(cb, true)
+        util.doCallback(cb, err, true)
     })
 }

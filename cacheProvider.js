@@ -97,7 +97,18 @@ exports.run = (action, hash, val, ttl, callback) => {
         return false
     }
 
-    util.trace('CacheProvider: ' + cacheProvider + ' ' + action.toUpperCase())
+    let extra = ''
+
+    if (hash) {
+        extra += ' ' + hash.slice(0, 12)
+    }
+    if (val) {
+        extra += ' TO ' + JSON.stringify(val, null, 4)
+        if (ttl !== 0) {
+            extra +=  ' WITH TTL ' + ttl
+        }
+    }
+    util.trace('CacheProvider: ' + cacheProvider + ' ' + action.toUpperCase() + extra)
 
     let actionHit = false
 

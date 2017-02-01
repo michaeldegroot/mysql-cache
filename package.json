@@ -24,16 +24,19 @@
   },
   "license": "MIT",
   "dependencies": {
+    "app-root-path": "^2.0.1",
     "cacheman": "^2.2.1",
     "cacheman-file": "^0.2.1",
-    "app-root-path": "^2.0.1",
     "cacheman-memory": "^1.0.2",
     "cacheman-redis": "^1.1.2",
     "colors": "^1.1.2",
+    "lodash.merge": "^4.6.0",
     "lru-cache": "^4.0.2",
     "mysql": "^2.13.0",
     "node-cache": "^4.1.1",
-    "redis": "^2.6.5"
+    "pretty-error": "^2.0.2",
+    "redis": "^2.6.5",
+    "stack-trace": "^0.0.9"
   },
   "devDependencies": {
     "assert-plus": "^1.0.0",

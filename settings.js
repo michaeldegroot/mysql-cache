@@ -7,7 +7,7 @@ exports.settings = () => {
         password:        'root',
         database:        'mysqlcache',
         TTL:             0,
-        connectionLimit: 10000,
+        connectionLimit: 100000,
         verbose:         false,
         caching:         true,
         cacheProvider:   'node-cache',

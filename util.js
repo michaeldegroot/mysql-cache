@@ -1,9 +1,13 @@
 'use strict'
 
-const colors     = require('colors')
-const appRoot    = require('app-root-path')
-const db         = require(appRoot + '/app')
-const mysql      = require('mysql')
+const colors      = require('colors')
+const appRoot     = require('app-root-path')
+const db          = require(appRoot + '/app')
+const PrettyError = require('pretty-error')
+const pe          = new PrettyError()
+
+pe.appendStyle(require(appRoot+ '/prettyError').getTheme())
+pe.skipNodeFiles()
 
 exports.doCallback = (cb, a, b, c, d, e, f, g) => {
     if (typeof cb === 'function') {
@@ -21,11 +25,15 @@ exports.trace = text => {
 
 exports.error = (err, sql) => {
     if (err) {
-        if (sql) {
-            if (sql.hasOwnProperty('sql')) {
-                sql = mysql.format(sql.sql, sql.params)
-            }
-            err = 'QUERY FAILURE: ' + sql + '\n' + err
+        exports.trace(colors.bold(colors.red('ERROR: ')) + err.code)
+
+        // If there are no listeners, just throw the error
+        if (db.event.listeners('error').length <= 0) {
+            // Display it nicely with pretty error
+            console.log(pe.render(err))
+
+            // Halt application
+            throw new Error('mysql-cache halted with fatal error!')
         }
 
         db.event.emit('error', err)

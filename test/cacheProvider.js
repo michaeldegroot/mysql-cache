@@ -6,14 +6,9 @@ let db         = require(appRoot + '/app')
 const settings = require(appRoot + '/settings').settings()
 const async    = require('async')
 const mysql    = require('mysql')
-const crypto   = require('crypto')
 const decache  = require('decache')
 
 const cacheProviders = db.cacheProviders
-
-db.event.on('error', err => {
-    throw new Error(err)
-})
 
 describe('CacheProvider Test Suite', function() {
     this.timeout(120000)
@@ -37,18 +32,48 @@ const doRun = (provider, cb) => {
     }
     describe(provider.toUpperCase() + ' cacheProvider', function() {
         this.timeout(120000)
-        it('Call Init', () => {
+        it('Call Init', done => {
             decache(appRoot + '/app')
             db = require(appRoot + '/app')
             settings.cacheProvider = provider
             assert.doesNotThrow(() => {
-                db.init(settings)
+                db.init(settings, err => {
+                    if (err) {
+                        throw new Error(err)
+                    }
+                    console.log('Connected with settings: ', db.config)
+                    db.flush()
+                    done()
+                })
             }, Error)
         })
 
         it('Flush', done => {
-            db.flush()
-            setTimeout(done, 100) // Flush is not a async function but just in case :P
+            db.query('SELECT ? + ? AS solution', [422, 18], (err1, resultMysql1, mysqlCache1) => {
+                if (err1) {
+                    throw new Error(err1)
+                }
+                assert.equal(resultMysql1[0].solution, 440)
+                assert.equal(mysqlCache1.isCache, false)
+                db.query('SELECT ? + ? AS solution', [422, 18], (err2, resultMysql2, mysqlCache2) => {
+                    if (err2) {
+                        throw new Error(err2)
+                    }
+                    assert.equal(resultMysql2[0].solution, 440)
+                    assert.equal(mysqlCache2.isCache, true)
+                    db.flush()
+                    setTimeout(() => {
+                        db.query('SELECT ? + ? AS solution', [422, 18], (err3, resultMysql3, mysqlCache3) => {
+                            if (err3) {
+                                throw new Error(err3)
+                            }
+                            assert.equal(resultMysql3[0].solution, 440)
+                            assert.equal(mysqlCache3.isCache, false)
+                            done()
+                        })
+                    }, 10)
+                })
+            })
         })
 
         if (provider !== 'mmap') {
@@ -82,7 +107,7 @@ const doRun = (provider, cb) => {
             })
 
             it('Test TTL main setting (2 seconds)', done => {
-                db.TTL = 1 // Will set TTL to 1 seconds for feature queries
+                db.config.TTL = 1 // Will set TTL to 1 seconds for feature queries
                 db.query('SELECT ? + ? AS solution', [1, 344], (err, resultMysql, mysqlCache) => {
                     if (err) {
                         throw new Error(err)
@@ -158,7 +183,7 @@ const doRun = (provider, cb) => {
         })
 
         it('Call a new query', done => {
-            db.caching = false
+            db.config.caching = false
             db.query('SELECT ? + ? AS solution', [5, 55], (err, resultMysql, mysqlCache) => {
                 if (err) {
                     throw new Error(err)
@@ -176,7 +201,7 @@ const doRun = (provider, cb) => {
                 }
                 assert.equal(resultMysql[0].solution, 60)
                 assert.equal(mysqlCache.isCache, false)
-                db.caching = true
+                db.config.caching = true
                 done()
             })
         })
@@ -204,7 +229,7 @@ const doRun = (provider, cb) => {
                             assert.equal(mysqlCache3.isCache, false)
                             done()
                         })
-                    }, 1000)
+                    }, 10)
                 })
             })
         })
@@ -232,7 +257,7 @@ const doRun = (provider, cb) => {
                             assert.equal(mysqlCache3.isCache, false)
                             done()
                         })
-                    }, 1000)
+                    }, 10)
                 })
             })
         })
@@ -262,7 +287,7 @@ const doRun = (provider, cb) => {
             const sql           = 'SELECT ? + ? AS solution'
             const params        = [55, 44]
             const generatedSql  = String(mysql.format(sql, params))
-            const generatedHash = crypto.createHash('sha512').update(db.createId(generatedSql)).digest('hex')
+            const generatedHash = db.createHash(generatedSql)
 
             db.query(generatedSql, (err, resultMysql, mysqlCache) => {
                 if (err) {
@@ -400,6 +425,7 @@ const doRun = (provider, cb) => {
                         if (err) {
                             throw new Error(err)
                         }
+                        // TODO: investigate; sometimes randomly says FALSE on unit test (slow hardware?)
                         assert.equal(cache.isCache, true)
                         callback(null, !err)
                     })
@@ -410,7 +436,7 @@ const doRun = (provider, cb) => {
                 })
                 if (doRuns === index) {
                     running = false
-                    done()
+                    setTimeout(done, 2000)
                 } else {
                     index++
                 }

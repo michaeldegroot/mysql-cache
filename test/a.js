@@ -5,10 +5,6 @@ const appRoot  = require('app-root-path')
 const db       = require(appRoot + '/app')
 const settings = require(appRoot + '/settings').settings()
 
-db.event.on('error', err => {
-    throw new Error(err)
-})
-
 describe('Main Application Suite', function() {
     this.timeout(15000)
 

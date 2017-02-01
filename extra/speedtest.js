@@ -1,14 +1,13 @@
 'use strict'
 
-const appRoot            = require('app-root-path')
 const moment             = require('moment')
 const async              = require('async')
 const colors             = require('colors')
-const speedteststep      = require(appRoot + '/speedteststep')
-const settings           = require(appRoot + '/settings').settings()
-const util               = require(appRoot + '/util')
-const db                 = require(appRoot + '/app')
-const speedtestbase      = require(appRoot + '/speedtestbase')
+const speedteststep      = require('./speedteststep')
+const settings           = require('../settings').settings()
+const util               = require('../lib/util')
+const db                 = require('../app')
+const speedtestbase      = require('./speedtestbase')
 const loopCacheProviders = db.cacheProviders
 
 util.verboseMode = true

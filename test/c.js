@@ -30,6 +30,10 @@ const doRun = (provider, cb) => {
             return
         }
     }
+    if (provider !== 'redis') {
+        return
+    }
+
     describe(provider.toUpperCase() + ' cacheProvider', function() {
         this.timeout(120000)
         it('Call Init', done => {
@@ -383,13 +387,16 @@ const doRun = (provider, cb) => {
             db.flushAll()
 
             const amountArray = []
-            const amount = 10000
+            const amount = 5000
 
             for (let i = 0; i < amount; i++) {
                 amountArray.push(i)
             }
 
+            let i = 0
             async.eachSeries(amountArray, function iteratee(item, innerCallback) {
+                console.log(amountArray.length, amountArray.length - i)
+                i++
                 const randomA = Math.round(Math.random() * 10000000000000000)
                 const randomB = Math.round(Math.random() * 10000000000000000)
 

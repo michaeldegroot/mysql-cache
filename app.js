@@ -3,11 +3,10 @@
 const mysql         = require('mysql')
 const colors        = require('colors')
 const crypto        = require('crypto')
-const appRoot       = require('app-root-path')
 const events        = require('events')
 const eventEmitter  = new events.EventEmitter()
-const cacheProvider = require(appRoot + '/cacheProvider')
-const util          = require(appRoot + '/util')
+const cacheProvider = require('./lib/cacheProvider')
+const util          = require('./lib/util')
 const merge         = require('lodash.merge')
 
 // Exposed Properties
@@ -51,7 +50,7 @@ exports.start = (config, cb) => {
         verbose:           false,
         caching:           true,
         cacheProvider:     'lru',
-        connectionLimit:   1000,
+        connectionLimit:   900000,
         supportBigNumbers: true,
     }, config)
 

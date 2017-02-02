@@ -1,9 +1,8 @@
 'use strict'
 
 const assert   = require('assert-plus')
-const appRoot  = require('app-root-path')
-const db       = require(appRoot + '/app')
-const settings = require(appRoot + '/settings').settings()
+const db       = require('../app')
+const settings = require('../settings').settings()
 
 describe('Main Application Suite', function() {
     this.timeout(15000)
@@ -149,12 +148,9 @@ describe('Main Application Suite', function() {
 
     it('Test error', done => {
         assert.throws(() => {
-            db.util.error('test', {
-                sql: 'test sql ?',
-                params: ['woot'],
-            })
-        }, Error)
+            db.util.error(new Error('test error :D'))
             done()
+        })
     })
 
     it('Delete a key version 2', () => {

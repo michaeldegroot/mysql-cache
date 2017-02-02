@@ -23,26 +23,13 @@ ___
 #  New in version 1.1.0:
 Improved error handling and event emitters!
 
-#### Events:
- - Connected: when you want to know when a connection has been established with mysql
- - Error: when a error occurred within mysql-cache 
- - Miss: when a cache object was not found
- - Flush: when the cache was flushed
- - Delete: when a cache was delete
- - Hit: when a cache object was found
- - Query: when a query is going to be run, before the cache check and cache object key generation
-
-#### Error Handling:
- - Event emitter 'error' added
- - Errors are not being thrown anymore in the mysql-cache package
- - The init function returns a error on callback with a connected boolean
-
 **Check out more information  about events in this page below!**
  
 ___
 #  New in version 1.0.0 :rocket:
-cacheProviders!
+cacheProviders, improved error handling and event emitters!
 
+#### Cache Providers:
 You are no longer binded to node-cache, you can now choose the following cache providers:
  - [LRU](https://www.npmjs.com/package/lru-cache)
  - [mmap](https://www.npmjs.com/package/mmap-object)
@@ -53,6 +40,21 @@ You are no longer binded to node-cache, you can now choose the following cache p
 
  **Important** If you want to use mmap you have to install the dependency: `
     yarn add mmap-object@1.1.1`
+
+
+#### Error Handling:
+ - Errors are not being thrown anymore in the mysql-cache package
+ - The init function returns a error on callback with a connected boolean
+
+
+#### Events:
+ - Connected: when you want to know when a connection has been established with mysql
+ - Error: when a error occurred within mysql-cache 
+ - Miss: when a cache object was not found
+ - Flush: when the cache was flushed
+ - Delete: when a cache was delete
+ - Hit: when a cache object was found
+ - Query: when a query is going to be run, before the cache check and cache object key generation
 
 #  Getting Started
 
@@ -177,14 +179,6 @@ db.event.on('connected', () => {
     console.log('We are now connected to the mysql database')
 })
 
-// Listen for any errors that might popup
-db.event.on('error', err => {
-    console.log('Oh noes a error has occured within mysql-cache or with a query: ', err)
-
-    // Probably best to throw the error :)
-    throw new Error(err)
-})
-
 // When all the cache gets flushed, by db.flush() for example
 db.event.on('flush', () => {
     console.log('mysql-cache cache was flushed!')
@@ -262,6 +256,18 @@ console.log(db.hits)
 
 // Get total qeury requests
 console.log(db.queries) 
+
+// Get total insert queries run
+console.log(db.inserts)
+
+// Get total delete queries run
+console.log(db.deletes)
+
+// Get total delete queries run
+console.log(db.selects)
+
+// Get total updates queries run
+console.log(db.updates)
 
 // Get total open pool connections
 console.log(db.poolConnections)

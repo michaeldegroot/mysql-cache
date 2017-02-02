@@ -1,9 +1,8 @@
 'use strict'
 
 const assert = require('assert-plus')
-const appRoot  = require('app-root-path')
-const db       = require(appRoot + '/app')
-const settings = require(appRoot + '/settings').settings()
+const db       = require('../app')
+const settings = require('../settings').settings()
 
 db.event.on('error', err => {
     throw new Error(err)

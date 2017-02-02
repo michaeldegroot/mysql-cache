@@ -28,9 +28,15 @@ exports.ranInit         = false
 /**
  * Checks if the init function was ran
  */
-const checkRanInit = () => {
+const checkRanInit = cb => {
+    if (!cb) {
+        cb = err => {
+            throw new Error(err)
+        }
+    }
+
     if (!exports.ranInit) {
-        util.error('The init function was not run yet or it failed.')
+        cb('The init function was not run yet or it failed.')
 
         return false
     }
@@ -44,6 +50,13 @@ const checkRanInit = () => {
  * @param    {Function}  cb
  */
 exports.start = (config, cb) => {
+    // Start can be called without a callback
+    if (!cb) {
+        cb = () => {
+            // Empty callback
+        }
+    }
+
     // Merge default settings with user settings
     exports.config = merge({
         TTL:               0,
@@ -69,7 +82,7 @@ exports.start = (config, cb) => {
     // Test the connection before continuing
     exports.pool.getConnection((err, connection) => {
         if (err) {
-            cb(err)
+            util.error(err)
         } else {
             // Setup the cacheProvider chosen
             cacheProvider.setup(exports.config)
@@ -155,17 +168,16 @@ exports.stats = object => {
  * @param    {Object}   data
  */
 exports.query = (sql, params, cb, data) => {
-    debugger;
-    if (!checkRanInit()) {
+    if (!checkRanInit(cb)) {
         return
     }
     exports.queries++
     let query
 
     if (typeof params === 'function') {
-        data      = cb
-        cb  = params
-        params    = []
+        data = cb
+        cb = params
+        params = []
         query = sql
     } else {
         query = sql
@@ -174,6 +186,14 @@ exports.query = (sql, params, cb, data) => {
         query = sql.sql
         params = sql.params
     }
+
+    // A query can be called without a callback
+    if (!cb) {
+        cb = () => {
+            // Empty callback
+        }
+    }
+
     const type = query.split(' ')[0].toLowerCase()
     let TTLSet = 0
 
@@ -181,7 +201,7 @@ exports.query = (sql, params, cb, data) => {
     eventEmitter.emit('query', query)
     const hash = exports.createHash(query)
 
-    util.trace('[ ' + colors.bold(type) + ' / ' + colors.yellow(hash.slice(0, 15)) + ' ] ' + colors.grey(colors.bold(query)))
+    util.trace(colors.bold(type.toUpperCase()) + ' ' + colors.yellow(hash.slice(0, 15)) + ' ' + colors.grey(colors.bold(query)))
 
     if (type === 'insert') {
         exports.inserts++
@@ -200,7 +220,7 @@ exports.query = (sql, params, cb, data) => {
 
         exports.getKey(hash, (err, cache) => {
             if (err) {
-                cb(err)
+                util.error(err)
             } else {
                 if (!exports.config.caching) {
                     cache = false
@@ -220,7 +240,7 @@ exports.query = (sql, params, cb, data) => {
                     exports.misses++
                     dbQuery(sql, params, (err, result) => {
                         if (err) {
-                            cb(err)
+                            util.error(err)
                         } else {
                             eventEmitter.emit('miss', query, hash, result)
                             let enableCache = true
@@ -238,11 +258,15 @@ exports.query = (sql, params, cb, data) => {
                             if (!exports.config.caching || !enableCache) {
                                 cb(null, result, generateObject(false, hash, query))
                             } else {
-                                exports.createKey(hash, result, TTLSet, (err, result) => {
+                                exports.createKey(hash, result, TTLSet, (err, keyResult) => {
                                     if (err) {
-                                        cb(err)
+                                        util.error(err)
                                     } else {
-                                        cb(null, result, generateObject(false, hash, query))
+                                        if (!keyResult) {
+                                            cb('createKey result was not saved')
+                                        } else {
+                                            cb(null, result, generateObject(false, hash, query))
+                                        }
                                     }
                                 })
                             }
@@ -254,7 +278,7 @@ exports.query = (sql, params, cb, data) => {
     } else {
         dbQuery(sql, params, (err, result) => {
             if (err) {
-                cb(err)
+                util.error(err)
             } else {
                 cb(null, result)
             }
@@ -279,11 +303,11 @@ const generateObject = (isCache, hash, sql) => {
 const dbQuery = (sql, params, cb) => {
     exports.getPool((err, connection) => {
         if (err) {
-            cb(err)
+            util.error(err)
         } else {
             connection.query(sql, params, (err, rows) => {
                 if (err) {
-                    cb(err)
+                    util.error(err)
                 } else {
                     exports.endPool(connection)
                     cb(null, rows)
@@ -331,7 +355,7 @@ exports.delKey = (id, params) => {
  * @param    {Function} cb
  */
 exports.getKey = (id, cb) => {
-    if (!checkRanInit()) {
+    if (!checkRanInit(cb)) {
         return
     }
 
@@ -347,7 +371,7 @@ exports.getKey = (id, cb) => {
  * @param    {Function} cb
  */
 exports.createKey = (id, val, ttl, cb) => {
-    if (!checkRanInit()) {
+    if (!checkRanInit(cb)) {
         return
     }
     eventEmitter.emit('create', id, val, ttl)
@@ -360,19 +384,21 @@ exports.createKey = (id, val, ttl, cb) => {
  * @param    {Function} cb
  */
 exports.changeDB = (data, cb) => {
-    if (!checkRanInit()) {
+    if (!checkRanInit(cb)) {
         return
     }
-    eventEmitter.emit('databaseChanged', data)
     exports.getPool((err, connection) => {
         if (err) {
-            cb(err)
+            util.error(err)
         } else {
             connection.changeUser(data, err => {
                 exports.endPool(connection)
+                eventEmitter.emit('databaseChanged', data)
                 util.trace('Successfully changed database connection settings')
                 if (err) {
-                    cb(err)
+                    util.error(err)
+                } else {
+                    cb(null, true)
                 }
             })
         }
@@ -384,12 +410,12 @@ exports.changeDB = (data, cb) => {
  * @param    {Function} cb
  */
 exports.getPool = cb => {
-    if (!checkRanInit()) {
+    if (!checkRanInit(cb)) {
         return
     }
     exports.pool.getConnection((err, connection) => {
         if (err) {
-            cb(err)
+            util.error(err)
         } else {
             eventEmitter.emit('getPool', connection)
             cb(null, connection)
@@ -418,13 +444,13 @@ exports.endPool = connection => {
  * @param    {Function} cb
  */
 exports.killPool = cb => {
-    if (!checkRanInit()) {
+    if (!checkRanInit(cb)) {
         return
     }
     eventEmitter.emit('killPool')
     exports.pool.end(err => {
         if (err) {
-            cb(err)
+            util.error(err)
         } else {
             cb(null, true)
         }

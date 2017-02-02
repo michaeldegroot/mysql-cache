@@ -1,9 +1,8 @@
 'use strict'
 
 const assert   = require('assert-plus')
-const appRoot  = require('app-root-path')
-let db         = require(appRoot + '/app')
-const settings = require(appRoot + '/settings').settings()
+let db         = require('../app')
+const settings = require('../settings').settings()
 const async    = require('async')
 const mysql    = require('mysql')
 const decache  = require('decache')
@@ -34,15 +33,14 @@ const doRun = (provider, cb) => {
     describe(provider.toUpperCase() + ' cacheProvider', function() {
         this.timeout(120000)
         it('Call Init', done => {
-            decache(appRoot + '/app')
-            db = require(appRoot + '/app')
+            decache('../app')
+            db = require('../app')
             settings.cacheProvider = provider
             assert.doesNotThrow(() => {
                 db.init(settings, err => {
                     if (err) {
                         throw new Error(err)
                     }
-                    console.log('Connected with settings: ', db.config)
                     db.flush()
                     setTimeout(() => {
                         done()
@@ -384,6 +382,7 @@ const doRun = (provider, cb) => {
 
         it('Create and read 10k NEW cache keys', done => {
             db.flushAll()
+            db.TTL = 5000
 
             const amountArray = []
             const amount = 10000
@@ -392,10 +391,7 @@ const doRun = (provider, cb) => {
                 amountArray.push(i)
             }
 
-            let i = 0
             async.eachSeries(amountArray, function iteratee(item, innerCallback) {
-                console.log(amountArray.length, amountArray.length - i)
-                i++
                 const randomA = Math.round(Math.random() * 10000000000000000)
                 const randomB = Math.round(Math.random() * 10000000000000000)
 
@@ -418,6 +414,34 @@ const doRun = (provider, cb) => {
             }, function kappa() {
                 setTimeout(done, 500)
             })
+        })
+
+        it('Read those created keys 4 times in a row!', done => {
+            const doRuns = 4
+            let index    = 0
+            let running  = true
+
+            while (running) {
+                async.eachLimit(didSql, 1, function(sql, callback) {
+                    db.query(sql[0], sql[1], (err, mysql, cache) => {
+                        if (err) {
+                            throw new Error(err)
+                        }
+                        assert.equal(cache.isCache, true)
+                        callback(null, !err)
+                    })
+                }, function(err, result) {
+                    if (err) {
+                        throw new Error(err)
+                    }
+                })
+                if (doRuns === index) {
+                    running = false
+                    done()
+                } else {
+                    index++
+                }
+            }
         })
     })
 }

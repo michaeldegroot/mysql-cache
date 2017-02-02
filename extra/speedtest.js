@@ -35,7 +35,7 @@ if (settings.host.toLowerCase() === 'localhost' || settings.host === '127.0.0.1'
 
 speedteststep.start((times * loopCacheProviders.length) * 2)
 
-async.eachSeries(loopCacheProviders, function iteratee(item1, callback1) {
+async.eachLimit(loopCacheProviders, 5, function iteratee(item1, callback1) {
     resultsCache[item1] = {
         startTime: moment(),
     }
@@ -45,7 +45,7 @@ async.eachSeries(loopCacheProviders, function iteratee(item1, callback1) {
         callback1()
     })
 }, done => {
-    async.eachSeries(loopCacheProviders, function iteratee(item2, callback2) {
+    async.eachLimit(loopCacheProviders, 5, function iteratee(item2, callback2) {
         resultsNoCache[item2] = {
             startTime: moment(),
         }

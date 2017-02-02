@@ -19,15 +19,13 @@ exports.run = (set, amount, cache, cb) => {
             amountArray.push(i)
         }
 
-        async.eachSeries(amountArray, function iteratee(item, innerCallback) {
+        async.eachOfLimit(amountArray, 15, function iteratee(value, key, innerCallback) {
             db.query('SELECT ? + ? AS solution', [1, 6], result => {
-                process.nextTick(() => {
-                    speedteststep.tick()
-                    innerCallback()
-                })
+                speedteststep.tick()
+                innerCallback()
             })
         }, function done() {
-            setTimeout(cb, 100)
+            cb()
         })
     })
 }

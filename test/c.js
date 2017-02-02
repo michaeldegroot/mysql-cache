@@ -411,12 +411,12 @@ const doRun = (provider, cb) => {
                                 assert.equal(mysql2[0].solution, randomA + randomB)
                                 assert.equal(cache2.isCache, true)
                                 db.delKey('SELECT ? + ? AS solution', [randomA, randomB])
-                                db.query('SELECT ? + ? AS solution', [randomA, randomB], (err, mysql2, cache2) => {
+                                db.query('SELECT ? + ? AS solution', [randomA, randomB], (err, mysql3, cache2) => {
                                     if (err) {
                                         innerCallback(err)
                                     } else {
-                                        assert.equal(mysql2[0].solution, randomA + randomB)
-                                        assert.equal(cache2.isCache, false)
+                                        assert.equal(mysql3[0].solution, randomA + randomB)
+                                        assert.equal(cache3.isCache, false)
                                         innerCallback()
                                     }
                                 })

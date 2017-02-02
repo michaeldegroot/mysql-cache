@@ -69,7 +69,6 @@ exports.start = (config, cb) => {
     // Test the connection before continuing
     exports.pool.getConnection((err, connection) => {
         if (err) {
-            util.error(err)
             util.doCallback(cb, err)
 
             return
@@ -179,6 +178,8 @@ exports.query = (sql, params, callback, data) => {
 
     query = mysql.format(query, params)
     eventEmitter.emit('query', query)
+    const hash = exports.createHash(query)
+    util.trace('[ ' + colors.bold(type) + ' / ' + colors.yellow(hash.slice(0, 15)) + ' ] ' + colors.grey(colors.bold(query)))
 
     if (type === 'insert') {
         exports.inserts++
@@ -194,9 +195,9 @@ exports.query = (sql, params, callback, data) => {
 
     if (type === 'select') {
         exports.selects++
-        const hash = exports.createHash(query)
 
-        exports.getKey(hash, (cache) => {
+        exports.getKey(hash, (err, cache) => {
+            util.doCallback(err)
             if (!exports.config.caching) {
                 cache = false
             }
@@ -207,13 +208,18 @@ exports.query = (sql, params, callback, data) => {
             }
             if (cache) {
                 eventEmitter.emit('hit', query, hash, cache)
-                util.trace(colors.yellow(hash.slice(0, 15)) + '-' + colors.green(query))
+                util.trace(colors.yellow(hash.slice(0, 15)) + ' ' + colors.green(colors.bold('HIT')))
                 exports.hits++
                 util.doCallback(callback, null, cache, generateObject(true, hash, query))
             } else {
-                util.trace(colors.yellow(hash.slice(0, 15)) + '-' + colors.red(query))
+                util.trace(colors.yellow(hash.slice(0, 15)) + ' ' + colors.red(colors.bold('MISS')))
                 exports.misses++
                 dbQuery(sql, params, (err, result) => {
+                    if (err) {
+                        util.doCallback(callback, err)
+
+                        return
+                    }
                     eventEmitter.emit('miss', query, hash, result)
                     let enableCache = true
 
@@ -260,11 +266,14 @@ const generateObject = (isCache, hash, sql) => {
  */
 const dbQuery = (sql, params, callback) => {
     exports.getPool((err, connection) => {
-        util.error(err)
+        if (err) {
+            util.doCallback(callback, err)
+
+            return
+        }
         connection.query(sql, params, (err, rows) => {
-            util.error(err)
             exports.endPool(connection)
-            callback(err, rows)
+            util.doCallback(callback, err, rows)
         })
     })
 }
@@ -341,10 +350,13 @@ exports.changeDB = (data, cb) => {
     }
     eventEmitter.emit('databaseChanged', data)
     exports.getPool((err, connection) => {
-        util.error(err)
+        if (err) {
+            util.doCallback(callback, err)
+
+            return
+        }
         connection.changeUser(data, err => {
             exports.endPool(connection)
-            util.error(err)
             util.trace('Successfully changed database connection settings')
             util.doCallback(cb, err)
         })
@@ -360,7 +372,6 @@ exports.getPool = cb => {
         return
     }
     exports.pool.getConnection((err, connection) => {
-        util.error(err)
         if (!err) {
             eventEmitter.emit('getPool', connection)
         }
@@ -394,7 +405,6 @@ exports.killPool = cb => {
     }
     eventEmitter.emit('killPool')
     exports.pool.end(err => {
-        util.error(err)
         util.doCallback(cb, err, true)
     })
 }

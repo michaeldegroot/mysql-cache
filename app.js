@@ -9,21 +9,24 @@ const cacheProvider = require('./lib/cacheProvider')
 const util          = require('./lib/util')
 const merge         = require('lodash.merge')
 
+// Main object
+const db = {}
+
 // Exposed Properties
-exports.event           = eventEmitter
-exports.cacheProvider   = cacheProvider
-exports.mysql           = mysql
-exports.cacheProviders  = cacheProvider.getAll()
-exports.util            = util
-exports.hits            = 0
-exports.misses          = 0
-exports.queries         = 0
-exports.inserts         = 0
-exports.deletes         = 0
-exports.selects         = 0
-exports.updates         = 0
-exports.config          = null
-exports.ranInit         = false
+db.event           = eventEmitter
+db.cacheProvider   = cacheProvider
+db.mysql           = mysql
+db.cacheProviders  = cacheProvider.getAll()
+db.util            = util
+db.hits            = 0
+db.misses          = 0
+db.queries         = 0
+db.inserts         = 0
+db.deletes         = 0
+db.selects         = 0
+db.updates         = 0
+db.config          = null
+db.ranInit         = false
 
 /**
  * Checks if the init function was ran
@@ -35,7 +38,7 @@ const checkRanInit = cb => {
         }
     }
 
-    if (!exports.ranInit) {
+    if (!db.ranInit) {
         cb('The init function was not run yet or it failed.')
 
         return false
@@ -49,7 +52,7 @@ const checkRanInit = cb => {
  * @param    {Object}    config
  * @param    {Function}  cb
  */
-exports.start = (config, cb) => {
+db.start = (config, cb) => {
     // Start can be called without a callback
     if (!cb) {
         cb = () => {
@@ -58,7 +61,7 @@ exports.start = (config, cb) => {
     }
 
     // Merge default settings with user settings
-    exports.config = merge({
+    db.config = merge({
         TTL:               0,
         verbose:           false,
         caching:           true,
@@ -68,46 +71,46 @@ exports.start = (config, cb) => {
     }, config)
 
     // Let util know of the state of verboseMode
-    util.verboseMode = exports.config.verbose
+    util.verboseMode = db.config.verbose
 
     // Show the configuration in verbose mode
-    const showConfig = JSON.parse(JSON.stringify(exports.config))
+    const showConfig = JSON.parse(JSON.stringify(db.config))
 
     showConfig.password = showConfig.password.replace(/./gi, '*')
     util.trace(JSON.stringify(showConfig))
 
     // Create a mysql connection pool with the configured
-    exports.pool = mysql.createPool(exports.config)
+    db.pool = mysql.createPool(db.config)
 
     // Test the connection before continuing
-    exports.pool.getConnection((err, connection) => {
+    db.pool.getConnection((err, connection) => {
         if (err) {
             util.error(err)
         } else {
             // Setup the cacheProvider chosen
-            cacheProvider.setup(exports.config)
+            cacheProvider.setup(db.config)
 
-            util.trace(`${colors.bold(colors.green('Connected'))} to ${colors.bold('MySQL')} as ${colors.bold(exports.config.user)}@${colors.bold(exports.config.host)} with the ${colors.bold(exports.config.cacheProvider)} cacheProvider`)
+            util.trace(`${colors.bold(colors.green('Connected'))} to ${colors.bold('MySQL')} as ${colors.bold(db.config.user)}@${colors.bold(db.config.host)} with the ${colors.bold(db.config.cacheProvider)} cacheProvider`)
             eventEmitter.emit('connected')
-            exports.ranInit = true
-            exports.endPool(connection)
+            db.ranInit = true
+            db.endPool(connection)
 
             // Verbose output pool events of the mysql package
             const poolPrefix = colors.cyan('Pool')
 
-            exports.pool.on('acquire', connection => {
+            db.pool.on('acquire', connection => {
                 util.trace(`${poolPrefix}: recieved connection with id ${connection.threadId}`)
             })
 
-            exports.pool.on('connection', connection => {
+            db.pool.on('connection', connection => {
                 util.trace(`${poolPrefix}: Connection established with id ${connection.threadId}`)
             })
 
-            exports.pool.on('enqueue', () => {
+            db.pool.on('enqueue', () => {
                 util.trace('${poolPrefix}: Waiting for available connection slot')
             })
 
-            exports.pool.on('release', connection => {
+            db.pool.on('release', connection => {
                 util.trace(`${poolPrefix}: Connection ${connection.threadId} released`)
             })
 
@@ -116,12 +119,12 @@ exports.start = (config, cb) => {
     })
 }
 // Backward compatibility with init command
-exports.init = exports.start
+db.init = db.start
 
 /**
  * Flushes all cache
  */
-exports.flush = () => {
+db.flush = () => {
     if (!checkRanInit()) {
         return
     }
@@ -131,32 +134,32 @@ exports.flush = () => {
 }
 
 // Backward compatibility with flushAll command
-exports.flushAll = exports.flush
+db.flushAll = db.flush
 
 /**
  * Returns some statistics about mysql-cache
  */
-exports.stats = object => {
+db.stats = object => {
     if (object) {
         return {
-            poolConnections: exports.pool._allConnections.length,
-            hits:            exports.hits,
-            misses:          exports.misses,
-            total:           exports.queries,
-            selects:         exports.selects,
-            inserts:         exports.inserts,
-            updates:         exports.updates,
-            deletes:         exports.deletes,
+            poolConnections: db.pool._allConnections.length,
+            hits:            db.hits,
+            misses:          db.misses,
+            total:           db.queries,
+            selects:         db.selects,
+            inserts:         db.inserts,
+            updates:         db.updates,
+            deletes:         db.deletes,
         }
     } else {
-        util.trace('Open Pool Connections: ' + exports.pool._allConnections.length)
-        util.trace('Cache Hits: ' + exports.hits)
-        util.trace('Cache Misses: ' + exports.misses)
-        util.trace('Total Queries: ' + exports.queries)
-        util.trace('Total Select Statements: ' + exports.selects)
-        util.trace('Total Insert Statements: ' + exports.inserts)
-        util.trace('Total Update Statements: ' + exports.updates)
-        util.trace('Total Remove Statements: ' + exports.deletes)
+        util.trace('Open Pool Connections: ' + db.pool._allConnections.length)
+        util.trace('Cache Hits: ' + db.hits)
+        util.trace('Cache Misses: ' + db.misses)
+        util.trace('Total Queries: ' + db.queries)
+        util.trace('Total Select Statements: ' + db.selects)
+        util.trace('Total Insert Statements: ' + db.inserts)
+        util.trace('Total Update Statements: ' + db.updates)
+        util.trace('Total Remove Statements: ' + db.deletes)
     }
 }
 
@@ -167,11 +170,11 @@ exports.stats = object => {
  * @param    {Function} cb
  * @param    {Object}   data
  */
-exports.query = (sql, params, cb, data) => {
+db.query = (sql, params, cb, data) => {
     if (!checkRanInit(cb)) {
         return
     }
-    exports.queries++
+    db.queries++
     let query
 
     if (typeof params === 'function') {
@@ -199,30 +202,30 @@ exports.query = (sql, params, cb, data) => {
 
     query = mysql.format(query, params)
     eventEmitter.emit('query', query)
-    const hash = exports.createHash(query)
+    const hash = db.createHash(query)
 
     util.trace(colors.bold(type.toUpperCase()) + ' ' + colors.yellow(hash.slice(0, 15)) + ' ' + colors.grey(colors.bold(query)))
 
     if (type === 'insert') {
-        exports.inserts++
+        db.inserts++
     }
 
     if (type === 'update') {
-        exports.updates++
+        db.updates++
     }
 
     if (type === 'delete') {
-        exports.deletes++
+        db.deletes++
     }
 
     if (type === 'select') {
-        exports.selects++
+        db.selects++
 
-        exports.getKey(hash, (err, cache) => {
+        db.getKey(hash, (err, cache) => {
             if (err) {
                 util.error(err)
             } else {
-                if (!exports.config.caching) {
+                if (!db.config.caching) {
                     cache = false
                 }
                 if (data) {
@@ -233,11 +236,11 @@ exports.query = (sql, params, cb, data) => {
                 if (cache) {
                     eventEmitter.emit('hit', query, hash, cache)
                     util.trace(colors.yellow(hash.slice(0, 15)) + ' ' + colors.green(colors.bold('HIT')))
-                    exports.hits++
+                    db.hits++
                     cb(null, cache, generateObject(true, hash, query))
                 } else {
                     util.trace(colors.yellow(hash.slice(0, 15)) + ' ' + colors.red(colors.bold('MISS')))
-                    exports.misses++
+                    db.misses++
                     dbQuery(sql, params, (err, result) => {
                         if (err) {
                             util.error(err)
@@ -245,7 +248,7 @@ exports.query = (sql, params, cb, data) => {
                             eventEmitter.emit('miss', query, hash, result)
                             let enableCache = true
 
-                            TTLSet = exports.config.TTL * 1000
+                            TTLSet = db.config.TTL * 1000
                             if (data) {
                                 if (data.hasOwnProperty('TTL')) {
                                     TTLSet = data.TTL * 1000
@@ -255,10 +258,10 @@ exports.query = (sql, params, cb, data) => {
                                 }
                             }
 
-                            if (!exports.config.caching || !enableCache) {
+                            if (!db.config.caching || !enableCache) {
                                 cb(null, result, generateObject(false, hash, query))
                             } else {
-                                exports.createKey(hash, result, TTLSet, (err, keyResult) => {
+                                db.createKey(hash, result, TTLSet, (err, keyResult) => {
                                     if (err) {
                                         util.error(err)
                                     } else {
@@ -301,7 +304,7 @@ const generateObject = (isCache, hash, sql) => {
  * Handles pool connection and queries the database
  */
 const dbQuery = (sql, params, cb) => {
-    exports.getPool((err, connection) => {
+    db.getPool((err, connection) => {
         if (err) {
             util.error(err)
         } else {
@@ -309,7 +312,7 @@ const dbQuery = (sql, params, cb) => {
                 if (err) {
                     util.error(err)
                 } else {
-                    exports.endPool(connection)
+                    db.endPool(connection)
                     cb(null, rows)
                 }
             })
@@ -321,7 +324,7 @@ const dbQuery = (sql, params, cb) => {
  * How a hash id is created from scratch
  * @param    {String}   id
  */
-exports.createHash = id => {
+db.createHash = id => {
     id = id.replace(/ /g, '').toLowerCase()
     id = crypto.createHash('sha512').update(id).digest('hex')
 
@@ -333,7 +336,7 @@ exports.createHash = id => {
  * @param    {Object}   id
  * @param    {Object}   params
  */
-exports.delKey = (id, params) => {
+db.delKey = (id, params) => {
     if (!checkRanInit()) {
         return
     }
@@ -343,7 +346,7 @@ exports.delKey = (id, params) => {
         id     = id['sql']
     }
 
-    const hash = exports.createHash(mysql.format(id, params))
+    const hash = db.createHash(mysql.format(id, params))
 
     eventEmitter.emit('delete', hash)
     cacheProvider.run('remove', hash)
@@ -354,7 +357,7 @@ exports.delKey = (id, params) => {
  * @param    {Object}   id
  * @param    {Function} cb
  */
-exports.getKey = (id, cb) => {
+db.getKey = (id, cb) => {
     if (!checkRanInit(cb)) {
         return
     }
@@ -370,7 +373,7 @@ exports.getKey = (id, cb) => {
  * @param    {Number}   ttl
  * @param    {Function} cb
  */
-exports.createKey = (id, val, ttl, cb) => {
+db.createKey = (id, val, ttl, cb) => {
     if (!checkRanInit(cb)) {
         return
     }
@@ -383,16 +386,16 @@ exports.createKey = (id, val, ttl, cb) => {
  * @param    {Object}   data
  * @param    {Function} cb
  */
-exports.changeDB = (data, cb) => {
+db.changeDB = (data, cb) => {
     if (!checkRanInit(cb)) {
         return
     }
-    exports.getPool((err, connection) => {
+    db.getPool((err, connection) => {
         if (err) {
             util.error(err)
         } else {
             connection.changeUser(data, err => {
-                exports.endPool(connection)
+                db.endPool(connection)
                 eventEmitter.emit('databaseChanged', data)
                 util.trace('Successfully changed database connection settings')
                 if (err) {
@@ -409,11 +412,11 @@ exports.changeDB = (data, cb) => {
  * Create or get a pool connection
  * @param    {Function} cb
  */
-exports.getPool = cb => {
+db.getPool = cb => {
     if (!checkRanInit(cb)) {
         return
     }
-    exports.pool.getConnection((err, connection) => {
+    db.pool.getConnection((err, connection) => {
         if (err) {
             util.error(err)
         } else {
@@ -427,32 +430,49 @@ exports.getPool = cb => {
  * Kill a pool connection
  * @param    {Object} connection
  */
-exports.endPool = connection => {
+db.endPool = connection => {
     if (!checkRanInit()) {
         return false
     }
-    eventEmitter.emit('endPool', connection)
-    if (exports.pool._freeConnections.indexOf(connection) === -1) {
-        connection.release()
+
+    if (!connection) {
+        throw new Error('connection is undefined')
     }
 
-    return true
+    if (db.pool._freeConnections.indexOf(connection) === -1) {
+        connection.release()
+        eventEmitter.emit('endPool', connection)
+
+        return true
+    }
+
+    return false
 }
 
 /**
  * Kills the pool
  * @param    {Function} cb
  */
-exports.killPool = cb => {
+db.killPool = cb => {
     if (!checkRanInit(cb)) {
         return
     }
-    eventEmitter.emit('killPool')
-    exports.pool.end(err => {
+
+    // killPool can be called without a callback
+    if (!cb) {
+        cb = () => {
+            // Empty callback
+        }
+    }
+
+    db.pool.end(err => {
         if (err) {
             util.error(err)
         } else {
+            eventEmitter.emit('killPool')
             cb(null, true)
         }
     })
 }
+
+module.exports = db

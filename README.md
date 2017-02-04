@@ -20,12 +20,6 @@ ___
 
 [https://github.com/michaeldegroot/mysql-cache/commits/master](https://github.com/michaeldegroot/mysql-cache/commits/master)
 ___
-#  New in version 1.1.0:
-Improved error handling and event emitters!
-
-**Check out more information  about events in this page below!**
- 
-___
 #  New in version 1.0.0 :rocket:
 cacheProviders, improved error handling and event emitters!
 

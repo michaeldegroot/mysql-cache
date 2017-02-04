@@ -11,21 +11,25 @@ exports.run = (set, amount, cache, cb) => {
     settings.caching       = cache
 
     db.init(settings, () => {
-        db.flushAll()
+        db.flushAll(err => {
+            if (err) {
+                throw new Error(err)
+            }
 
-        let amountArray = []
+            let amountArray = []
 
-        for (let i = 0; i < amount; i++) {
-            amountArray.push(i)
-        }
+            for (let i = 0; i < amount; i++) {
+                amountArray.push(i)
+            }
 
-        async.eachOfLimit(amountArray, 15, function iteratee(value, key, innerCallback) {
-            db.query('SELECT ? + ? AS solution', [1, 6], result => {
-                speedteststep.tick()
-                innerCallback()
+            async.eachOfLimit(amountArray, 5, function iteratee(value, key, innerCallback) {
+                db.query('SELECT ? + ? AS solution', [1, 6], result => {
+                    speedteststep.tick()
+                    innerCallback()
+                })
+            }, function done() {
+                cb()
             })
-        }, function done() {
-            cb()
         })
     })
 }

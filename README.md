@@ -159,6 +159,7 @@ node extra/speedtest
 ```
 
 Example output:
+
 ![cachetest.png](http://i.imgur.com/MV9fF1I.png)
 ___
 

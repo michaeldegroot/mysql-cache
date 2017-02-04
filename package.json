@@ -35,8 +35,7 @@
     "mysql": "^2.13.0",
     "node-cache": "^4.1.1",
     "pretty-error": "^2.0.2",
-    "redis": "^2.6.5",
-    "stack-trace": "^0.0.9"
+    "redis": "^2.6.5"
   },
   "devDependencies": {
     "assert-plus": "^1.0.0",

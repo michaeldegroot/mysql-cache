@@ -7,7 +7,6 @@ const speedteststep      = require('./speedteststep')
 const settings           = require('../settings').settings()
 const util               = require('../lib/util')
 const db                 = require('../app')
-const speedtestbase      = require('./speedtestbase')
 const loopCacheProviders = db.cacheProviders
 
 util.verboseMode = true
@@ -27,38 +26,74 @@ try {
 
 const resultsCache   = {}
 const resultsNoCache = {}
-let times          = 60
+let times            = 60
 
 if (settings.host.toLowerCase() === 'localhost' || settings.host === '127.0.0.1') {
-    times = 1000
+    times = 4000
+}
+
+const timesArray = []
+
+for (let i = times - 1; i >= 0; i--) {
+    timesArray.push('lol')
 }
 
 speedteststep.start((times * loopCacheProviders.length) * 2)
 
-async.eachLimit(loopCacheProviders, 5, function iteratee(item1, callback1) {
-    resultsCache[item1] = {
-        startTime: moment(),
-    }
-    speedtestbase.run(item1, times, true, () => {
-        resultsCache[item1].stopTime = moment()
-        resultsCache[item1].diff = moment.duration(resultsCache[item1].stopTime.diff(resultsCache[item1].startTime)).asMilliseconds()
-        callback1()
+async.eachLimit(loopCacheProviders, 1, function iteratee(currentCacheProvider, callback1) {
+    db.init(settings, () => {
+        db.flushAll(err => {
+            resultsCache[currentCacheProvider] = {
+                startTime: moment(),
+            }
+            async.eachLimit(timesArray, 15, function iteratee(item2, callback2) {
+                if (err) {
+                    throw new Error(err)
+                }
+
+                db.query('SELECT ? + ? AS solution', [1, 6], result => {
+                    speedteststep.tick()
+                    callback2()
+                })
+            }, done => {
+                resultsCache[currentCacheProvider].stopTime = moment()
+                resultsCache[currentCacheProvider].diff = moment.duration(resultsCache[currentCacheProvider].stopTime.diff(resultsCache[currentCacheProvider].startTime)).asMilliseconds()
+                callback1()
+            })
+        })
     })
 }, done => {
-    async.eachLimit(loopCacheProviders, 5, function iteratee(item2, callback2) {
-        resultsNoCache[item2] = {
-            startTime: moment(),
-        }
-        speedtestbase.run(item2, times, false, () => {
-            resultsNoCache[item2].stopTime = moment()
-            resultsNoCache[item2].diff = moment.duration(resultsNoCache[item2].stopTime.diff(resultsNoCache[item2].startTime)).asMilliseconds()
-            callback2()
+    async.eachLimit(loopCacheProviders, 1, function iteratee(currentCacheProvider, callback1) {
+        settings.caching = false
+        db.init(settings, () => {
+            db.flushAll(err => {
+                resultsNoCache[currentCacheProvider] = {
+                    startTime: moment(),
+                }
+                async.eachLimit(timesArray, 15, function iteratee(item2, callback2) {
+                    if (err) {
+                        throw new Error(err)
+                    }
+
+                    db.query('SELECT ? + ? AS solution', [1, 6], result => {
+                        speedteststep.tick()
+                        callback2()
+                    })
+                }, done => {
+                    resultsNoCache[currentCacheProvider].stopTime = moment()
+                    resultsNoCache[currentCacheProvider].diff = moment.duration(resultsNoCache[currentCacheProvider].stopTime.diff(resultsNoCache[currentCacheProvider].startTime)).asMilliseconds()
+                    callback1()
+                })
+            })
         })
     }, done => {
         speedteststep.finish()
         for (let i = 0; i < loopCacheProviders.length; i++) {
-            let time    = (parseInt(resultsNoCache[loopCacheProviders[i]].diff) - parseInt(resultsCache[loopCacheProviders[i]].diff))
-            let timeref = (parseInt(resultsCache[loopCacheProviders[i]].diff) - parseInt(resultsNoCache[loopCacheProviders[i]].diff))
+            const resNoCache = resultsNoCache[loopCacheProviders[i]]
+            const resCache = resultsCache[loopCacheProviders[i]]
+
+            let time    = (parseInt(resNoCache.diff) - parseInt(resCache.diff))
+            let timeref = (parseInt(resCache.diff) - parseInt(resNoCache.diff))
 
             let faster = colors.green(colors.bold(time + 'ms') + ' faster')
 
@@ -66,7 +101,7 @@ async.eachLimit(loopCacheProviders, 5, function iteratee(item1, callback1) {
                 faster = colors.red(colors.bold(timeref + 'ms') + ' slower')
             }
 
-            const extraInfo = colors.red(parseInt(resultsNoCache[loopCacheProviders[i]].diff)) + 'ms' + colors.bold(' VS ') + colors.green(parseInt(resultsCache[loopCacheProviders[i]].diff)) + 'ms'
+            const extraInfo = colors.red(parseInt(resNoCache.diff)) + 'ms' + colors.bold(' VS ') + colors.green(parseInt(resCache.diff)) + 'ms'
 
             console.log(rightpad(colors.bold(loopCacheProviders[i]), 20) + ' is ' + rightpad(faster, 10) + ' (' + extraInfo + ')' + ' at getting ' + colors.underline(times) + ' records with mysql-cache enabled')
         }

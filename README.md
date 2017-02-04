@@ -155,12 +155,11 @@ ___
 *Edit the file* **settings.js** *make sure it reflects your mysql database settings*
 *Then execute in the mysql-cache root directory:*
 ```javascript
-node speedtest
+node extra/speedtest
 ```
 
 Example output:
-
-![cachetest.png](http://i.imgur.com/mBj0Jwg.png)
+![cachetest.png](http://i.imgur.com/MV9fF1I.png)
 ___
 
 ## Events

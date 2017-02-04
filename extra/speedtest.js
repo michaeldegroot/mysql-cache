@@ -46,7 +46,7 @@ async.eachLimit(loopCacheProviders, 1, function iteratee(currentCacheProvider, c
             resultsCache[currentCacheProvider] = {
                 startTime: moment(),
             }
-            async.eachLimit(timesArray, 15, function iteratee(item2, callback2) {
+            async.eachLimit(timesArray, 3, function iteratee(item2, callback2) {
                 if (err) {
                     throw new Error(err)
                 }
@@ -70,7 +70,7 @@ async.eachLimit(loopCacheProviders, 1, function iteratee(currentCacheProvider, c
                 resultsNoCache[currentCacheProvider] = {
                     startTime: moment(),
                 }
-                async.eachLimit(timesArray, 15, function iteratee(item2, callback2) {
+                async.eachLimit(timesArray, 3, function iteratee(item2, callback2) {
                     if (err) {
                         throw new Error(err)
                     }
@@ -103,8 +103,11 @@ async.eachLimit(loopCacheProviders, 1, function iteratee(currentCacheProvider, c
 
             const extraInfo = colors.red(parseInt(resNoCache.diff)) + 'ms' + colors.bold(' VS ') + colors.green(parseInt(resCache.diff)) + 'ms'
 
-            console.log(rightpad(colors.bold(loopCacheProviders[i]), 20) + ' is ' + rightpad(faster, 10) + ' (' + extraInfo + ')' + ' at getting ' + colors.underline(times) + ' records with mysql-cache enabled')
+            console.log(rightpad(colors.bold(loopCacheProviders[i]), 20) + ' is ' + rightpad(faster, 10) + ' (' + extraInfo + ')')
         }
+        console.log()
+        console.log('at getting ' + colors.underline(times) + ' records with mysql-cache enabled')
+        console.log()
         console.log()
         console.log(colors.red('red = no cache'))
         console.log(colors.green('green = cache'))

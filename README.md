@@ -70,6 +70,8 @@ db.init({
     user:            '',
     password:        '',
     database:        '',
+    prettyError:     true,  // Nice error formatting display
+    stdoutErrors:    true,  // Do you want to show errors at all when found?
     TTL:             0,     // Time To Live for a cache key in seconds (0 = infinite, MMAP is not supported in TTL)
     connectionLimit: 100,   // Mysql connection pool limit (increase value if you are having problems)
     verbose:         true,  // Do you want console.log's about what the program is doing?
@@ -306,6 +308,9 @@ __Example #1__
 
 ```javascript
 db.query('SELECT id,username,avatar FROM accounts WHERE id = ?', [530], (err, result) => {
+    if (err) {
+        throw new Error(err)
+    }
     console.log(result)
 })
 ```
@@ -318,6 +323,9 @@ db.query({
     sql:'SELECT 6 + ? AS solution',
     params: [4],
 }, (err, result) => {
+    if (err) {
+        throw new Error(err)
+    }
     console.log(result)
 })
 ```
@@ -326,12 +334,18 @@ __Example with one time setting per query__
 
 ```javascript
 db.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (err, result) => {
+    if (err) {
+        throw new Error(err)
+    }
     console.log(result)
 }, {
     TTL: 6 // Will set TTL to 6 seconds only for this query
 })
 
 db.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (err, result) => {
+    if (err) {
+        throw new Error(err)
+    }
     console.log(result)
 }, {
     cache: false // Will not cache this query
@@ -374,12 +388,17 @@ ___
     id:         String    // The sql in string format of the cache key you are trying to delete
     params:     Object    // This is required if the cache key had any questionmarks (params) in the sql
 ```
-_Deletes a cache key in the cache. You will need to supply a SQL format_
+_Deletes a cache key in the cache. You will need to supply a SQL format, this function always expects a callback_
 
 __Example #1__
 
 ```javascript
-db.delKey('SELECT id,username,avatar FROM accounts WHERE id = ?', [530])
+db.delKey('SELECT id,username,avatar FROM accounts WHERE id = ?', [530], err => {
+    if (err) {
+        throw new Error(err)
+    }
+    console.log('key deleted!')
+})
 ```
 
 __Example #2__
@@ -388,6 +407,11 @@ __Example #2__
 db.delKey({
     sql:    'SELECT id,username,avatar FROM accounts WHERE id = ?',
     params: [530],
+}, err => {
+    if (err) {
+        throw new Error(err)
+    }
+    console.log('key deleted!')
 })
 ```
 
@@ -413,12 +437,17 @@ console.log(db.stats(true))
 ```
 ___
 ###  .flush ()
-_removes all keys and values from the cache_
+_removes all keys and values from the cache, this function always expects a callback_
 
 __Example__
 
 ```javascript
-db.flush()
+db.flush(err => {
+    if (err) {
+        throw new Error(err)
+    }
+    console.log('cache flushed!')
+})
 ```
 ___
 ###  .killPool ()
@@ -427,7 +456,10 @@ _Kills the connection pool, you will need to re-call the db.init function if you
 __Example__
 
 ```javascript
-db.killPool(() => {
+db.killPool(err => {
+    if (err) {
+        throw new Error(err)
+    }
     console.log('Pool killed!')
 })
 ```
@@ -445,8 +477,10 @@ _MySQL offers a changeUser command that allows you to alter the current user and
 
 ```javascript
 db.changeDB({user:'testusername', password:'keepo', database:'kappa', charset:'utf8'}, function(err){
-    if(err) throw err
-    // Database settings are now changed, do something.
+    if (err) {
+        throw new Error(err)
+    }
+    console.log('DB settings changed!')
 })
 ```
 

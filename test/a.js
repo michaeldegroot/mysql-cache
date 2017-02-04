@@ -130,14 +130,14 @@ describe('Main Application Suite', function() {
     })
 
     it('Delete a key', done => {
-        db.delKey('SELECT ? + ? AS solution', [1, 5])
-        setTimeout(() => {
+        db.delKey('SELECT ? + ? AS solution', [1, 5], err => {
+            assert.equal(err, undefined)
             assert.equal(db.queries, 7)
             assert.equal(db.misses, 3)
             assert.equal(db.hits, 2)
             assert.equal(db.stats(true).poolConnections, 1)
             done()
-        }, 100)
+        })
     })
 
     it('Test trace', () => {
@@ -154,7 +154,15 @@ describe('Main Application Suite', function() {
     })
 
     it('Delete a key version 2', () => {
-        db.delKey({sql:'SELECT ? + ? AS solution', params: [1, 5]})
+        db.delKey({sql:'SELECT ? + ? AS solution', params: [1, 5]}, err => {
+            assert.equal(err, undefined)
+            assert.equal(db.queries, 7)
+            assert.equal(db.misses, 3)
+            assert.equal(db.hits, 2)
+            assert.equal(db.stats(true).poolConnections, 1)
+
+            done()
+        })
     })
 
     it('One time setting per query', done => {
@@ -170,16 +178,20 @@ describe('Main Application Suite', function() {
         }, {cache:false, TTL:600})
     })
 
-    it('Flush all cache', () => {
-        assert.doesNotThrow(() => {
-            db.flush()
-        }, Error)
+    it('Flush all cache', done => {
+        db.flush(err => {
+            assert.equal(err, undefined)
+
+            done()
+        })
     })
 
-    it('Flush all cache (compatiblity)', () => {
-        assert.doesNotThrow(() => {
-            db.flushAll()
-        }, Error)
+    it('Flush all cache (compatiblity)', done => {
+        db.flushAll(err => {
+            assert.equal(err, undefined)
+
+            done()
+        })
     })
 
     it('Change DB', done => {
@@ -208,14 +220,12 @@ describe('Main Application Suite', function() {
             database: 'mysqlcache',
             charset:  'utf8',
         }, err => {
-            // TODO: fix this test :(
-            // assert.throws(() => {
-            //     if (err) {
-            //         throw err
-            //     }
-            //     done()
-            // }, Error)
-            done()
+            assert.throws(() => {
+                if (err) {
+                    throw err
+                }
+                done()
+            }, Error)
         })
     })
 })

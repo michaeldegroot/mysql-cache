@@ -45,10 +45,9 @@ const doRun = (provider, cb) => {
                     if (err) {
                         throw new Error(err)
                     }
-                    db.flush()
-                    setTimeout(() => {
+                    db.flush(() => {
                         done()
-                    }, 5400)
+                    })
                 })
             }, Error)
         })
@@ -66,8 +65,7 @@ const doRun = (provider, cb) => {
                     }
                     assert.equal(resultMysql2[0].solution, 440)
                     assert.equal(mysqlCache2.isCache, true)
-                    db.flush()
-                    setTimeout(() => {
+                    db.flush(() => {
                         db.query('SELECT ? + ? AS solution', [422, 18], (err3, resultMysql3, mysqlCache3) => {
                             if (err3) {
                                 throw new Error(err3)
@@ -76,7 +74,7 @@ const doRun = (provider, cb) => {
                             assert.equal(mysqlCache3.isCache, false)
                             done()
                         })
-                    }, 10)
+                    })
                 })
             })
         })
@@ -113,26 +111,26 @@ const doRun = (provider, cb) => {
 
             it('Test TTL main setting (2 seconds)', done => {
                 db.config.TTL = 1 // Will set TTL to 1 seconds for feature queries
-                db.query('SELECT ? + ? AS solution', [1, 344], (err, resultMysql, mysqlCache) => {
-                    if (err) {
-                        throw new Error(err)
+                db.query('SELECT ? + ? AS solution', [1, 344], (err1, resultMysql1, mysqlCache1) => {
+                    if (err1) {
+                        throw new Error(err1)
                     }
-                    assert.equal(resultMysql[0].solution, 345)
-                    assert.equal(mysqlCache.isCache, false)
-                    db.query('SELECT ? + ? AS solution', [1, 344], (err, resultMysql, mysqlCache) => {
-                        if (err) {
-                            throw new Error(err)
+                    assert.equal(resultMysql1[0].solution, 345)
+                    assert.equal(mysqlCache1.isCache, false)
+                    db.query('SELECT ? + ? AS solution', [1, 344], (err2, resultMysql2, mysqlCache2) => {
+                        if (err2) {
+                            throw new Error(err2)
                         }
-                        assert.equal(resultMysql[0].solution, 345)
-                        assert.equal(mysqlCache.isCache, true)
+                        assert.equal(resultMysql2[0].solution, 345)
+                        assert.equal(mysqlCache2.isCache, true)
                         setTimeout(() => {
                             // Now well over 2 seconds total
-                            db.query('SELECT ? + ? AS solution', [1, 344], (err, resultMysql, mysqlCache) => {
-                                if (err) {
-                                    throw new Error(err)
+                            db.query('SELECT ? + ? AS solution', [1, 344], (err3, resultMysql3, mysqlCache3) => {
+                                if (err3) {
+                                    throw new Error(err3)
                                 }
-                                assert.equal(resultMysql[0].solution, 345)
-                                assert.equal(mysqlCache.isCache, false)
+                                assert.equal(resultMysql3[0].solution, 345)
+                                assert.equal(mysqlCache3.isCache, false)
                                 db.TTL = 0 // Reset TTL
                                 done()
                             })
@@ -224,8 +222,10 @@ const doRun = (provider, cb) => {
                     }
                     assert.equal(resultMysql2[0].solution, 132)
                     assert.equal(mysqlCache2.isCache, true)
-                    db.delKey('SELECT ? + ? AS solution', [66, 66])
-                    setTimeout(() => {
+                    db.delKey('SELECT ? + ? AS solution', [66, 66], delKeyError => {
+                        if (delKeyError) {
+                            throw new Error(delKeyError)
+                        }
                         db.query('SELECT ? + ? AS solution', [66, 66], (err3, resultMysql3, mysqlCache3) => {
                             if (err3) {
                                 throw new Error(err3)
@@ -234,7 +234,7 @@ const doRun = (provider, cb) => {
                             assert.equal(mysqlCache3.isCache, false)
                             done()
                         })
-                    }, 10)
+                    })
                 })
             })
         })
@@ -252,8 +252,10 @@ const doRun = (provider, cb) => {
                     }
                     assert.equal(resultMysql2[0].solution, 133)
                     assert.equal(mysqlCache2.isCache, true)
-                    db.delKey({sql: 'SELECT ? + ? AS solution', params: [66, 67]})
-                    setTimeout(() => {
+                    db.delKey({sql: 'SELECT ? + ? AS solution', params: [66, 67]}, delKeyError => {
+                        if (delKeyError) {
+                            throw new Error(delKeyError)
+                        }
                         db.query('SELECT ? + ? AS solution', [66, 67], (err3, resultMysql3, mysqlCache3) => {
                             if (err3) {
                                 throw new Error(err3)
@@ -262,7 +264,7 @@ const doRun = (provider, cb) => {
                             assert.equal(mysqlCache3.isCache, false)
                             done()
                         })
-                    }, 10)
+                    })
                 })
             })
         })
@@ -383,7 +385,11 @@ const doRun = (provider, cb) => {
         })
 
         it('Create, read (no cache), read (cache), delete and read (no cache) - 10000 times', done => {
-            db.flushAll()
+            db.flushAll(err => {
+                if (err) {
+                    throw new Error(err)
+                }
+            })
             db.TTL = 5000
 
             const amountArray = []
@@ -398,27 +404,31 @@ const doRun = (provider, cb) => {
                 const randomB = Math.round(Math.random() * 10000000000000000)
 
                 didSql[provider].push(['SELECT ? + ? AS solution', [randomA, randomB]])
-                db.query('SELECT ? + ? AS solution', [randomA, randomB], (err, mysql1, cache1) => {
-                    if (err) {
-                        innerCallback(err)
+                db.query('SELECT ? + ? AS solution', [randomA, randomB], (err1, mysql1, cache1) => {
+                    if (err1) {
+                        innerCallback(err1)
                     } else {
                         assert.equal(mysql1[0].solution, randomA + randomB)
                         assert.equal(cache1.isCache, false)
-                        db.query('SELECT ? + ? AS solution', [randomA, randomB], (err, mysql2, cache2) => {
-                            if (err) {
-                                innerCallback(err)
+                        db.query('SELECT ? + ? AS solution', [randomA, randomB], (err2, mysql2, cache2) => {
+                            if (err2) {
+                                innerCallback(err2)
                             } else {
                                 assert.equal(mysql2[0].solution, randomA + randomB)
                                 assert.equal(cache2.isCache, true)
-                                db.delKey('SELECT ? + ? AS solution', [randomA, randomB])
-                                db.query('SELECT ? + ? AS solution', [randomA, randomB], (err, mysql3, cache2) => {
-                                    if (err) {
-                                        innerCallback(err)
-                                    } else {
-                                        assert.equal(mysql3[0].solution, randomA + randomB)
-                                        assert.equal(cache3.isCache, false)
-                                        innerCallback()
+                                db.delKey('SELECT ? + ? AS solution', [randomA, randomB], errKey => {
+                                    if (errKey) {
+                                        throw new Error(errKey)
                                     }
+                                    db.query('SELECT ? + ? AS solution', [randomA, randomB], (err3, mysql3, cache3) => {
+                                        if (err3) {
+                                            innerCallback(err3)
+                                        } else {
+                                            assert.equal(mysql3[0].solution, randomA + randomB)
+                                            assert.equal(cache3.isCache, false)
+                                            innerCallback()
+                                        }
+                                    })
                                 })
                             }
                         })

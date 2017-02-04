@@ -146,14 +146,13 @@ describe('Main Application Suite', function() {
         db.util.verboseMode = false
     })
 
-    it('Test error', done => {
-        assert.throws(() => {
-            db.util.error(new Error('test error :D'))
-            done()
+    it('Test error', () => {
+        db.util.error('test error :D', () => {
+            // yeep
         })
     })
 
-    it('Delete a key version 2', () => {
+    it('Delete a key version 2', done => {
         db.delKey({sql:'SELECT ? + ? AS solution', params: [1, 5]}, err => {
             assert.equal(err, undefined)
             assert.equal(db.queries, 7)

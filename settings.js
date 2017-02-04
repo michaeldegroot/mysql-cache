@@ -11,6 +11,8 @@ exports.settings = () => {
         verbose:         false,
         caching:         true,
         cacheProvider:   'node-cache',
+        prettyError:     true,
+        stdoutErrors:    true,
     }
 
     if (process.env.hasOwnProperty('CI') === true) {

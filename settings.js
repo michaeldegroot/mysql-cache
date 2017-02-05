@@ -4,7 +4,7 @@ exports.settings = () => {
     const sets = {
         host:            '127.0.0.1',
         user:            'root',
-        password:        'developer',
+        password:        'root',
         database:        'mysqlcache',
         TTL:             0,
         connectionLimit: 1000000,

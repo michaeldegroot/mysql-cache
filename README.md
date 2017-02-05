@@ -14,7 +14,7 @@ Automatically caches SELECT sql's in memory, you have serveral cache providers a
 If you want to use the mmap cacheprovider install the dependency: `
     yarn add mmap-object@1.1.1` this is because windows users have reported problems with it.
 
-This module is wrapping some functions of the [mysql](https://www.npmjs.com/package/mysql) module for ease of use
+This module is wrapping some functions of the [mysql2](https://www.npmjs.com/package/mysql2) module for ease of use
 
 ![preview](http://i.imgur.com/BReK4GW.gif)
 ___
@@ -206,13 +206,13 @@ db.event.on('query', sql => {
 // When a pool connection is accquired
 db.event.on('getPool', connection => {
     console.log('Pool connection aqquired!')
-    // connection = mysql module variable
+    // connection = mysql2 module variable
 })
 
 // When a pool connection is closed
 db.event.on('endPool', connection => {
     console.log('Pool connection was dropped!')
-    // connection = mysql module variable
+    // connection = mysql2 module variable
 })
 
 // When a pool connection has been killed
@@ -277,7 +277,7 @@ console.log(db.config)
 db.TTL = 5  // TTL is always defined in SECONDS
 console.log(db.TTL)
 
-// Get the mysql package mysql variable
+// Get the mysql2 package mysql variable
 console.log(db.mysql)
 
 // Get the cache providers availible
@@ -374,7 +374,7 @@ db.query('SELECT 6 + 6 AS solution', (err, mysqlResult, mysqlCache) => {
 ```
 
 The db.query function is using node-mysql for querying.
-It's wrapping the sql function, check the [mysql](https://www.npmjs.com/package/mysql) [documentation](https://github.com/felixge/node-mysql/blob/master/Readme.md)   for more information about [escaping values](https://github.com/felixge/node-mysql/blob/master/Readme.md#escaping-query-values)
+It's wrapping the sql function, check the [mysql2](https://www.npmjs.com/package/mysql2) [documentation](https://github.com/felixge/node-mysql/blob/master/Readme.md)   for more information about [escaping values](https://github.com/felixge/node-mysql/blob/master/Readme.md#escaping-query-values)
 
 *mysql-cache only supports the use of questionmarks in sql at the moment for escaping values*
 
@@ -472,7 +472,7 @@ ___
 _MySQL offers a changeUser command that allows you to alter the current user and other aspects of the connection without shutting down the underlying socket_
 
 ```javascript
-db.changeDB({user:'testusername', password:'keepo', database:'kappa', charset:'utf8'}, function(err){
+db.changeDB({user:'newuser', password:'newpass', database:'newdatabase'}, function(err){
     if (err) {
         throw new Error(err)
     }

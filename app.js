@@ -22,6 +22,7 @@ exports.hits            = 0
 exports.misses          = 0
 exports.queries         = 0
 exports.inserts         = 0
+exports.poolConnections = 0
 exports.deletes         = 0
 exports.selects         = 0
 exports.updates         = 0
@@ -99,18 +100,22 @@ exports.start = (config, cb) => {
 
             // Verbose output pool events of the mysql package
             exports.pool.on('acquire', connection => {
+                exports.poolConnections = exports.pool._allConnections.length
                 util.trace(`${poolPrefix}: recieved connection with id ${connection.threadId}`)
             })
 
             exports.pool.on('connection', connection => {
+                exports.poolConnections = exports.pool._allConnections.length
                 util.trace(`${poolPrefix}: Connection established with id ${connection.threadId}`)
             })
 
             exports.pool.on('enqueue', () => {
+                exports.poolConnections = exports.pool._allConnections.length
                 util.trace('${poolPrefix}: Waiting for available connection slot')
             })
 
             exports.pool.on('release', connection => {
+                exports.poolConnections = exports.pool._allConnections.length
                 util.trace(`${poolPrefix}: Connection ${connection.threadId} released`)
             })
 
@@ -338,9 +343,8 @@ const dbQuery = (sql, params, cb) => {
  */
 exports.createHash = id => {
     id = id.replace(/ /g, '').toLowerCase()
-    id = crypto.createHash('sha512').update(id).digest('hex')
 
-    return id
+    return crypto.createHash('sha512').update(id).digest('hex')
 }
 
 /**
@@ -370,7 +374,11 @@ exports.delKey = (id, params, cb) => {
 
         eventEmitter.emit('delete', hash)
         cacheProvider.run('remove', hash, null, null, (err, result) => {
-            cb(err, result)
+            if (err) {
+                util.error(err, cb)
+            } else {
+                cb(null, result)
+            }
         })
     }
 }
@@ -386,7 +394,13 @@ exports.getKey = (id, cb) => {
     }
 
     eventEmitter.emit('get', id)
-    cacheProvider.run('get', id, null, null, cb)
+    cacheProvider.run('get', id, null, null, (err, result) => {
+        if (err) {
+            util.error(err, cb)
+        } else {
+            cb(null, result)
+        }
+    })
 }
 
 /**
@@ -401,7 +415,13 @@ exports.createKey = (id, val, ttl, cb) => {
         return
     }
     eventEmitter.emit('create', id, val, ttl)
-    cacheProvider.run('set', id, val, ttl, cb)
+    cacheProvider.run('set', id, val, ttl, (err, result) => {
+        if (err) {
+            util.error(err, cb)
+        } else {
+            cb(null, result)
+        }
+    })
 }
 
 /**
@@ -444,6 +464,7 @@ exports.getPool = cb => {
             util.error(err, cb)
         } else {
             eventEmitter.emit('getPool', connection)
+            exports.poolConnections = exports.pool._allConnections.length
             cb(null, connection)
         }
     })
@@ -464,6 +485,8 @@ exports.endPool = connection => {
 
     connection.release()
     eventEmitter.emit('endPool', connection)
+    exports.poolConnections = exports.pool._allConnections.length
+
     return true
 }
 

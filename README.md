@@ -16,7 +16,7 @@ If you want to use the mmap cacheprovider install the dependency: `
 
 This module is wrapping some functions of the [mysql](https://www.npmjs.com/package/mysql) module for ease of use
 
-![cachetest.png](http://i.imgur.com/BReK4GW.gifv)
+![preview](http://i.imgur.com/BReK4GW.gif)
 ___
 # Changelog
 

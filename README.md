@@ -125,6 +125,9 @@ db.query('SELECT ? + ? AS solution', [1, 5], (err, result, mysqlCache) => {
     // It will retrieve it from cache instead of the database.
 
     db.query('SELECT ? + ? AS solution', [1, 5], (err, result, mysqlCache) => {
+        if (err) {
+            throw new Error(err)
+        }
         // This query was retrieved from the cache because it was the 
         // exact same sql code, which was much faster call!
 

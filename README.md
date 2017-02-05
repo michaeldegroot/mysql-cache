@@ -15,6 +15,8 @@ If you want to use the mmap cacheprovider install the dependency: `
     yarn add mmap-object@1.1.1` this is because windows users have reported problems with it.
 
 This module is wrapping some functions of the [mysql](https://www.npmjs.com/package/mysql) module for ease of use
+
+![cachetest.png](http://i.imgur.com/BReK4GW.gifv)
 ___
 # Changelog
 

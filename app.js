@@ -1,13 +1,13 @@
 'use strict'
 
-const mysql         = require('mysql')
+const mysql         = require('mysql2')
 const colors        = require('colors')
 const crypto        = require('crypto')
 const events        = require('events')
 const eventEmitter  = new events.EventEmitter()
 const cacheProvider = require('./lib/cacheProvider')
 const util          = require('./lib/util')
-const merge         = require('lodash.merge')
+const extend        = require('extend')
 
 // Some Constants
 const poolPrefix = colors.cyan('Pool')
@@ -61,7 +61,7 @@ exports.start = (config, cb) => {
     }
 
     // Merge default settings with user settings
-    exports.config = merge({
+    exports.config = extend({
         TTL:               0,
         verbose:           false,
         caching:           true,
@@ -462,14 +462,9 @@ exports.endPool = connection => {
         throw new Error('connection is undefined')
     }
 
-    if (exports.pool._freeConnections.indexOf(connection) === -1) {
-        connection.release()
-        eventEmitter.emit('endPool', connection)
-
-        return true
-    }
-
-    return false
+    connection.release()
+    eventEmitter.emit('endPool', connection)
+    return true
 }
 
 /**

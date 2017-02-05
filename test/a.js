@@ -195,10 +195,9 @@ describe('Main Application Suite', function() {
 
     it('Change DB', done => {
         db.changeDB({
-            user:'root',
-            pass: '',
+            user:     'root',
+            pass:     '',
             database: 'mysqlcache',
-            charset:'utf8',
         }, err => {
             assert.equal(err, undefined)
             done()
@@ -217,7 +216,6 @@ describe('Main Application Suite', function() {
             user:     'root',
             pass:     '',
             database: 'mysqlcache',
-            charset:  'utf8',
         }, err => {
             assert.throws(() => {
                 if (err) {

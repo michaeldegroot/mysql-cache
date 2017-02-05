@@ -4,8 +4,7 @@ const assert   = require('assert-plus')
 let db         = require('../app')
 const settings = require('../settings').settings()
 const async    = require('async')
-const mysql    = require('mysql')
-const decache  = require('decache')
+const mysql    = require('mysql2')
 
 const cacheProviders = db.cacheProviders
 const didSql         = {}

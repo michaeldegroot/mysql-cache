@@ -188,20 +188,4 @@ describe('Main Application Suite', function() {
             db.TTL = 60
         }, Error)
     })
-
-    it('Change DB to a wrong host', done => {
-        db.changeDB({
-            host:     '1337.1337.1337.1337',
-            user:     'root',
-            pass:     '',
-            database: 'mysqlcache',
-        }, err => {
-            assert.throws(() => {
-                if (err) {
-                    throw err
-                }
-                done()
-            }, Error)
-        })
-    })
 })

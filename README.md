@@ -111,7 +111,11 @@ mysql.query('SELECT ? + ? AS solution', [1, 5], (err, result, mysqlCache) => {
     // Later in your code if this exact sql is run again
     // It will retrieve it from cache instead of the database.
 
-    mysql.query('SELECT ? + ? AS solution', [1, 5], (err, result, mysqlCache) => {
+    // Can also use a configuration object if you like that :)
+    mysql.query({
+        sql:    'SELECT ? + ? AS solution', 
+        params: [1, 5],
+    }, (err, result, mysqlCache) => {
         if (err) {
             throw new Error(err)
         }
@@ -207,11 +211,6 @@ mysql.event.on('endPool', connection => {
 
 // When a pool connection has been killed
 mysql.event.on('killPool', () => {
-    console.log('Pool connection was killed!')
-})
-
-// When a database setting has been changed
-mysql.event.on('databaseChanged', settings => {
     console.log('Pool connection was killed!')
 })
 
@@ -447,29 +446,6 @@ mysql.killPool(err => {
     console.log('Pool killed!')
 })
 ```
-___
-### .changeDB (Object)
-```js
-{
-    user:       String  // The name of the new user
-    password:   String  // The password of the new user
-    database:   String  // The new database
-    charset:    String  // The new charset
-}
-```
-_MySQL offers a changeUser command that allows you to alter the current user and other aspects of the connection without shutting down the underlying socket_
-
-```javascript
-mysql.changeDB({user:'newuser', password:'newpass', database:'newdatabase'}, function(err){
-    if (err) {
-        throw new Error(err)
-    }
-    console.log('DB settings changed!')
-})
-```
-
-_This changes database connection settings on the fly._
-
  ___
 ## Contact
 You can contact me at specamps@gmail.com

@@ -244,7 +244,7 @@ const doRun = (provider, cb) => {
                 }
                 assert.equal(resultMysql1[0].solution, 133)
                 assert.equal(mysqlCache1.isCache, false)
-                db.query('SELECT ? + ? AS solution', [66, 67], (err2, resultMysql2, mysqlCache2) => {
+                db.query({sql: 'SELECT ? + ? AS solution', params: [66, 67]}, (err2, resultMysql2, mysqlCache2) => {
                     if (err2) {
                         throw new Error(err2)
                     }

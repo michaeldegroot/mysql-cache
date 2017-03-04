@@ -91,32 +91,9 @@ class MysqlCache {
     }
 
     /**
-     * Checks if the init function was ran
-     */
-    checkRanInit(cb) {
-        if (!cb) {
-            cb = err => {
-                throw new Error(err)
-            }
-        }
-
-        if (!this.ranInit) {
-            cb('The init function was not run yet or it failed.')
-
-            return false
-        }
-
-        return true
-    }
-
-    /**
      * Flushes all cache
      */
     flush(cb) {
-        if (!this.checkRanInit()) {
-            return
-        }
-
         // a flush cannot be called without a callback
         if (typeof cb !== 'function') {
             this.util.error('flush was called without a callback which is unsupported, use a callback for your flush function')
@@ -172,9 +149,6 @@ class MysqlCache {
      * @param    {Object}   data
      */
     query(sql, params, cb, data) {
-        if (!this.checkRanInit(cb)) {
-            return
-        }
         this.queries++
         let query
 
@@ -270,11 +244,7 @@ class MysqlCache {
                                         if (err) {
                                             this.util.error(err, cb)
                                         } else {
-                                            if (!keyResult) {
-                                                cb('createKey result was not saved')
-                                            } else {
-                                                cb(null, result, this.generateObject(false, hash, query))
-                                            }
+                                            cb(null, result, this.generateObject(false, hash, query))
                                         }
                                     })
                                 }
@@ -351,10 +321,6 @@ class MysqlCache {
      * @param    {Object}   params
      */
     delKey(id, params, cb) {
-        if (!this.checkRanInit()) {
-            return
-        }
-
         if (typeof params === 'function' && typeof id === 'object') {
             cb = params
         }
@@ -387,10 +353,6 @@ class MysqlCache {
      * @param    {Function} cb
      */
     getKey(id, cb) {
-        if (!this.checkRanInit(cb)) {
-            return
-        }
-
         this.event.emit('get', id)
         this.cacheProvider.run('get', id, null, null, (err, result) => {
             if (err) {
@@ -409,9 +371,6 @@ class MysqlCache {
      * @param    {Function} cb
      */
     createKey(id, val, ttl, cb) {
-        if (!this.checkRanInit(cb)) {
-            return
-        }
         this.event.emit('create', id, val, ttl)
         this.cacheProvider.run('set', id, val, ttl, (err, result) => {
             if (err) {
@@ -423,40 +382,10 @@ class MysqlCache {
     }
 
     /**
-     * Changes database settings on the fly
-     * @param    {Object}   data
-     * @param    {Function} cb
-     */
-    changeDB(data, cb) {
-        if (!this.checkRanInit(cb)) {
-            return
-        }
-        this.getPool((err, connection) => {
-            if (err) {
-                this.util.error(err, cb)
-            } else {
-                connection.changeUser(data, err => {
-                    this.endPool(connection)
-                    this.event.emit('databaseChanged', data)
-                    this.util.trace('Successfully changed database connection settings')
-                    if (err) {
-                        this.util.error(err, cb)
-                    } else {
-                        cb(null, true)
-                    }
-                })
-            }
-        })
-    }
-
-    /**
      * Create or get a pool connection
      * @param    {Function} cb
      */
     getPool(cb) {
-        if (!this.checkRanInit(cb)) {
-            return
-        }
         this.pool.getConnection((err, connection) => {
             if (err) {
                 this.util.error(err, cb)
@@ -473,19 +402,15 @@ class MysqlCache {
      * @param    {Object} connection
      */
     endPool(connection) {
-        if (!this.checkRanInit()) {
-            return false
+        if (connection) {
+            connection.release()
+            this.event.emit('endPool', connection)
+            this.poolConnections = this.pool._allConnections.length
+
+            return true
         }
 
-        if (!connection) {
-            throw new Error('connection is undefined')
-        }
-
-        connection.release()
-        this.event.emit('endPool', connection)
-        this.poolConnections = this.pool._allConnections.length
-
-        return true
+        return false
     }
 
     /**
@@ -493,10 +418,6 @@ class MysqlCache {
      * @param    {Function} cb
      */
     killPool(cb) {
-        if (!this.checkRanInit(cb)) {
-            return
-        }
-
         // killPool can be called without a callback
         if (!cb) {
             cb = () => {

@@ -382,7 +382,7 @@ const doRun = (provider, cb) => {
             })
         })
 
-        it('Create, read (no cache), read (cache), delete and read (no cache) - 5000 times', done => {
+        it('Create, read (no cache), read (cache), delete and read (no cache) - 1000 times', done => {
             db.flushAll(err => {
                 if (err) {
                     throw new Error(err)
@@ -391,7 +391,7 @@ const doRun = (provider, cb) => {
             db.TTL = 5000
 
             const amountArray = []
-            const amount = 5000
+            const amount = 1000
 
             for (let i = 0; i < amount; i++) {
                 amountArray.push(i)

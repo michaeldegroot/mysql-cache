@@ -382,6 +382,7 @@ const doRun = (provider, cb) => {
             })
         })
 
+        // TODO: memcached will randomly fail reliably with over 10000 times. WHY???
         it('Create, read (no cache), read (cache), delete and read (no cache) - 100 times', done => {
             db.flushAll(err => {
                 if (err) {

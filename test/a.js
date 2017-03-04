@@ -183,17 +183,6 @@ describe('Main Application Suite', function() {
         })
     })
 
-    it('Change DB', done => {
-        db.changeDB({
-            user:     'root',
-            pass:     '',
-            database: 'mysqlcache',
-        }, err => {
-            assert.equal(err, undefined)
-            done()
-        })
-    })
-
     it('Change TTL', () => {
         assert.doesNotThrow(() => {
             db.TTL = 60

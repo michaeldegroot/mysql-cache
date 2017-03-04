@@ -32,7 +32,7 @@ ___
 ```javascript
 const MysqlCache = require('mysql-cache')
 
-const db = new MysqlCache({
+const mysql = new MysqlCache({
     // Mysql settings
     host:            '',
     user:            '',

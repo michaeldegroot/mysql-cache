@@ -154,7 +154,7 @@ node benchmark/createhash.js   // Test the hash speed
 
 Example output:
 
-![cachetest.png](http://i.imgur.com/dPEokF4.png)
+![cachetest.png](http://i.imgur.com/yxZq9r0.png)
 ___
 
 ## Events

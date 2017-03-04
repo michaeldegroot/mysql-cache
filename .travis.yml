@@ -6,6 +6,7 @@ compiler: gcc
 services:
   - redis-server
   - mysql
+  - memcached
 node_js:
   - '7.4'
   - '7.0'

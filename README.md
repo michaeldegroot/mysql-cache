@@ -38,43 +38,6 @@ const mysql = new MysqlCache({
     user:            '',
     password:        '',
     database:        '',
-
-    // Nice error formatting display
-    prettyError: true,
-
-    // Do you want to show errors at all when found?
-    stdoutErrors: true,
-
-    // Time To Live for a cache key in SECONDS
-    // 0 = infinite
-    // MMAP is not supported for TTL
-    TTL: 0,
-
-    // Mysql connection pool limit
-    // Increase value if you are having problems with a lot of queries
-    connectionLimit: 100,
-
-    // You can choose a hashing method for the cache key
-    // To avoid conflicts sha512 should be really safe, but it's slow!
-    // You can choose all the nodejs supported hashing methods as defined
-    // In the native crypto module of nodejs itself.
-    hashing: 'sha512',
-
-    // Do you want console.log's about what the program is doing?
-    verbose: true,
-
-    // Do you want to enable caching?
-    caching: true,
-
-    // You can choose different cache providers of your liking
-    // LRU          (https://www.npmjs.com/package/lru-cache)
-    // mmap         (https://www.npmjs.com/package/mmap-object works in clustered mode but is using IO!)
-    // redis        (https://www.npmjs.com/package/redis using default 127.0.0.1 database 1)
-    // node-cache   (https://www.npmjs.com/package/node-cache)
-    // file         (https://www.npmjs.com/package/cacheman-file)
-    // native       (local variable assignment)
-    // You can also use mysql.cacheProviders this is a array with strings of the avaliable cacheProviders
-    cacheProvider: 'LRU',   
 })
 
 mysql.event.on('connected', () => {
@@ -83,9 +46,6 @@ mysql.event.on('connected', () => {
     // Lets run some queries now!
 })
 ```
-
- **Important** If you want to use mmap you have to install the dependency: `
-    yarn add mmap-object@1.1.1`
 
 ##### 3. Do awesome stuff!
 ```javascript
@@ -128,6 +88,66 @@ mysql.query('SELECT ? + ? AS solution', [1, 5], (err, result, mysqlCache) => {
     })
 })
 ```
+
+___
+# In-depth configuration
+
+Here you can have a overview of a more defined mysql-cache object
+
+```javascript
+const mysql = new MysqlCache({
+    // Nice error formatting display
+    prettyError: true,
+
+    // Do you want to show errors at all when found?
+    stdoutErrors: true,
+
+    // Time To Live for a cache key in SECONDS
+    // 0 = infinite
+    // MMAP is not supported for TTL
+    TTL: 0,
+
+    // Mysql connection pool limit
+    // Increase value if you are having problems with a lot of queries
+    connectionLimit: 100,
+
+    // You can choose a hashing method for the cache key
+    // To avoid conflicts sha512 should be really safe, but it's slow!
+    // You can choose all the nodejs supported hashing methods as defined
+    // In the native crypto module of nodejs itself.
+    hashing: 'sha512',
+
+    // Do you want console.log's about what the program is doing?
+    verbose: true,
+
+    // Do you want to enable caching?
+    caching: true,
+
+    // You can choose different cache providers of your liking
+    // memcached    https://www.npmjs.com/package/memcached
+    // LRU          https://www.npmjs.com/package/lru-cache
+    // mmap         https://www.npmjs.com/package/mmap-object works in clustered mode but is using IO!
+    // redis        https://www.npmjs.com/package/redis using default 127.00.1 database 1)
+    // node-cache   https://www.npmjs.com/package/node-cache
+    // file         https://www.npmjs.com/package/cacheman-file
+    // native       local variable assignment
+    // You can also use mysql.cacheProviders this is a array with strings of the avaliable cacheProviders
+    cacheProvider: 'memcached',   
+
+    // cacheProviders can be supplied with additional configurations via this variable!
+    cacheProviderSetup: {
+        // For example when we use memcached (checking the module configuration object) we can do this:
+        serverLocation: '127.0.0.1:11211',
+        options: {
+            retries:10,
+            retry:10000,
+            remove:true,
+            failOverServers:['192.168.0.103:11211'],
+        }
+    }
+})
+```
+
 ___
 # Clustered mode or Persistent mode
 Want cached data to persist on restarts in your application? OR Running a application in clustered mode but want to share the cache? check this list below for compatibility for the cacheProviders:

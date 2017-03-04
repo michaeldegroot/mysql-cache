@@ -38,6 +38,9 @@ class MysqlCache {
             hashing:           'sha512',
             prettyError:       true,
             stdoutErrors:      false,
+            cacheProviderSetup: {
+                serverLocation: '127.0.0.1:11211',
+            },
         }, config)
 
         // Let util know of the state of verboseMode

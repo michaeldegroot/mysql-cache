@@ -1,6 +1,6 @@
 {
   "name": "mysql-cache",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Automatically caches SELECT sql's in memory with cacheProviders of your choice",
   "main": "app.js",
   "scripts": {
@@ -32,11 +32,12 @@
     "colors": "^1.1.2",
     "extend": "^3.0.0",
     "lru-cache": "^4.0.2",
+    "memcached": "^2.2.2",
     "memoizee": "^0.4.1",
     "mysql2": "^1.1.2",
     "node-cache": "^4.1.1",
-    "repeat-string": "^1.6.1",
-    "pretty-error": "^2.0.2"
+    "pretty-error": "^2.0.2",
+    "repeat-string": "^1.6.1"
   },
   "devDependencies": {
     "assert-plus": "^1.0.0",

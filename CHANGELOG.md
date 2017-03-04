@@ -1,3 +1,5 @@
+#  New in version 2.0.2 :rocket:
+New cacheProvider added: memcached!
 
 #  New in version 2.0.0 :rocket:
 Multiple instances can now be created, some code has changed because of this.

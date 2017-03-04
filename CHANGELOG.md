@@ -1,5 +1,5 @@
 
-#  New in version 1.4.0 :rocket:
+#  New in version 2.0.0 :rocket:
 Multiple instances can now be created, some code has changed because of this.
 
  - You can ask mysql-cache to not cache a result

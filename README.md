@@ -163,8 +163,6 @@ ___
 
 ## Events
 
-A new feature in 1.1.0 are event emitters, it is recommended to at least listen to the **error** event for any issues that might occur
-
 ```js
 // When you want to know when you are connected
 mysql.event.on('connected', () => {

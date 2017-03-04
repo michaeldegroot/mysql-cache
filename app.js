@@ -24,20 +24,18 @@ class MysqlCache {
         this.deletes         = 0
         this.selects         = 0
         this.updates         = 0
-        this.config          = null
-        this.ranInit         = false
 
         // Merge default settings with user settings
         this.config = extend({
-            TTL:               0,
-            verbose:           false,
-            caching:           true,
-            cacheProvider:     'lru',
-            connectionLimit:   1000,
-            supportBigNumbers: true,
-            hashing:           'sha512',
-            prettyError:       true,
-            stdoutErrors:      false,
+            TTL:                0,
+            verbose:            false,
+            caching:            true,
+            cacheProvider:      'lru',
+            connectionLimit:    1000,
+            supportBigNumbers:  true,
+            hashing:            'sha512',
+            prettyError:        true,
+            stdoutErrors:       false,
             cacheProviderSetup: {
                 serverLocation: '127.0.0.1:11211',
             },
@@ -45,12 +43,6 @@ class MysqlCache {
 
         // Let util know of the state of verboseMode
         this.util.verboseMode = this.config.verbose
-
-        // Show the configuration in verbose mode
-        const showConfig = JSON.parse(JSON.stringify(this.config))
-
-        showConfig.password = showConfig.password.replace(/./gi, '*')
-        this.util.trace(JSON.stringify(showConfig))
 
         // Create a mysql connection pool with the configured
         this.pool = this.mysql.createPool(this.config)
@@ -64,7 +56,6 @@ class MysqlCache {
                 this.cacheProvider.setup(this.config)
 
                 this.util.trace(`${colors.bold(colors.green('Connected'))} to ${colors.bold('MySQL')} as ${colors.bold(this.config.user)}@${colors.bold(this.config.host)} with the ${colors.bold(this.config.cacheProvider)} cacheProvider`)
-                this.ranInit = true
                 this.endPool(connection)
 
                 // Verbose output pool events of the mysql package
@@ -92,28 +83,37 @@ class MysqlCache {
             }
         })
     }
+    /**
+     * A placeholder callback for undefined callbacks
+     */
+    defineCallback(cb) {
+        if (!cb) {
+            return () => {
+                return 'woot'
+            }
+        } else {
+            return cb
+        }
+    }
 
     /**
      * Flushes all cache
      */
     flush(cb) {
-        // a flush cannot be called without a callback
-        if (typeof cb !== 'function') {
-            this.util.error('flush was called without a callback which is unsupported, use a callback for your flush function')
-        } else {
-            this.cacheProvider.run('flush', null, null, null, (err, result) => {
-                if (err) {
-                    this.util.error(err, cb)
-                } else {
-                    this.event.emit('flush')
-                    this.util.trace('Cache Flushed')
-                    cb(null, true)
-                }
-            })
-        }
+        cb = this.defineCallback(cb)
+        this.cacheProvider.run('flush', null, null, null, (err, result) => {
+            if (err) {
+                this.util.error(err, cb)
+            } else {
+                this.event.emit('flush')
+                this.util.trace('Cache Flushed')
+                cb(null, true)
+            }
+        })
     }
 
     flushAll(cb) {
+        cb = this.defineCallback(cb)
         return this.flush(cb)
     }
 
@@ -172,11 +172,7 @@ class MysqlCache {
         }
 
         // A query can be called without a callback
-        if (!cb) {
-            cb = () => {
-                // Empty callback
-            }
-        }
+        cb = this.defineCallback(cb)
 
         const type = query.split(' ')[0].toLowerCase()
         let TTLSet = 0
@@ -282,6 +278,7 @@ class MysqlCache {
      * Handles pool connection and queries the database
      */
     dbQuery(sql, params, cb) {
+        cb = this.defineCallback(cb)
         this.getPool((err, connection) => {
             if (err) {
                 this.util.error(err, cb)
@@ -327,27 +324,18 @@ class MysqlCache {
         if (typeof params === 'function' && typeof id === 'object') {
             cb = params
         }
-
-        // a delKey cannot be called without a callback
-        if (typeof cb !== 'function' || cb === undefined) {
-            this.util.error('delKey was called without a callback which is unsupported, use a callback for your delKey function')
-        } else {
-            if (typeof id === 'object') {
-                params = id['params']
-                id     = id['sql']
-            }
-
-            const hash = this.createHash(this.mysql.format(id, params))
-
-            this.event.emit('delete', hash)
-            this.cacheProvider.run('remove', hash, null, null, (err, result) => {
-                if (err) {
-                    this.util.error(err, cb)
-                } else {
-                    cb(null, result)
-                }
-            })
+        cb = this.defineCallback(cb)
+        if (typeof id === 'object') {
+            params = id['params']
+            id     = id['sql']
         }
+
+        const hash = this.createHash(this.mysql.format(id, params))
+
+        this.event.emit('delete', hash)
+        this.cacheProvider.run('remove', hash, null, null, (err, result) => {
+            cb(err, result)
+        })
     }
 
     /**
@@ -356,13 +344,10 @@ class MysqlCache {
      * @param    {Function} cb
      */
     getKey(id, cb) {
+        cb = this.defineCallback(cb)
         this.event.emit('get', id)
         this.cacheProvider.run('get', id, null, null, (err, result) => {
-            if (err) {
-                this.util.error(err, cb)
-            } else {
-                cb(null, result)
-            }
+            cb(err, result)
         })
     }
 
@@ -374,13 +359,10 @@ class MysqlCache {
      * @param    {Function} cb
      */
     createKey(id, val, ttl, cb) {
+        cb = this.defineCallback(cb)
         this.event.emit('create', id, val, ttl)
         this.cacheProvider.run('set', id, val, ttl, (err, result) => {
-            if (err) {
-                this.util.error(err, cb)
-            } else {
-                cb(null, result)
-            }
+            cb(err, result)
         })
     }
 
@@ -389,6 +371,7 @@ class MysqlCache {
      * @param    {Function} cb
      */
     getPool(cb) {
+        cb = this.defineCallback(cb)
         this.pool.getConnection((err, connection) => {
             if (err) {
                 this.util.error(err, cb)
@@ -421,12 +404,7 @@ class MysqlCache {
      * @param    {Function} cb
      */
     killPool(cb) {
-        // killPool can be called without a callback
-        if (!cb) {
-            cb = () => {
-                // Empty callback
-            }
-        }
+        cb = this.defineCallback(cb)
 
         this.pool.getConnection((err, connection) => {
             if (err) {

@@ -27,6 +27,10 @@ describe('CacheProvider Test Suite', function() {
 })
 
 const doRun = (provider, cb) => {
+    if (provider !== 'memcached') {
+        return
+    }
+
     if (provider === 'mmap') {
         try {
             require.resolve('mmap-object')
@@ -382,7 +386,7 @@ const doRun = (provider, cb) => {
             })
         })
 
-        it('Create, read (no cache), read (cache), delete and read (no cache) - 10000 times', done => {
+        it('Create, read (no cache), read (cache), delete and read (no cache) - 8000 times', done => {
             db.flushAll(err => {
                 if (err) {
                     throw new Error(err)
@@ -391,7 +395,7 @@ const doRun = (provider, cb) => {
             db.TTL = 5000
 
             const amountArray = []
-            const amount = 10000
+            const amount = 8000
 
             for (let i = 0; i < amount; i++) {
                 amountArray.push(i)

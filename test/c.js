@@ -1,10 +1,12 @@
 'use strict'
 
-const assert   = require('assert-plus')
-let db         = require('../app')
-const settings = require('../settings').settings()
-const async    = require('async')
-const mysql    = require('mysql2')
+const assert     = require('assert-plus')
+const MysqlCache = require('../app')
+const settings   = require('../settings').settings()
+const async      = require('async')
+const mysql      = require('mysql2')
+
+let db = new MysqlCache(settings)
 
 const cacheProviders = db.cacheProviders
 const didSql         = {}
@@ -15,6 +17,7 @@ for (let i = cacheProviders.length - 1; i >= 0; i--) {
 
 describe('CacheProvider Test Suite', function() {
     this.timeout(1000)
+
     it('Start ' + cacheProviders.length + ' cacheProviders', done => {
         async.each(cacheProviders, cacheProvider => {
             doRun(cacheProvider)
@@ -39,16 +42,12 @@ const doRun = (provider, cb) => {
 
         it('Call Init', done => {
             settings.cacheProvider = provider
-            assert.doesNotThrow(() => {
-                db.init(settings, err => {
-                    if (err) {
-                        throw new Error(err)
-                    }
-                    db.flush(() => {
-                        done()
-                    })
+            db = new MysqlCache(settings)
+            db.event.on('connected', () => {
+                db.flush(() => {
+                    done()
                 })
-            }, Error)
+            })
         })
 
         it('Flush', done => {

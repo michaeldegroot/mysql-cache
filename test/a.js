@@ -1,30 +1,20 @@
 'use strict'
 
-const assert   = require('assert-plus')
-const db       = require('../app')
-const settings = require('../settings').settings()
+const assert     = require('assert-plus')
+const MysqlCache = require('../app')
+const settings   = require('../settings').settings()
+
+let db
 
 describe('Main Application Suite', function() {
     this.timeout(15000)
 
-    it('Call a query while init was not called yet', () => {
-        assert.throws(() => {
-            db.query('SELECT 1 + 1 AS solution')
-        }, Error)
-    })
+    it('Setup mysql-cache', done => {
+        db = new MysqlCache(settings)
 
-    it('Call Init', done => {
-        assert.doesNotThrow(() => {
-            db.init(settings, (err, connected) => {
-                if (err) {
-                    throw new Error(err)
-                }
-                assert.equal(connected, true)
-                if (connected) {
-                    done()
-                }
-            })
-        }, Error)
+        db.event.on('connected', () => {
+            done()
+        })
     })
 
     it('Show stats', () => {

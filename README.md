@@ -33,11 +33,11 @@ ___
 const MysqlCache = require('mysql-cache')
 
 const mysql = new MysqlCache({
-    // Mysql settings
     host:            '',
     user:            '',
     password:        '',
     database:        '',
+    cacheProvider:   'LRU',
 })
 
 mysql.event.on('connected', () => {

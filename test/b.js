@@ -11,15 +11,15 @@ describe('Init Test Suite', function() {
     it('Setup mysql-cache', done => {
         db = new MysqlCache(settings)
 
-        db.event.on('connected', () => {
+        db.connectAsync().then(() => {
             done()
         })
     })
     it('disable cache, call query', done => {
         settings.caching = false
-        db.query({sql:'SELECT 6 + 6 AS solution'}, (err, resultMysql, mysqlCache) => {
+        db.query({sql:'SELECT 6 + 6 AS solution'}, (err, resultMysql) => {
             assert.equal(resultMysql[0].solution, 12)
-            assert.equal(mysqlCache.isCache, false)
+            assert.equal(resultMysql._cache.isCache, false)
             done()
         })
     })

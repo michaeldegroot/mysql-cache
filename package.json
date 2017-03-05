@@ -1,6 +1,6 @@
 {
   "name": "mysql-cache",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "description": "Automatically caches SELECT sql's in memory with cacheProviders of your choice",
   "main": "app.js",
   "scripts": {
@@ -25,6 +25,7 @@
   "license": "MIT",
   "dependencies": {
     "benchmark": "^2.1.3",
+    "bluebird": "^3.5.0",
     "cacheman": "^2.2.1",
     "cacheman-file": "^0.2.1",
     "cacheman-memory": "^1.0.2",
@@ -34,8 +35,7 @@
     "lru-cache": "^4.0.2",
     "memcached": "^2.2.2",
     "mysql2": "^1.1.2",
-    "node-cache": "^4.1.1",
-    "pretty-error": "^2.0.2"
+    "node-cache": "^4.1.1"
   },
   "devDependencies": {
     "assert-plus": "^1.0.0",

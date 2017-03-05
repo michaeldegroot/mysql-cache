@@ -12,7 +12,7 @@ describe('Main Application Suite', function() {
     it('Setup mysql-cache', done => {
         db = new MysqlCache(settings)
 
-        db.event.on('connected', () => {
+        db.connectAsync().then(() => {
             done()
         })
     })
@@ -106,9 +106,9 @@ describe('Main Application Suite', function() {
     })
 
     it('Test cache', done => {
-        db.query('SELECT ? + ? AS solution', [1, 5], (err, resultMysql, mysqlCache) => {
+        db.query('SELECT ? + ? AS solution', [1, 5], (err, resultMysql) => {
             assert.equal(resultMysql[0].solution, 6)
-            assert.equal(mysqlCache.isCache, true)
+            assert.equal(resultMysql._cache.isCache, true)
             setTimeout(() => {
                 assert.equal(db.queries, 7)
                 assert.equal(db.misses, 3)
@@ -131,15 +131,15 @@ describe('Main Application Suite', function() {
     })
 
     it('Test trace', () => {
-        db.util.verboseMode = true
-        db.util.trace('test')
-        db.util.verboseMode = false
+        db.verbose = true
+        db.trace('test')
+        db.verbose = false
     })
 
     it('Test error', () => {
-        db.util.error('test error :D', () => {
-            // yeep
-        })
+        assert.throws(() => {
+            throw db.error('test')
+        }, Error)
     })
 
     it('Delete a key version 2', done => {

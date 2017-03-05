@@ -3,21 +3,21 @@
 // Take a moment to rejoice the fact how this code looks now versus this:
 // https://github.com/michaeldegroot/mysql-cache/blob/4739b184c5d397e901775cbf68f938168af8dadc/app.js
 
-const colors        = require('colors')
-const crypto        = require('crypto')
-const events        = require('events')
-const extend        = require('extend')
-const Util          = require('./lib/util')
+// Requires
+const colors      = require('colors')
+const crypto      = require('crypto')
+const events      = require('events')
+const extend      = require('extend')
+const Promise     = require('bluebird')
 
-// Some Constants
+// Some constants
 const poolPrefix = colors.cyan('Pool')
 
 class MysqlCache {
     constructor(config) {
         this.event           = new events.EventEmitter()
-        this.util            = new Util(config)
-        this.cacheProvider   = require('./lib/cacheProvider')
         this.mysql           = require('mysql2')
+        this.cacheProvider   = require('./lib/cacheProvider')
         this.cacheProviders  = this.cacheProvider.getAll()
         this.hits            = 0
         this.misses          = 0
@@ -38,54 +38,92 @@ class MysqlCache {
             supportBigNumbers:  true,
             hashing:            'sha512',
             prettyError:        true,
-            stdoutErrors:       false,
+            promise:            true,
             cacheProviderSetup: {
+                // Default memcached setting
                 serverLocation: '127.0.0.1:11211',
             },
         }, config)
 
-        // Let util know of the state of verboseMode
-        this.util.verboseMode = this.config.verbose
+        this.trace = text => {
+            if (this.config.hasOwnProperty('verbose')) {
+                if (this.config.verbose) {
+                    console.log(colors.bold('MYSQL-CACHE') + ': ' + text)
+                }
+            }
+        }
 
+        if (this.config.promise) {
+            Promise.promisifyAll(this)
+        }
+
+        // Set parents
+        this.cacheProvider.setParent(this)
+
+        // Setup the cacheProvider chosen
+        this.cacheProvider.setup(this.config)
+    }
+
+    /**
+     * Prints text
+     */
+    trace(text) {
+        this.trace(text)
+    }
+
+    /**
+     * Creates a error object
+     */
+    error(err) {
+        if (err instanceof Error) {
+            return err
+        } else {
+            return new Error(err)
+        }
+    }
+
+    /**
+     * Connect to the database
+     */
+    connect(cb) {
         // Create a mysql connection pool with the configured
         this.pool = this.mysql.createPool(this.config)
 
         // Test the connection before continuing
         this.pool.getConnection((err, connection) => {
             if (err) {
-                this.util.error(err)
-            } else {
-                // Setup the cacheProvider chosen
-                this.cacheProvider.setup(this.config)
+                return cb(this.error(err))
+            }
 
-                this.util.trace(`${colors.bold(colors.green('Connected'))} to ${colors.bold('MySQL')} as ${colors.bold(this.config.user)}@${colors.bold(this.config.host)} with the ${colors.bold(this.config.cacheProvider)} cacheProvider`)
-                this.endPool(connection)
-
+            this.trace(`${colors.bold(colors.green('Connected'))} to ${colors.bold('MySQL')} as ${colors.bold(this.config.user)}@${colors.bold(this.config.host)} with the ${colors.bold(this.config.cacheProvider)} cacheProvider`)
+            if (this.endPool(connection)) {
                 // Verbose output pool events of the mysql package
                 this.pool.on('acquire', connection => {
                     this.poolConnections = this.pool._allConnections.length
-                    this.util.trace(`${poolPrefix}: recieved connection with id ${connection.threadId}`)
+                    this.trace(`${poolPrefix}: recieved connection with id ${connection.threadId}`)
                 })
 
                 this.pool.on('connection', connection => {
                     this.poolConnections = this.pool._allConnections.length
-                    this.util.trace(`${poolPrefix}: Connection established with id ${connection.threadId}`)
+                    this.trace(`${poolPrefix}: Connection established with id ${connection.threadId}`)
                 })
 
                 this.pool.on('enqueue', () => {
                     this.poolConnections = this.pool._allConnections.length
-                    this.util.trace('${poolPrefix}: Waiting for available connection slot')
+                    this.trace('${poolPrefix}: Waiting for available connection slot')
                 })
 
                 this.pool.on('release', connection => {
                     this.poolConnections = this.pool._allConnections.length
-                    this.util.trace(`${poolPrefix}: Connection ${connection.threadId} released`)
+                    this.trace(`${poolPrefix}: Connection ${connection.threadId} released`)
                 })
 
                 this.event.emit('connected')
+                cb(null, true)
             }
         })
     }
+
     /**
      * A placeholder callback for undefined callbacks
      */
@@ -94,9 +132,9 @@ class MysqlCache {
             return () => {
                 return 'woot'
             }
-        } else {
-            return cb
         }
+
+        return cb
     }
 
     /**
@@ -106,18 +144,17 @@ class MysqlCache {
         cb = this.defineCallback(cb)
         this.cacheProvider.run('flush', null, null, null, (err, result) => {
             if (err) {
-                this.util.error(err, cb)
+                cb(this.error(err))
             } else {
                 this.event.emit('flush')
-                this.util.trace('Cache Flushed')
+                this.trace('Cache Flushed')
                 cb(null, true)
             }
         })
     }
 
     flushAll(cb) {
-        cb = this.defineCallback(cb)
-        return this.flush(cb)
+        return this.flush(this.defineCallback(cb))
     }
 
     /**
@@ -136,14 +173,14 @@ class MysqlCache {
                 deletes:         this.deletes,
             }
         } else {
-            this.util.trace('Open Pool Connections: ' + this.pool._allConnections.length)
-            this.util.trace('Cache Hits: ' + this.hits)
-            this.util.trace('Cache Misses: ' + this.misses)
-            this.util.trace('Total Queries: ' + this.queries)
-            this.util.trace('Total Select Statements: ' + this.selects)
-            this.util.trace('Total Insert Statements: ' + this.inserts)
-            this.util.trace('Total Update Statements: ' + this.updates)
-            this.util.trace('Total Remove Statements: ' + this.deletes)
+            this.trace('Open Pool Connections: ' + this.pool._allConnections.length)
+            this.trace('Cache Hits: ' + this.hits)
+            this.trace('Cache Misses: ' + this.misses)
+            this.trace('Total Queries: ' + this.queries)
+            this.trace('Total Select Statements: ' + this.selects)
+            this.trace('Total Insert Statements: ' + this.inserts)
+            this.trace('Total Update Statements: ' + this.updates)
+            this.trace('Total Remove Statements: ' + this.deletes)
         }
     }
 
@@ -178,13 +215,12 @@ class MysqlCache {
         cb = this.defineCallback(cb)
 
         const type = query.split(' ')[0].toLowerCase()
-        let TTLSet = 0
 
         query = this.mysql.format(query, params)
         this.event.emit('query', query)
         const hash = this.createHash(query)
 
-        this.util.trace(colors.bold(type.toUpperCase()) + ' ' + colors.yellow(hash.slice(0, 15)) + ' ' + colors.grey(colors.bold(query)))
+        this.trace(colors.bold(type.toUpperCase()) + ' ' + colors.yellow(hash.slice(0, 15)) + ' ' + colors.grey(colors.bold(query)))
 
         if (type === 'insert') {
             this.inserts++
@@ -201,69 +237,110 @@ class MysqlCache {
         if (type === 'select') {
             this.selects++
 
-            this.getKey(hash, (err, dbProviderResult) => {
+            // Retrieve the cache key
+            return this.getKey(hash, (err, cacheProviderResult) => {
                 if (err) {
-                    this.util.error(err, cb)
-                } else {
-                    if (dbProviderResult) {
-                        this.event.emit('hit', query, hash, dbProviderResult)
-                        this.util.trace(colors.yellow(hash.slice(0, 15)) + ' ' + colors.green(colors.bold('HIT')))
-                        this.hits++
-                        cb(null, dbProviderResult, this.generateObject(true, hash, query))
-                    } else {
-                        let doCache = true
+                    return cb(this.error(err))
+                }
 
-                        if (sql.hasOwnProperty('cache')) {
-                            if (sql.cache === false) {
-                                doCache = false
-                            }
+                const cacheObject = {
+                    sql,
+                    params,
+                    hash,
+                    query,
+                    cacheProviderResult,
+                    data,
+                    cb,
+                }
+
+                // If there is a cacheProvider result we should return the cache HIT
+                if (cacheProviderResult) {
+                    // Can refresh the cache object if specified
+                    if (sql.hasOwnProperty('refreshCache')) {
+                        if (sql.refreshCache === true) {
+                            return this.miss(cacheObject)
                         }
-
-                        this.util.trace(colors.yellow(hash.slice(0, 15)) + ' ' + colors.red(colors.bold('MISS')))
-                        this.misses++
-                        this.dbQuery(sql, params, (err, result) => {
-                            if (err) {
-                                this.util.error(err, cb)
-                            } else {
-                                this.event.emit('miss', query, hash, result)
-
-                                TTLSet = this.config.TTL * 1000
-                                if (data) {
-                                    if (data.hasOwnProperty('TTL')) {
-                                        TTLSet = data.TTL * 1000
-                                    }
-                                    if (data.hasOwnProperty('cache')) {
-                                        if (data.cache === false) {
-                                            doCache = false
-                                        }
-                                    }
-                                }
-
-                                if (!this.config.caching || !doCache) {
-                                    cb(null, result, this.generateObject(false, hash, query))
-                                } else {
-                                    this.createKey(hash, result, TTLSet, (err, keyResult) => {
-                                        if (err) {
-                                            this.util.error(err, cb)
-                                        } else {
-                                            cb(null, result, this.generateObject(false, hash, query))
-                                        }
-                                    })
-                                }
-                            }
-                        })
                     }
+
+                    return this.hit(cacheObject)
                 }
-            })
-        } else {
-            this.dbQuery(sql, params, (err, result) => {
-                if (err) {
-                    this.util.error(err, cb)
-                } else {
-                    cb(null, result)
-                }
+
+                // Make the cache query MISS
+                this.miss(cacheObject)
             })
         }
+
+        this.dbQuery(sql, params, (err, result) => {
+            if (err) {
+                return cb(this.error(err))
+            }
+
+            cb(null, extend(result, this.generateObject(false, hash, query)))
+        })
+    }
+    /**
+     * Hits a query call
+     */
+    hit(obj) {
+        this.event.emit('hit', obj.query, obj.hash, obj.cacheProviderResult)
+        this.trace(colors.yellow(obj.hash.slice(0, 15)) + ' ' + colors.green(colors.bold('HIT')))
+        this.hits++
+
+        obj.cb(null, extend(obj.cacheProviderResult, this.generateObject(true, obj.hash, obj.query)))
+    }
+
+    /**
+     * Misses a query call
+     */
+    miss(obj) {
+        let TTLSet = 0
+
+        this.trace(colors.yellow(obj.hash.slice(0, 15)) + ' ' + colors.red(colors.bold('MISS')))
+        this.misses++
+
+        // Will this query be cached?
+        let doCache = true
+
+        if (obj.sql.hasOwnProperty('cache')) {
+            if (obj.sql.cache === false) {
+                doCache = false
+            }
+        }
+
+        this.dbQuery(obj.sql, obj.params, (err, result) => {
+            if (err) {
+                return obj.cb(this.error(err))
+            }
+
+            this.event.emit('miss', obj.query, obj.hash, result)
+
+            // Figure out some parameters configurations for this query
+            TTLSet = this.config.TTL * 1000
+            if (obj.data) {
+                if (obj.data.hasOwnProperty('TTL')) {
+                    TTLSet = obj.data.TTL * 1000
+                }
+                if (obj.data.hasOwnProperty('cache')) {
+                    if (obj.data.cache === false) {
+                        doCache = false
+                    }
+                }
+            }
+
+            // If we don't want to cache then just return the result without creating a cache key
+            if (!this.config.caching || !doCache) {
+                return obj.cb(null, extend(result, this.generateObject(false, obj.hash, obj.query)))
+            }
+
+            // Create a cache key for future references
+            this.createKey(obj.hash, result, TTLSet, (err, keyResult) => {
+                if (err) {
+                    return obj.cb(this.error(err))
+                }
+
+                obj.cb(null, extend(result, this.generateObject(false, obj.hash, obj.query)))
+            })
+        })
     }
 
     /**
@@ -271,9 +348,11 @@ class MysqlCache {
      */
     generateObject(isCache, hash, sql) {
         return {
-            isCache,
-            hash,
-            sql,
+            _cache: {
+                isCache,
+                hash,
+                sql,
+            },
         }
     }
 
@@ -284,17 +363,15 @@ class MysqlCache {
         cb = this.defineCallback(cb)
         this.getPool((err, connection) => {
             if (err) {
-                this.util.error(err, cb)
-            } else {
-                connection.query(sql, params, (err, rows) => {
-                    if (err) {
-                        this.util.error(err, cb)
-                    } else {
-                        this.endPool(connection)
-                        cb(null, rows)
-                    }
-                })
+                return cb(this.error(err))
             }
+            connection.query(sql, params, (err, rows) => {
+                if (err) {
+                    return cb(this.error(err))
+                }
+                this.endPool(connection)
+                cb(null, rows)
+            })
         })
     }
 
@@ -312,7 +389,7 @@ class MysqlCache {
         try {
             hash = crypto.createHash(this.config.hashing).update(id).digest('hex')
         } catch (error) {
-            this.util.error('Undefined hash method: ' + this.config.hashing)
+            throw new Error('Undefined hash method: ' + this.config.hashing)
         }
 
         return hash
@@ -362,7 +439,6 @@ class MysqlCache {
      * @param    {Function} cb
      */
     createKey(id, val, ttl, cb) {
-        cb = this.defineCallback(cb)
         this.event.emit('create', id, val, ttl)
         this.cacheProvider.run('set', id, val, ttl, (err, result) => {
             cb(err, result)
@@ -374,10 +450,9 @@ class MysqlCache {
      * @param    {Function} cb
      */
     getPool(cb) {
-        cb = this.defineCallback(cb)
         this.pool.getConnection((err, connection) => {
             if (err) {
-                this.util.error(err, cb)
+                cb(this.error(err))
             } else {
                 this.event.emit('getPool', connection)
                 this.poolConnections = this.pool._allConnections.length
@@ -411,13 +486,13 @@ class MysqlCache {
 
         this.pool.getConnection((err, connection) => {
             if (err) {
-                this.util.error(err, cb)
+                cb(this.error(err))
             } else {
                 this.pool.end(err => {
                     if (err) {
-                        this.util.error(err, cb)
+                        cb(this.error(err))
                     } else {
-                        this.util.trace(`${poolPrefix}: Pool is killed`)
+                        this.trace(`${poolPrefix}: Pool is killed`)
                         this.event.emit('killPool')
                         cb(null, true)
                     }

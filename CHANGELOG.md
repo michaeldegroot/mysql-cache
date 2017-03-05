@@ -1,10 +1,107 @@
+#  New in version 2.1.0 :rocket:
+
+#### Pretty Error has been removed
+There is no good support for throwing pretty error objects
+
+#### Can refresh a existing cached object
+A already cached object can be refreshed from the database:
+
+```javascript
+mysql.query({
+    sql:          'select 1 + 1 as solution',
+    refreshCache: true,
+},  (err, result) => {
+    if (err) {
+        throw new Error(err)
+    }
+    console.log(result) // Even though the query was cached, it will be retrieved from the database for this call and then be re-cached
+})
+```
+
+#### stdoutErrors config settings removed
+All error callbacks now return a error object, nothing is printed to console
+
+#### There is no more auto connect, you will have to initialize the connection yourself
+
+```javascript
+const MysqlCache = require('mysql-cache')
+
+const mysql = new MysqlCache({
+    host:            '',
+    user:            '',
+    password:        '',
+    database:        '',
+    cacheProvider:   'LRU',
+})
+
+mysql.connect(err => {
+    console.log('W00t! i\'m connected!!')
+
+    // Lets run some queries now!
+})
+```
+
+#### Query callback returns only one variable now
+
+*Previously*
+
+```Javascript
+mysql.query(someObject, (err, result, mysqlCache) => {
+    console.log('database result: ', result)
+    console.log('mysql-cache cached: ', mysqlCache.isCache)
+    console.log('mysql-cache hash: ', mysqlCache.hash)
+})
+```
+
+*Now*
+
+```Javascript
+mysql.query(someObject, (err, result) => {
+    console.log('database result: ', result)
+    console.log('mysql-cache cached: ', result._cache.isCache)
+    console.log('mysql-cache hash: ', result._cache.hash)
+})
+```
+
+#### Promises have been implemented via the bluebird module!
+
+ append the word 'Async' to any api call of mysql-cache and start using promises!
+
+```Javascript
+mysql.connectAsync().then(() => {
+    mysql.flushAsync().then(() => {
+        mysql.queryAsync({
+            sql: 'SELECT from test where name = ?',
+            nestTables: true,
+            params: [
+                'Joe'
+            ]
+        }).then(result => {
+            // Do something with result
+        }).catch(e => {
+            throw e
+        }).finally(() => {
+            // this will be always executed, even if it errors
+        })
+    }).catch(e => {
+        throw e
+    })
+}).catch(e => {
+    // Do something with the error, if it happened
+    throw e
+})
+```
+
 #  New in version 2.0.2 :rocket:
+
+#### New cacheProvider
+
 New cacheProvider added: memcached!
 
 #  New in version 2.0.0 :rocket:
 Multiple instances can now be created, some code has changed because of this.
 
- - You can ask mysql-cache to not cache a result
+#### You can ask mysql-cache to not cache a result
 
 ```javascript
 mysql.query({
@@ -15,7 +112,7 @@ mysql.query({
 })
 ```
 
- - There is no more .start or .init
+#### There is no more .start or .init
 
 You now create a new mysqlCache instance like so:
 
@@ -57,7 +154,6 @@ You are no longer binded to node-cache, you can now choose the following cache p
 
 #### Events:
  - Connected: when you want to know when a connection has been established with mysql
- - Error: when a error occurred within mysql-cache 
  - Miss: when a cache object was not found
  - Flush: when the cache was flushed
  - Delete: when a cache was delete

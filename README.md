@@ -40,7 +40,7 @@ const mysql = new MysqlCache({
     cacheProvider:   'LRU',
 })
 
-mysql.event.on('connected', () => {
+mysql.connect(err => {
     console.log('W00t! i\'m connected!!')
 
     // Lets run some queries now!
@@ -52,14 +52,14 @@ mysql.event.on('connected', () => {
 // Start executing SQL like you are used to using the mysql module
 
 
-mysql.query('SELECT ? + ? AS solution', [1, 5], (err, result, mysqlCache) => {
+mysql.query('SELECT ? + ? AS solution', [1, 5], (err, result) => {
     if (err) {
         throw new Error(err)
     }
     // Some extra information
-    console.log(mysqlCache.hash + ' is the cache key')
-    console.log(mysqlCache.sql + ' was the sql generated and run (if not cached)')
-    console.log(mysqlCache.isCache + ' boolean if the result was from cache or not')
+    console.log(result._cache.hash + ' is the cache key')
+    console.log(result._cache.sql + ' was the sql generated and run (if not cached)')
+    console.log(result._cache.isCache + ' boolean if the result was from cache or not')
 
     // The actual sql result
     console.log(result)
@@ -75,14 +75,14 @@ mysql.query('SELECT ? + ? AS solution', [1, 5], (err, result, mysqlCache) => {
     mysql.query({
         sql:    'SELECT ? + ? AS solution', 
         params: [1, 5],
-    }, (err, result, mysqlCache) => {
+    }, (err, result) => {
         if (err) {
             throw new Error(err)
         }
         // This query was retrieved from the cache because it was the 
         // exact same sql code, which was much faster call!
 
-        console.log(mysqlCache.isCache === true) // Should be true :)
+        console.log(result._cache.isCache === true) // Should be true :)
 
         // Do something with the results
     })
@@ -96,6 +96,8 @@ Here you can have a overview of a more defined mysql-cache object
 
 ```javascript
 const mysql = new MysqlCache({
+    // You can put any configuration settings from the mysql package here, they are compatible!
+
     // Nice error formatting display
     prettyError: true,
 
@@ -145,6 +147,38 @@ const mysql = new MysqlCache({
             failOverServers:['192.168.0.103:11211'],
         }
     }
+})
+```
+___
+
+#  Promises
+mysql-cache uses bluebird to create promises. If you would like to use them just append the word 'Async' to any api call of mysql-cache that you would like to return promises.
+
+__Example__
+```Javascript
+mysql.connectAsync().then(() => {
+    mysql.flushAsync().then(() => {
+        mysql.queryAsync({
+            sql: 'SELECT from test where name = ?',
+            nestTables: true,
+            params: [
+                'Joe'
+            ]
+        }).then(result => {
+            // Do something with result
+        }).catch(e => {
+            // Do something with the error, if it happened
+            throw e
+        }).finally(() => {
+            // this will be always executed
+        })
+    }).catch(e => {
+        // Do something with the error, if it happened
+        throw e
+    })
+}).catch(e => {
+    // Do something with the error, if it happened
+    throw e
 })
 ```
 
@@ -334,6 +368,8 @@ mysql.query({
 __Example with one time setting per query__
 
 ```javascript
+
+// Setting the TTL
 mysql.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (err, result) => {
     if (err) {
         throw new Error(err)
@@ -343,6 +379,7 @@ mysql.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (er
     TTL: 6 // Will set TTL to 6 seconds only for this query
 })
 
+// Setting the cache option
 mysql.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (err, result) => {
     if (err) {
         throw new Error(err)
@@ -350,6 +387,14 @@ mysql.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (er
     console.log(result)
 }, {
     cache: false // Will not cache this query
+})
+
+// Setting the cache option alternative method
+mysql.query({
+    sql:'SELECT 6 + 6 AS solution',
+    cache: false, // Do not cache this query
+}, (err, resultMysql, mysqlCache) => {
+    // Do something with your results
 })
 ```
 
@@ -367,14 +412,14 @@ mysql.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (er
 __Example with getting some extra information from mysql-cache__
 
 ```javascript
-mysql.query('SELECT 6 + 6 AS solution', (err, mysqlResult, mysqlCache) => {
-    const mysqlCacheHash = mysqlCache.hash.slice(0, 12)
+mysql.query('SELECT 6 + 6 AS solution', (err, result) => {
+    const mysqlCacheHash = result._cache.hash.slice(0, 12)
     if (mysqlCache.isCache) {
         console.log(mysqlCacheHash + ': is from the cache!')
     } else {
         console.log(mysqlCacheHash + ': is NOT from the cache!')
     }
-    console.log('The result of the sql ' + mysqlCache.sql + ' = ' + mysqlResult[0].solution)
+    console.log('The result of the sql ' + result._cache.sql + ' = ' + mysqlResult[0].solution)
 })
 ```
 
@@ -464,6 +509,23 @@ mysql.killPool(err => {
     console.log('Pool killed!')
 })
 ```
+
+## Important editor notes
+#### How to refresh a cached object?
+A already cached object can be refreshed (retrieve from db and then re-cache):
+
+```javascript
+mysql.query({
+    sql:          'select 1 + 1 as solution',
+    refreshCache: true,
+},  (err, result) => {
+    if (err) {
+        throw new Error(err)
+    }
+    console.log(result) // Even though the query was cached, it will be retrieved from the database for this call and then be re-cached
+})
+```
+
  ___
 ## Contact
 You can contact me at specamps@gmail.com

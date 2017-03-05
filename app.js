@@ -1,5 +1,8 @@
 'use strict'
 
+// Take a moment to rejoice the fact how this code looks now versus this:
+// https://github.com/michaeldegroot/mysql-cache/blob/4739b184c5d397e901775cbf68f938168af8dadc/app.js
+
 const colors        = require('colors')
 const crypto        = require('crypto')
 const events        = require('events')

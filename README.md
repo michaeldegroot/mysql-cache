@@ -1,8 +1,8 @@
 [![](https://nodei.co/npm/mysql-cache.png?downloads=true&downloadRank=true&stars=true)](https://www.npmjs.com/package/mysql-cache)
 
 [![](https://david-dm.org/michaeldegroot/mysql-cache.svg)](https://david-dm.org/michaeldegroot/mysql-cache 'david-dm')
-[![](https://travis-ci.org/michaeldegroot/mysql-cache.svg?branch=master)](https://travis-ci.org/michaeldegroot/mysql-cache)
-[![](https://coveralls.io/repos/michaeldegroot/mysql-cache/badge.svg?branch=master&service=github)](https://coveralls.io/github/michaeldegroot/mysql-cache?branch=master)
+[![](https://travis-ci.org/michaeldegroot/mysql-cache.svg?branch=npm)](https://travis-ci.org/michaeldegroot/mysql-cache)
+[![](https://coveralls.io/repos/michaeldegroot/mysql-cache/badge.svg?branch=npm&service=github)](https://coveralls.io/github/michaeldegroot/mysql-cache?branch=npm)
 ![](https://img.shields.io/badge/Node-%3E%3D4.0-green.svg)
 ![](https://img.shields.io/npm/dt/mysql-cache.svg)
 ![](https://img.shields.io/npm/l/mysql-cache.svg)
@@ -19,7 +19,7 @@ This module is wrapping some functions of the [mysql2](https://www.npmjs.com/pac
 
 ![preview](http://i.imgur.com/BReK4GW.gif)
 ___
-# [Changelog](https://github.com/michaeldegroot/mysql-cache/blob/master/CHANGELOG.md)
+# [Changelog](https://github.com/michaeldegroot/mysql-cache/blob/npm/CHANGELOG.md)
 
 ___
 

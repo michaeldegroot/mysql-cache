@@ -1,3 +1,40 @@
+#  New in version 2.1.1 :rocket:
+#### Disconnect function added
+
+```javascript
+mysql.connectAsync().then(connected => {
+    if (connected) {
+        mysql.disconnectAsync().then(() => {
+            // Now fully disconnected from mysql
+        }).catch(err => {
+            console.error('Could not disconnect:', err)
+        })
+    }
+}).catch(err => {
+    console.error('Could not connect:', err)
+})
+```
+#### xxhash added
+A new hashing algorithm for cache keys as been added to choose from, xxhash:
+https://cyan4973.github.io/xxHash/
+
+#### Farmhash added
+Now the default hashing algorithm for cache keys (hashfarm64), Very fast!
+https://github.com/lovell/farmhash
+
+#### Benchmarks fixed
+cacheProvider module was also being cached, resulting in wrong benchmark tests!
+
+#### dbQuery event added
+
+```javascript
+mysql.event.on('dbQuery', info => {
+    console.log('Mysql call has been fired', info)
+})
+```
+
+*Called when a sql query was fired to the mysql database, as apposed to the query event; which is before the pre-cache check*
+
 #  New in version 2.1.0 :rocket:
 
 #### Pretty Error has been removed
@@ -153,9 +190,9 @@ You are no longer binded to node-cache, you can now choose the following cache p
     yarn add mmap-object@1.1.1`
 
 #### Events:
- - Connected: when you want to know when a connection has been established with mysql
- - Miss: when a cache object was not found
- - Flush: when the cache was flushed
- - Delete: when a cache was delete
- - Hit: when a cache object was found
- - Query: when a query is going to be run, before the cache check and cache object key generation
+ - connected: when you want to know when a connection has been established with mysql
+ - miss: when a cache object was not found
+ - flush: when the cache was flushed
+ - delete: when a cache was delete
+ - hit: when a cache object was found
+ - query: when a query is run, before the cache check and cache object key generation

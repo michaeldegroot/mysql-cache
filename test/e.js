@@ -12,12 +12,12 @@ describe('Cache parameter suite', function() {
         const db = new MysqlCache(settings)
 
         db.connectAsync().then(() => {
-            db.query({sql:'SELECT 6 + 6 AS solution'}, (err, resultMysql) => {
+            db.query({sql:'SELECT 6 + 6 AS solution'}, (err, resultMysql, cache) => {
                 assert.equal(resultMysql[0].solution, 12)
-                assert.equal(resultMysql._cache.isCache, false)
-                db.query({sql:'SELECT 6 + 6 AS solution'}, (err, resultMysql) => {
+                assert.equal(cache.isCache, false)
+                db.query({sql:'SELECT 6 + 6 AS solution'}, (err, resultMysql, cache) => {
                     assert.equal(resultMysql[0].solution, 12)
-                    assert.equal(resultMysql._cache.isCache, true)
+                    assert.equal(cache.isCache, true)
                     done()
                 })
             })
@@ -29,12 +29,12 @@ describe('Cache parameter suite', function() {
         const db = new MysqlCache(settings)
 
         db.connectAsync().then(() => {
-            db.query({sql:'SELECT 6 + 6 AS solution'}, (err, resultMysql) => {
+            db.query({sql:'SELECT 6 + 6 AS solution'}, (err, resultMysql, cache) => {
                 assert.equal(resultMysql[0].solution, 12)
-                assert.equal(resultMysql._cache.isCache, false)
-                db.query({sql:'SELECT 6 + 6 AS solution'}, (err, resultMysql) => {
+                assert.equal(cache.isCache, false)
+                db.query({sql:'SELECT 6 + 6 AS solution'}, (err, resultMysql, cache) => {
                     assert.equal(resultMysql[0].solution, 12)
-                    assert.equal(resultMysql._cache.isCache, false)
+                    assert.equal(cache.isCache, false)
                     done()
                 })
             })

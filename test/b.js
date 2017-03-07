@@ -17,9 +17,9 @@ describe('Init Test Suite', function() {
     })
     it('disable cache, call query', done => {
         settings.caching = false
-        db.query({sql:'SELECT 6 + 6 AS solution'}, (err, resultMysql) => {
+        db.query({sql:'SELECT 6 + 6 AS solution'}, (err, resultMysql, cache) => {
             assert.equal(resultMysql[0].solution, 12)
-            assert.equal(resultMysql._cache.isCache, false)
+            assert.equal(cache.isCache, false)
             done()
         })
     })

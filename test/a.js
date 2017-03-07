@@ -23,13 +23,13 @@ describe('Main Application Suite', function() {
 
     it('Call invalid cacheprovider action', () => {
         assert.throws(() => {
-            db.cacheProvider.run('thiswillneverexistsprobably', db.createId('test:D'), null, null)
+            db.cacheProvider.run()
         }, Error)
     })
 
     it('Call a query', done => {
-        db.query('SELECT ? + ? AS solution', [1, 5], (err, resultMysql) => {
-            assert.equal(resultMysql[0].solution, 6)
+        db.query('SELECT ? + ? AS solution', [1, 5], (err, res, cache) => {
+            assert.equal(res[0].solution, 6)
             setTimeout(() => {
                 assert.equal(db.queries, 1)
                 assert.equal(db.misses, 1)
@@ -56,8 +56,11 @@ describe('Main Application Suite', function() {
     it('Call a INSERT query', done => {
         db.query('insert into test set ?', {
             name: 1337,
-        }, (err, resultMysql) => {
-            assert.equal(err, null)
+        }, (err, res) => {
+            if (err) {
+                throw err
+            }
+            assert.equal(res.affectedRows, 1)
             setTimeout(() => {
                 assert.equal(db.queries, 3)
                 assert.equal(db.misses, 2)
@@ -69,7 +72,10 @@ describe('Main Application Suite', function() {
     })
 
     it('Delete the inserted row', done => {
-        db.query('delete from test where name = ?', [1337], (err, resultMysql) => {
+        db.query('delete from test where name = ?', ['1337'], (err, resultMysql) => {
+            if (err) {
+                throw err
+            }
             assert.equal(resultMysql.affectedRows, 1)
             setTimeout(() => {
                 assert.equal(db.queries, 4)
@@ -83,6 +89,9 @@ describe('Main Application Suite', function() {
 
     it('Call a query as sql object', done => {
         db.query({sql:'SELECT 6 + 6 AS solution'}, (err, resultMysql) => {
+            if (err) {
+                throw err
+            }
             assert.equal(resultMysql[0].solution, 12)
             setTimeout(() => {
                 assert.equal(db.queries, 5)
@@ -106,9 +115,9 @@ describe('Main Application Suite', function() {
     })
 
     it('Test cache', done => {
-        db.query('SELECT ? + ? AS solution', [1, 5], (err, resultMysql) => {
+        db.query('SELECT ? + ? AS solution', [1, 5], (err, resultMysql, cache) => {
             assert.equal(resultMysql[0].solution, 6)
-            assert.equal(resultMysql._cache.isCache, true)
+            assert.equal(cache.isCache, true)
             setTimeout(() => {
                 assert.equal(db.queries, 7)
                 assert.equal(db.misses, 3)

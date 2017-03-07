@@ -5,36 +5,29 @@ const settings           = require('../settings').settings()
 const MysqlCache         = require('../app')
 const Benchmark          = require('benchmark')
 const suite              = new(Benchmark.Suite)
-let go                   = false
 const db                 = new MysqlCache(settings)
 const loopCacheProviders = db.cacheProviders
 
-const benchmarkFunction = (provider, deferred) => {
-    if (provider !== 'no-cache') {
-        db.config.cacheProvider = provider
-        db.config.caching       = true
-    } else {
-        db.config.cacheProvider = 'native'
-        db.config.caching       = false
-    }
+const mysql2 = require('mysql2')
+const connection = mysql2.createConnection(settings)
 
-    if (db.cacheProvider.provider !== provider && provider !== 'no-cache') {
-        db.cacheProvider.setup(db.config)
-    }
+connection.connect()
 
-    if (provider === 'no-cache' && db.cacheProvider.provider !== 'native') {
-        db.cacheProvider.setup(db.config)
-    }
-
-    if (!go) {
-        process.nextTick(() => {
+const benchmarkFunction = (provider, deferred, myDb) => {
+    if (provider === 'mysql2') {
+        return connection.query('SELECT ? + ? AS SOLUTION', [
+                Math.floor(Math.random() * 100000000000) + 1  + Math.floor(Math.random() * 100000000000) + 1  ,
+                Math.floor(Math.random() * 100000000000) + 1  + Math.floor(Math.random() * 100000000000) + 1  ,
+            ]
+        , (err, mysql, cache) => {
+            if (err) {
+                throw new Error(err)
+            }
             deferred.resolve()
         })
-
-        return
     }
 
-    db.query({
+    myDb.query({
         sql:    'SELECT ? + ? AS SOLUTION',
         params: [
             5,
@@ -44,18 +37,18 @@ const benchmarkFunction = (provider, deferred) => {
         if (err) {
             throw new Error(err)
         }
-        process.nextTick(() => {
-            deferred.resolve()
-        })
+        deferred.resolve()
     })
 }
 
-suite.add('no-cache', {
+suite.add('mysql2', {
     defer: true,
     fn:    deferred => {
-        benchmarkFunction('no-cache', deferred)
+        benchmarkFunction('mysql2', deferred)
     },
 })
+
+let addedIndex = 0
 
 async.each(loopCacheProviders, function(item) {
     if (item === 'mmap') {
@@ -68,11 +61,28 @@ async.each(loopCacheProviders, function(item) {
         }
     }
 
-    suite.add(item, {
-        defer: true,
-        fn:    deferred => {
-            benchmarkFunction(item, deferred)
-        },
+    settings.cacheProvider = item
+    const newDb = new MysqlCache(settings)
+
+    newDb.connect(err => {
+        if (err) {
+            throw err
+        }
+
+        suite.add(item, {
+            defer: true,
+            fn:    deferred => {
+                benchmarkFunction(item, deferred, newDb)
+            },
+        })
+
+        addedIndex++
+
+        if (addedIndex >= loopCacheProviders.length) {
+            suite.run({
+                'async': false,
+            })
+        }
     })
 })
 
@@ -83,8 +93,4 @@ suite.on('cycle', function(event) {
 suite.on('complete', function() {
     console.log('Fastest is ' + this.filter('fastest').map('name'))
     process.exit()
-})
-
-suite.run({
-    'async': true,
 })

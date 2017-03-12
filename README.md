@@ -41,6 +41,9 @@ const mysql = new MysqlCache({
 })
 
 mysql.connect(err => {
+    if (err) {
+        throw err // Catch any nasty errors!
+    }
     console.log('W00t! i\'m connected!!')
 
     // Lets run some queries now!
@@ -51,38 +54,39 @@ mysql.connect(err => {
 ```javascript
 // Start executing SQL like you are used to using the mysql module
 
-
-mysql.query('SELECT ? + ? AS solution', [1, 5], (err, result) => {
+mysql.query('SELECT ? + ? AS solution', [1, 5], (err, res, cache) => {
     if (err) {
         throw new Error(err)
     }
     // Some extra information
-    console.log(result._cache.hash + ' is the cache key')
-    console.log(result._cache.sql + ' was the sql generated and run (if not cached)')
-    console.log(result._cache.isCache + ' boolean if the result was from cache or not')
+    console.log(cache.hash + ' is the cache key')
+    console.log(cache.sql + ' was the sql generated and run (if not cached)')
+    console.log(cache.isCache + ' boolean if the result was from cache or not')
 
     // The actual sql result
-    console.log(result)
+    console.log(res)
 
-    // This sql was not in the cache and was cached for future references
+    // This sql was not in the cache and was cached
+    // for future references
 
     // Do something with the output of the sql
 
     // Later in your code if this exact sql is run again
-    // It will retrieve it from cache instead of the database.
+    // It will be retrieved from your choosen
+    // cacheProvider instead of the Mysql database.
 
     // Can also use a configuration object if you like that :)
     mysql.query({
-        sql:    'SELECT ? + ? AS solution', 
+        sql:    'SELECT ? + ? AS solution',
         params: [1, 5],
-    }, (err, result) => {
+    }, (err, res, cache) => {
         if (err) {
             throw new Error(err)
         }
-        // This query was retrieved from the cache because it was the 
+        // This query was retrieved from the cache because it was the
         // exact same sql code, which was much faster call!
 
-        console.log(result._cache.isCache === true) // Should be true :)
+        console.log(cache.isCache === true) // Should be true :)
 
         // Do something with the results
     })
@@ -117,7 +121,14 @@ const mysql = new MysqlCache({
     // To avoid conflicts sha512 should be really safe, but it's slow!
     // You can choose all the nodejs supported hashing methods as defined
     // In the native crypto module of nodejs itself.
-    hashing: 'sha512',
+
+    // Extra hashing methods are also available:
+    // farmhash32     https://github.com/lovell/farmhash#hash32input
+    // farmhash64     https://github.com/lovell/farmhash#hash64input
+    // xxhash         https://cyan4973.github.io/xxHash/
+
+    // Default hashing algorithm is farmhash64
+    hashing: 'farmhash64',
 
     // Do you want console.log's about what the program is doing?
     verbose: true,
@@ -134,7 +145,7 @@ const mysql = new MysqlCache({
     // file         https://www.npmjs.com/package/cacheman-file
     // native       local variable assignment
     // You can also use mysql.cacheProviders this is a array with strings of the avaliable cacheProviders
-    cacheProvider: 'memcached',   
+    cacheProvider: 'memcached',
 
     // cacheProviders can be supplied with additional configurations via this variable!
     cacheProviderSetup: {
@@ -166,6 +177,12 @@ mysql.connectAsync().then(() => {
             ]
         }).then(result => {
             // Do something with result
+
+            // To get the cache object for extra info:
+            console.log(result[1])
+
+            // To get the database result:
+            console.log(result[0])
         }).catch(e => {
             // Do something with the error, if it happened
             throw e
@@ -181,7 +198,6 @@ mysql.connectAsync().then(() => {
     throw e
 })
 ```
-
 ___
 # Clustered mode or Persistent mode
 Want cached data to persist on restarts in your application? OR Running a application in clustered mode but want to share the cache? check this list below for compatibility for the cacheProviders:
@@ -196,9 +212,20 @@ Want cached data to persist on restarts in your application? OR Running a applic
 ## Troubleshooting
 
 ##### Glibc errors on yarn/npm install (ubuntu)
-```
+```bash
 wget http://launchpadlibrarian.net/130794928/libc6_2.17-0ubuntu4_amd64.deb
 sudo dpkg -i libc6_2.17-0ubuntu4_amd64.deb
+```
+##### Getting make errors on yarn/npm install (ubuntu)
+```bash
+sudo apt-get install python-software-properties
+sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+sudo apt-get update
+sudo apt-get install gcc-5 g++-5
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 80 --slave /usr/bin/g++ g++ /usr/bin/g++-5
+sudo update-alternatives --config gcc
+
+// (choose gcc-5 from the list)
 ```
 ___
 ## Benchmarks
@@ -244,9 +271,14 @@ mysql.event.on('miss', (query, hash, result) => {
     console.log('mysql-cache got a miss on a cache object!', query, hash, result)
 })
 
-// When a query was run
+// When a query was run (pre-cache)
 mysql.event.on('query', sql => {
     console.log('mysql-cache is going to run a query, it might be cached or not we dont know yet: ' + sql)
+})
+
+// When a sql is fired to the database
+mysql.event.on('dbQuery', obj => {
+    console.log(obj)
 })
 
 // When a pool connection is accquired
@@ -286,13 +318,13 @@ mysql.event.on('delete', hash => {
 ## Properties
 ```js
 // Get total cache misses
-console.log(mysql.misses) 
+console.log(mysql.misses)
 
 // Get total cache hits
-console.log(mysql.hits) 
+console.log(mysql.hits)
 
 // Get total qeury requests
-console.log(mysql.queries) 
+console.log(mysql.queries)
 
 // Get total insert queries run
 console.log(mysql.inserts)
@@ -313,13 +345,13 @@ console.log(mysql.poolConnections)
 console.log(mysql.config)
 
 // Get or set the configured TTL for all future made caches
-mysql.TTL = 5  // TTL is always defined in SECONDS
-console.log(mysql.TTL)
+mysql.config.TTL = 5  // TTL is always defined in SECONDS
+console.log(mysql.config.TTL)
 
 // Get the mysql2 package mysql variable
 console.log(mysql.mysql)
 
-// Get the cache providers availible
+// Get the cache providers available
 console.log(mysql.cacheProviders)
 ```
 
@@ -329,20 +361,20 @@ console.log(mysql.cacheProviders)
 ```js
 sql:        String    // The sql you want to execute
 *params:    Object    // This is used if you want to escape values
-callback:   Function  // For getting the (err, result) back of the query.
+callback:   Function  // For getting the (err, res, cache) back of the query.
 data:       Object    // One time settings for this query, check below for more
 ```
 
 \* [More about escaping values by using params](https://github.com/felixge/node-mysql/blob/master/Readme.md#escaping-query-values)
 
-*Will execute the given SQL and cache the (err, result) if it's a SELECT statement.*
+*Will execute the given SQL and cache the (err, res, cache) if it's a SELECT statement.*
 *If the SQL was executed before, it will skip the database request and retrieve it from the cache straight away.*
 *Invalid queries will throw a error*
 
 __Example #1__
 
 ```javascript
-mysql.query('SELECT id,username,avatar FROM accounts WHERE id = ?', [530], (err, result) => {
+mysql.query('SELECT id,username,avatar FROM accounts WHERE id = ?', [530], (err, res, cache) => {
     if (err) {
         throw new Error(err)
     }
@@ -357,7 +389,7 @@ __Example #2__
 mysql.query({
     sql:'SELECT 6 + ? AS solution',
     params: [4],
-}, (err, result) => {
+}, (err, res, cache) => {
     if (err) {
         throw new Error(err)
     }
@@ -370,7 +402,7 @@ __Example with one time setting per query__
 ```javascript
 
 // Setting the TTL
-mysql.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (err, result) => {
+mysql.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (err, res, cache) => {
     if (err) {
         throw new Error(err)
     }
@@ -380,7 +412,7 @@ mysql.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (er
 })
 
 // Setting the cache option
-mysql.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (err, result) => {
+mysql.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (err, res, cache) => {
     if (err) {
         throw new Error(err)
     }
@@ -393,7 +425,7 @@ mysql.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (er
 mysql.query({
     sql:'SELECT 6 + 6 AS solution',
     cache: false, // Do not cache this query
-}, (err, resultMysql, mysqlCache) => {
+}, (err, res, cacheMysql, mysqlCache) => {
     // Do something with your results
 })
 ```
@@ -401,7 +433,7 @@ mysql.query({
 __Example with error handling__
 
 ```javascript
-mysql.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (err, result) => {
+mysql.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (err, res, cache) => {
     if (err) {
         throw new Error(err)
     }
@@ -412,14 +444,14 @@ mysql.query('SELECT id, username, avatar FROM accounts WHERE id = ?', [530], (er
 __Example with getting some extra information from mysql-cache__
 
 ```javascript
-mysql.query('SELECT 6 + 6 AS solution', (err, result) => {
-    const mysqlCacheHash = result._cache.hash.slice(0, 12)
+mysql.query('SELECT 6 + 6 AS solution', (err, res, cache) => {
+    const mysqlCacheHash = cache.hash.slice(0, 12)
     if (mysqlCache.isCache) {
         console.log(mysqlCacheHash + ': is from the cache!')
     } else {
         console.log(mysqlCacheHash + ': is NOT from the cache!')
     }
-    console.log('The result of the sql ' + result._cache.sql + ' = ' + mysqlResult[0].solution)
+    console.log('The result of the sql ' + cache.sql + ' = ' + mysqlResult[0].solution)
 })
 ```
 
@@ -511,14 +543,14 @@ mysql.killPool(err => {
 ```
 
 ## Important editor notes
-#### How to refresh a cached object?
+#### Refreshing cache objects
 A already cached object can be refreshed (retrieve from db and then re-cache):
 
 ```javascript
 mysql.query({
     sql:          'select 1 + 1 as solution',
     refreshCache: true,
-},  (err, result) => {
+},  (err, res, cache) => {
     if (err) {
         throw new Error(err)
     }

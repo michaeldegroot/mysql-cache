@@ -26,28 +26,23 @@ describe('Weird and random suite', function() {
         db.trace('kappa')
     })
 
-    it('test error', () => {
-        db.error(new Error('TESTTT :D'))
-    })
-
-    it('test error #2', () => {
-        db.error(new Error('TESTTT :D'))
-    })
-
     it('cacheprovider: illigal run action', () => {
-        assert.throws(() => {
-            db.cacheProvider.run('ditbestaatniet', 'klappa', null, null, err => {
-                if (err) {
-                    throw new Error(err)
-                }
-            })
-        }, Error)
+        db.cacheProvider.runAsync({
+            action: 'ditbestaatniet',
+        }).then(() => {
+            // should never hit
+            assert.equal(true, false)
+        }).catch(err => {
+            assert.throws(() => {
+                throw new Error(err)
+            }, Error)
+        })
     })
 
     it('cacheprovider: illigal cacheprovider action', () => {
         settings.cacheProvider = 'clappa'
         assert.throws(() => {
-            const db = new MysqlCache(settings)
+            new MysqlCache(settings)
         }, Error)
     })
 

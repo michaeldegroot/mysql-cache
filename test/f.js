@@ -12,13 +12,13 @@ describe('Promises suite', function() {
         const db = new MysqlCache(settings)
 
         db.connectAsync().then(() => {
-            db.queryAsync({sql:'SELECT 6 + 6 AS solution'}).then(result => {
-                assert.equal(result[0].solution, 12)
-                assert.equal(result._cache.isCache, false)
+            db.queryAsync({sql:'SELECT 6 + 6 AS solution'}).then(res => {
+                assert.equal(res[0][0].solution, 12)
+                assert.equal(res[1].isCache, false)
             }).then(() => {
                 db.queryAsync({sql:'SELECT 6 + 6 AS solution'}).then(result => {
-                    assert.equal(result[0].solution, 12)
-                    assert.equal(result._cache.isCache, true)
+                    assert.equal(result[0][0].solution, 12)
+                    assert.equal(result[1].isCache, true)
                     done()
                 })
             })
@@ -36,13 +36,13 @@ describe('Promises suite', function() {
                         name: 'test',
                     }).then(result => {
                         db.queryAsync({sql:'SELECT * from test where name = ?', params: ['test']}).then(result => {
-                            assert.equal(result[0].name, 'test')
-                            assert.equal(result._cache.isCache, false)
+                            assert.equal(result[0][0].name, 'test')
+                            assert.equal(result[1].isCache, false)
 
                             db.queryAsync({sql:'UPDATE test SET name = ? where name = ?', params: ['test2', 'test']}).then(result => {
                                 db.queryAsync({sql:'SELECT * from test where name = ?', params: ['test'], refreshCache: true}).then(result => {
-                                    assert.equal(result[0], undefined)
-                                    assert.equal(result._cache.isCache, false)
+                                    assert.equal(result[0][0], undefined)
+                                    assert.equal(result[1].isCache, false)
                                     done()
                                 }).catch(e => {
                                     throw e

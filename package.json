@@ -37,7 +37,8 @@
     "lru-cache": "^4.0.2",
     "memcached": "^2.2.2",
     "moment": "^2.17.1",
-    "mysql2": "^1.1.2"
+    "mysql2": "^1.1.2",
+    "node-cache": "^4.1.1"
   },
   "devDependencies": {
     "assert-plus": "^1.0.0",

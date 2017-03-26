@@ -77,6 +77,68 @@ const doRun = (provider, cb) => {
             })
         })
 
+        it('Cache zones', done => {
+            db.query({
+                sql:    'SELECT ? + ? AS solution',
+                params: [420, 420],
+                zone:   'klappazone',
+            }, (err, res, cache) => {
+                if (err) {
+                    throw err
+                }
+
+                db.query({
+                    sql:    'SELECT ? + ? AS solution',
+                    params: [425, 425],
+                    zone:   'klappazone',
+                }, (err, res, cache) => {
+                    if (err) {
+                        throw err
+                    }
+
+                    db.query({
+                        sql:    'SELECT ? + ? AS solution',
+                        params: [430, 430],
+                    }, (err, res, cache) => {
+                        if (err) {
+                            throw err
+                        }
+                        db.clearZone('klappazone', () => {
+                            db.query({
+                                sql:    'SELECT ? + ? AS solution',
+                                params: [430, 430],
+                            }, (err, res, cache) => {
+                                if (err) {
+                                    throw err
+                                }
+                                assert.equal(cache.isCache, true)
+
+                                db.query({
+                                    sql:    'SELECT ? + ? AS solution',
+                                    params: [420, 420],
+                                }, (err, res, cache) => {
+                                    if (err) {
+                                        throw err
+                                    }
+                                    assert.equal(cache.isCache, false)
+                                    db.query({
+                                        sql:    'SELECT ? + ? AS solution',
+                                        params: [425, 425],
+                                    }, (err, res, cache) => {
+                                        if (err) {
+                                            throw err
+                                        }
+                                        assert.equal(cache.isCache, false)
+                                        done()
+                                    })
+                                })
+                            })
+                        })
+                    })
+                })
+            })
+        })
+
         if (provider !== 'mmap') {
             it('Test TTL one time setting (2 seconds)', done => {
                 db.query('SELECT ? + ? AS solution', [344, 1], (err1, resultMysql1, cache) => {

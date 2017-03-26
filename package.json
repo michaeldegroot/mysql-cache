@@ -1,6 +1,6 @@
 {
   "name": "mysql-cache",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Automatically caches SELECT sql's in memory with cacheProviders of your choice",
   "main": "app.js",
   "scripts": {
@@ -33,13 +33,12 @@
     "check-nested": "^0.0.6",
     "colors": "^1.1.2",
     "extend": "^3.0.0",
-    "farmhash": "^1.2.1",
+    "install-package": "^0.4.0",
     "lru-cache": "^4.0.2",
     "memcached": "^2.2.2",
     "moment": "^2.17.1",
     "mysql2": "^1.1.2",
-    "node-cache": "^4.1.1",
-    "xxhash": "^0.2.4"
+    "node-cache": "^4.1.1"
   },
   "devDependencies": {
     "assert-plus": "^1.0.0",

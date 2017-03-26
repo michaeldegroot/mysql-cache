@@ -12,9 +12,6 @@ ___
 # What it does
 Automatically caches SELECT sql's in memory, you have serveral cache providers at your disposal and it can even work in clustered mode via redis or mmap!!
 
-If you want to use the mmap cacheprovider install the dependency: `
-    yarn add mmap-object@1.1.1` this is because windows users have reported problems with it.
-
 This module is wrapping some functions of the [mysql2](https://www.npmjs.com/package/mysql2) module for ease of use
 
 ![preview](http://i.imgur.com/BReK4GW.gif)
@@ -160,6 +157,11 @@ const mysql = new MysqlCache({
     }
 })
 ```
+___
+
+#  Automatic package installer
+mysql-cache can use some packages that will optimise the performance. This is dependent on your settings but if mysql-cache wants to use a module that is not installed (for example mmap-object, farmhash or xxhash) then it will be Automatically installed, so the first time might run a bit slow. Any warnings or errors are printed to the console, fatal errors will throw a exception
+
 ___
 
 #  Promises

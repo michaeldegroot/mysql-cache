@@ -8,25 +8,7 @@ const suite              = new(Benchmark.Suite)
 const db                 = new MysqlCache(settings)
 const loopCacheProviders = db.cacheProviders
 
-const mysql2 = require('mysql2')
-const connection = mysql2.createConnection(settings)
-
-connection.connect()
-
 const benchmarkFunction = (provider, deferred, myDb) => {
-    if (provider === 'mysql2') {
-        return connection.query('SELECT ? + ? AS SOLUTION', [
-                Math.floor(Math.random() * 100000000000) + 1  + Math.floor(Math.random() * 100000000000) + 1  ,
-                Math.floor(Math.random() * 100000000000) + 1  + Math.floor(Math.random() * 100000000000) + 1  ,
-            ]
-        , (err, mysql, cache) => {
-            if (err) {
-                throw new Error(err)
-            }
-            deferred.resolve()
-        })
-    }
-
     myDb.query({
         sql:    'SELECT ? + ? AS SOLUTION',
         params: [
@@ -41,14 +23,7 @@ const benchmarkFunction = (provider, deferred, myDb) => {
     })
 }
 
-suite.add('mysql2', {
-    defer: true,
-    fn:    deferred => {
-        benchmarkFunction('mysql2', deferred)
-    },
-})
-
-let addedIndex = 0
+let addedIndex = 1
 
 async.each(loopCacheProviders, function(item) {
     if (item === 'mmap') {
@@ -93,4 +68,8 @@ suite.on('cycle', function(event) {
 suite.on('complete', function() {
     console.log('Fastest is ' + this.filter('fastest').map('name'))
     process.exit()
+})
+
+suite.run({
+    'async': true,
 })

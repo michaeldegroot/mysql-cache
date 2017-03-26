@@ -1,3 +1,76 @@
+#  New in version 2.1.2 :rocket:
+#### Optional package installer
+
+Modules like farmhash, xxhash and mmap-object will now be automatically  installed. But only if the module is about to be used, so these packages are now optional and will not cause any problems for people that can't compile them.
+
+Thanks to the module 'install-package' !
+
+```javascript
+    /**
+     * Uses or installs a package
+     */
+    usePackage(moduleName, cb) {
+        try {
+            require.resolve(moduleName)
+        } catch (e) {
+            if (e.code === 'MODULE_NOT_FOUND') {
+                this.trace(`Module ${moduleName} not installed, installing...`)
+
+                return install(moduleName).then(result => {
+                    cb(result.stderr, require(moduleName))
+                }).catch(e => {
+                    cb(e, null)
+                })
+            } else {
+                throw new Error(e)
+            }
+        }
+
+        return cb(null, require(moduleName))
+    }
+```
+
+#### Cache zones added
+Can now define cache zones: all queries that are execute with a zone definition will be saved and grouped in a 'zone group' you can easily clear the cache of a whole zone with the new api features:
+
+```javascript
+    mysql.query({
+        sql: 'SELECT ? + ? AS solution',
+        params: [1, 5],
+        zone: 'mycoolzone', // Define a zone
+    }, (err, res, cache) => {
+        if (err) {
+            throw err
+        }
+        mysql.query({
+            sql: 'SELECT ? + ? AS solution',
+            params: [42, 0],
+            zone: 'mycoolzone', // Use the same zone
+        }, (err, res, cache) => {
+            if (err) {
+                throw err
+            }
+
+            // Now clear both cache easily:
+            mysql.clearZone('mycoolzone', err => {
+                if (err) {
+                    throw err
+                }
+            })
+
+            // Or request all hashes in this zone
+            mysql.zone('mycoolzone', (err, hashes) => {
+                if (err) {
+                    throw err
+                }
+
+                console.log(hashes) // Returns: [32498549932, 0909210054] 
+            })
+        })
+    })
+```
+
+
 #  New in version 2.1.1 :rocket:
 #### Disconnect function added
 

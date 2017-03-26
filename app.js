@@ -9,11 +9,10 @@ const crypto        = require('crypto')
 const events        = require('events')
 const extend        = require('extend')
 const Promise       = require('bluebird')
-const farmhash      = require('farmhash')
 const CacheProvider = require('./lib/cacheProvider')
-const XXHash        = require('xxhash')
 const moment        = require('moment')
 const checkNested   = require('check-nested')
+const install       = require('install-package')
 
 // Some constants
 const poolPrefix = colors.cyan('Pool')
@@ -143,6 +142,29 @@ class MysqlCache {
     }
 
     /**
+     * Uses or installs a package
+     */
+    usePackage(moduleName, cb) {
+        try {
+            require.resolve(moduleName)
+        } catch (e) {
+            if (e.code === 'MODULE_NOT_FOUND') {
+                this.trace(`Module ${moduleName} not installed, installing...`)
+
+                return install(moduleName).then(result => {
+                    cb(result.stderr, require(moduleName))
+                }).catch(e => {
+                    cb(e, null)
+                })
+            } else {
+                throw new Error(e)
+            }
+        }
+
+        return cb(null, require(moduleName))
+    }
+
+    /**
      * Flushes all cache
      */
     flush(cb) {
@@ -203,6 +225,7 @@ class MysqlCache {
     query(sql, params, cb, data) {
         this.queries++
         let query
+        let zone = 'DEFAULT_MYSQL_CACHE_ZONE'
 
         if (typeof params === 'function') {
             data = cb
@@ -217,6 +240,16 @@ class MysqlCache {
             params = []
             if (sql.hasOwnProperty('params')) {
                 params = sql.params
+            }
+        }
+
+        if (sql.hasOwnProperty('zone')) {
+            zone = sql.zone
+        }
+
+        if (data) {
+            if (data.hasOwnProperty('zone')) {
+                zone = data.zone
             }
         }
 
@@ -238,6 +271,7 @@ class MysqlCache {
             type,
             params,
             data,
+            zone,
         }, cb)
     }
 
@@ -373,7 +407,7 @@ class MysqlCache {
             }
 
             // Create a cache key for future references
-            return this.createKey(obj.hash, result, TTLSet, (err, keyResult) => {
+            return this.createKey(obj.hash, result, TTLSet, obj.zone, (err, keyResult) => {
                 if (err) {
                     return cb(err)
                 }
@@ -438,15 +472,33 @@ class MysqlCache {
         let hash = null
 
         if (this.config.hashing === 'xxhash') {
-            return cb(null, XXHash.hash(new Buffer(id), 0xCAFEBABE).toString())
+            return this.usePackage('xxhash', (err, module) => {
+                if (err) {
+                    this.trace(`Warning when installing module 'xxhash': ${err}`)
+                }
+
+                return cb(null, module.hash(new Buffer(id), 0xCAFEBABE).toString())
+            })
         }
 
         if (this.config.hashing === 'farmhash32') {
-            return cb(null, farmhash.hash32(id).toString())
+            return this.usePackage('farmhash', (err, module) => {
+                if (err) {
+                    this.trace(`Warning when installing module 'farmhash': ${err}`)
+                }
+
+                return cb(null, module.hash32(id).toString())
+            })
         }
 
         if (this.config.hashing === 'farmhash64') {
-            return cb(null, farmhash.hash64(id).toString())
+            return this.usePackage('farmhash', (err, module) => {
+                if (err) {
+                    this.trace(`Warning when installing module 'farmhash': ${err}`)
+                }
+
+                return cb(null, module.hash64(id).toString())
+            })
         }
 
         try {
@@ -512,7 +564,7 @@ class MysqlCache {
      * @param    {Number}   ttl
      * @param    {Function} cb
      */
-    createKey(hash, val, ttl, cb) {
+    createKey(hash, val, ttl, zone, cb) {
         this.event.emit('create', hash, val, ttl)
 
         return this.cacheProvider.run({
@@ -520,8 +572,23 @@ class MysqlCache {
             hash,
             val,
             ttl,
+            zone,
         }, (err, result) => {
             return cb(err, result)
+        })
+    }
+
+    /**
+     * Clears a cache zone
+     * @param    {String}   Zone name
+     * @param    {Function} cb
+     */
+    clearZone(zone, cb) {
+        return this.cacheProvider.run({
+            action: 'clearzone',
+            zone,
+        }, err => {
+            return cb(err)
         })
     }
 

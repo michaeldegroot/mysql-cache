@@ -7,26 +7,49 @@ const suite              = new(Benchmark.Suite)
 
 const db = new MysqlCache(settings)
 
-suite.add('xxhash', {
-    fn: () => {
-        db.config.hashing = 'xxhash'
-        db.createHashAsync(Math.floor(Math.random() * 99999999999) + 1)
-    },
-})
+let loadXXhash = true
 
-suite.add('farmhash64', {
-    fn: () => {
-        db.config.hashing = 'farmhash64'
-        db.createHashAsync(Math.floor(Math.random() * 99999999999) + 1)
-    },
-})
+try {
+    require.resolve('xxhash')
+} catch (e) {
+    if (e.code === 'MODULE_NOT_FOUND') {
+        console.warn('xxhash not installed, skipping for this test.')
+        loadXXhash = false
+    }
+}
+if (loadXXhash) {
+    suite.add('xxhash', {
+        fn: () => {
+            db.config.hashing = 'xxhash'
+            db.createHashAsync(Math.floor(Math.random() * 99999999999) + 1)
+        },
+    })
+}
 
-suite.add('farmhash32', {
-    fn: () => {
-        db.config.hashing = 'farmhash32'
-        db.createHashAsync(Math.floor(Math.random() * 99999999999) + 1)
-    },
-})
+let loadFarmhash = true
+
+try {
+    require.resolve('farmhash')
+} catch (e) {
+    if (e.code === 'MODULE_NOT_FOUND') {
+        console.warn('farmhash not installed, skipping for this test.')
+        loadFarmhash = false
+    }
+}
+if (loadFarmhash) {
+    suite.add('farmhash64', {
+        fn: () => {
+            db.config.hashing = 'farmhash64'
+            db.createHashAsync(Math.floor(Math.random() * 99999999999) + 1)
+        },
+    })
+    suite.add('farmhash32', {
+        fn: () => {
+            db.config.hashing = 'farmhash32'
+            db.createHashAsync(Math.floor(Math.random() * 99999999999) + 1)
+        },
+    })
+}
 
 suite.add('sha512', {
     fn: () => {

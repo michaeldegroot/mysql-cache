@@ -31,7 +31,6 @@
     "cacheman-memory": "^1.0.2",
     "cacheman-redis": "^1.1.2",
     "check-nested": "^0.0.6",
-    "colors": "^1.1.2",
     "extend": "^3.0.0",
     "install-package": "^0.4.0",
     "lru-cache": "^4.0.2",

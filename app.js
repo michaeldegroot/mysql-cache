@@ -53,6 +53,7 @@ class MysqlCache {
         this.updates         = 0
         this.cacheProvider   = new CacheProvider(this, this.config)
         this.cacheProviders  = this.cacheProvider.getAll()
+        this.loadedPackages  = {}
     }
 
     /**
@@ -145,23 +146,27 @@ class MysqlCache {
      * Uses or installs a package
      */
     usePackage(moduleName, cb) {
-        try {
-            require.resolve(moduleName)
-        } catch (e) {
-            if (e.code === 'MODULE_NOT_FOUND') {
-                this.trace(`Module ${moduleName} not installed, installing...`)
+        if (this.loadedPackages.hasOwnProperty(moduleName) === false) {
+            try {
+                require.resolve(moduleName)
+            } catch (e) {
+                if (e.code === 'MODULE_NOT_FOUND') {
+                    this.trace(`Module ${moduleName} not installed, installing...`)
 
-                return install(moduleName).then(result => {
-                    cb(result.stderr, require(moduleName))
-                }).catch(e => {
-                    cb(e, null)
-                })
-            } else {
-                throw new Error(e)
+                    return install(moduleName).then(result => {
+                        cb(result.stderr, require(moduleName))
+                    }).catch(e => {
+                        cb(e, null)
+                    })
+                } else {
+                    throw new Error(e)
+                }
             }
+
+            this.loadedPackages[moduleName] = require(moduleName)
         }
 
-        return cb(null, require(moduleName))
+        return cb(null, this.loadedPackages[moduleName])
     }
 
     /**

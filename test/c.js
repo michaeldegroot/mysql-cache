@@ -139,7 +139,7 @@ const doRun = (provider, cb) => {
             })
         })
 
-        if (provider !== 'mmap') {
+        if (provider !== 'mmap' && provider !== 'flatdb') {
             it('Test TTL one time setting (2 seconds)', done => {
                 db.query('SELECT ? + ? AS solution', [344, 1], (err1, resultMysql1, cache) => {
                     if (err1) {

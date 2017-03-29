@@ -33,6 +33,7 @@
     "check-nested": "^0.0.6",
     "colors": "^1.1.2",
     "extend": "^3.0.0",
+    "flat-file-db": "^1.0.0",
     "install-package": "^0.4.0",
     "lru-cache": "^4.0.2",
     "memcached": "^2.2.2",

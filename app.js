@@ -257,7 +257,7 @@ class MysqlCache {
         cb = this.defineCallback(cb)
 
         // Determine the query type: SELECT, UPDATE, etc
-        const type = query.split(' ')[0].toLowerCase()
+        const type = query.split(/\s/g)[0].toLowerCase()
 
         // Let the mysql package forumulate the query object and send a event emit
         query = this.mysql.format(query, params)
